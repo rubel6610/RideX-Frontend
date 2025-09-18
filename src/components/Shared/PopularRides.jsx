@@ -25,7 +25,50 @@ const PopularRides = () => {
                 </div>
 
                 {/* Rides Grid */}
-                
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <Link href="/rides/bike" className="group">
+                        <div className="card-elevated p-6 space-y-4 hover-lift shadow-md bg-accent-foreground/5 rounded-2xl flex flex-col items-center transition-all duration-200 group-hover:bg-primary/5 cursor-pointer border border-primary/30">
+                            <h3 className="font-semibold text-xl text-primary mb-2 flex items-center w-full justify-between">
+                                Ride by bike
+                                <ArrowRight className="h-5 w-5 text-primary" />
+                            </h3>
+                            <Image
+                                src={bikeImg}
+                                alt="Ride by bike"
+                                className="w-80 h-60 object-contain mx-auto"
+                                priority
+                            />
+                        </div>
+                    </Link>
+                    <Link href="/rides/cng" className="group">
+                        <div className="card-elevated p-6 space-y-4 hover-lift shadow-md bg-accent-foreground/5 rounded-2xl flex flex-col items-center transition-all duration-200 group-hover:bg-primary/5  cursor-pointer border border-primary/30">
+                            <h3 className="font-semibold text-xl text-primary mb-2 flex items-center w-full justify-between">
+                                Ride by Cng
+                                <ArrowRight className="h-5 w-5 text-primary" />
+                            </h3>
+                            <Image
+                                src={cngImg}
+                                alt="Ride by Cng"
+                                className="w-80 h-60 object-contain mx-auto"
+                                priority
+                            />
+                        </div>
+                    </Link>
+                    <Link href="/rides/car" className="group">
+                        <div className="card-elevated p-6 space-y-4 hover-lift shadow-md bg-accent-foreground/5 rounded-2xl flex flex-col items-center transition-all duration-200 group-hover:bg-primary/5  cursor-pointer border border-primary/30">
+                            <h3 className="font-semibold text-xl text-primary mb-2 flex items-center w-full justify-between">
+                                Ride by Car
+                                <ArrowRight className="h-5 w-5 text-primary" />
+                            </h3>
+                            <Image
+                                src={carImg}
+                                alt="Ride by Car"
+                                className="w-80 h-60 object-contain mx-auto"
+                                priority
+                            />
+                        </div>
+                    </Link>
+                </div>
             </div>
         </section>
     );
