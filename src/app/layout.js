@@ -2,6 +2,7 @@
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from '@/components/Shared/Navbar/Navbar';
+import Footer from "@/components/Shared/Footer/Footer";
 
 // // ✅ Roboto font config
 // const roboto = Roboto({
@@ -29,7 +30,7 @@ export default function RootLayout({ children }) {
           <main>{children}</main>
 
           {/* fixed footer */}
-          <footer>{/* will update */}</footer>
+          <footer><Footer /></footer>
         </ThemeProvider>
       </body>
     </html>

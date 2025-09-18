@@ -16,9 +16,9 @@ const Sidebar = ({
 }) => {
   return (
     <div
-      className={`fixed top-20 right-0 h-full w-full bg-sidebar shadow-lg z-[997] transform transition-all duration-300 
+      className={`fixed top-[76px] right-0 h-full w-full bg-sidebar shadow-lg z-[997] transform transition-all duration-300 
         ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}
-        ${showNavbar ? 'translate-y-0' : '-translate-y-full'}
+        ${showNavbar ? 'translate-y-0' : `-translate-y-[calc(100vh+76px)]`}
       `}
     >
       <div className="flex flex-col divide-y divide-border font-medium">
