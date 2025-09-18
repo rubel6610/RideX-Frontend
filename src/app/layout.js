@@ -18,20 +18,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`antialiased`}>
-        <ThemeProvider>
-          {/* fixed navbar */}
-          <header>
-            <Navbar />
-          </header>
-
-          {/* main content */}
-          <main>{children}</main>
-
-          {/* fixed footer */}
-          <footer><Footer /></footer>
-        </ThemeProvider>
+     <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
+      <body className="dark:bg-gray-900 dark:text-white">
+        {children}
       </body>
     </html>
   );
