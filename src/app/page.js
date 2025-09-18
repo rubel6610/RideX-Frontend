@@ -1,4 +1,5 @@
 import Banner from '@/components/Shared/Banner';
+import BecomeRidexAndPassenger from '@/components/Shared/BecomeRidexAndPassenger';
 import FeaturedDrivers from '@/components/Shared/FeaturedDrivers';
 import React from 'react';
 
@@ -7,6 +8,7 @@ const Home = () => {
     <div className=''>
       <Banner/>
       <FeaturedDrivers/>
+      <BecomeRidexAndPassenger/>
     </div>
   );
 };
