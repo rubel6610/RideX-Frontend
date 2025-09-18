@@ -24,11 +24,11 @@ function RegisterPage() {
       </div>
 
       {/* register page from  */}
-      <form className='shadow-lg p-8 rounded-xl space-y-3 max-w-xl mx-auto border border-muted-foreground/10'>
+      <form className='shadow-lg p-8 rounded-xl space-y-4 max-w-xl mx-auto border border-muted-foreground/10'>
         <p className='text-muted-foreground text-center mb-8'>Sign up as a driver to earn money by providing rides</p>
 
         {/* first & last name field  */}
-        <div className='space-y-2 grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4'>
+        <div className='space-y-2 md:space-y-0 grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4'>
           <div>
             <label>First Name</label>
             <Input type="text" placeholder="Type your first name"></Input>
