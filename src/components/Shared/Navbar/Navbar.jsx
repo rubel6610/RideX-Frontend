@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Bike, Car, BusFront, TextAlignJustify } from 'lucide-react';
+import Sidebar from './Sidebar';
 import Image from "next/image";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ const Navbar = () => {
     <>
       {/* Navbar */}
       <div
-        className={`font-[var(--font-roboto)] fixed top-0 left-0 right-0 z-[999] shadow-sm flex items-center justify-between px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
+        className={`fixed top-0 left-0 right-0 z-[999] shadow-sm flex items-center justify-between px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
       >
         <div className="flex items-center gap-10">
           {/* Left: Brand */}
@@ -182,7 +183,13 @@ const Navbar = () => {
       </div>
 
       {/* Sidebar Component */}
-      {/* will add */}
+     <Sidebar
+        sidebarOpen={sidebarOpen}
+        toggleSidebar={toggleSidebar}
+        rideByOpen={rideByOpen}
+        toggleRideBy={toggleRideBy}
+        showNavbar={showNavbar}
+      />
     </>
   );
 };
