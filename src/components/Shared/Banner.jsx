@@ -9,7 +9,7 @@ import  heroImage  from '@/Assets/hero-ridex.jpg';
 const Banner = () => {
   return (
     <section className="pt-10 pb-16 ">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-12/12 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-8 animate-fade-in-up">
@@ -53,7 +53,7 @@ const Banner = () => {
           {/* Right Content - Hero Image */}
           <div className="relative animate-slide-in-right">
             <div className="relative">
-              <Image src={heroImage} alt='hero image' height={600} width={600} className='rounded-2xl scale-100 hover:scale-105 transition-transform ease-out delay-100'/>
+              <Image src={heroImage} alt='hero image' className='rounded-2xl scale-100 hover:scale-105 transition-transform ease-out delay-100'/>
               
               {/* Floating Stats */}
               <div className="absolute -bottom-6 -left-6 bg-card border border-border rounded-xl p-4 shadow-lg animate-bounce-in">
