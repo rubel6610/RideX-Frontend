@@ -3,14 +3,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Bike, Car, BusFront, TextAlignJustify } from 'lucide-react';
+import { Moon, Sun } from "lucide-react";
 import logo from '../../../Assets/ridex-logo.webp';
 import darkLogo from '../../../Assets/logo-dark.webp';
 import Sidebar from './Sidebar';
 import Image from "next/image";
-import { ModeToggle } from "@/components/ModeToggle";
 import { Button } from "@/components/ui/button";
+import useTheme from "@/app/hooks/themeContext";
 
 const Navbar = () => {
+  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -174,7 +176,17 @@ const Navbar = () => {
         {/* Right: Theme Toggle + Ride Now + Hamburger */}
         <div className="flex items-center gap-2 sm:gap-4 py-4">
           {/* Theme Toggle */}
-          <ModeToggle />
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 transition"
+          >
+            {theme === "light" ? (
+              <Moon className="w-6 h-6 text-gray-800" />
+            ) : (
+              <Sun className="w-6 h-6 text-yellow-400" />
+            )}
+          </button>
 
           {/* Ride Now Button */}
           <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-border font-semibold text-primary">

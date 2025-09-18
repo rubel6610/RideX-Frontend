@@ -1,6 +1,5 @@
 // import { Roboto } from 'next/font/google';
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from '@/components/Shared/Navbar/Navbar';
 import Footer from "@/components/Shared/Footer/Footer";
 
@@ -20,7 +19,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <ThemeProvider>
           {/* fixed navbar */}
           <header>
             <Navbar />
@@ -31,7 +29,6 @@ export default function RootLayout({ children }) {
 
           {/* fixed footer */}
           <footer><Footer /></footer>
-        </ThemeProvider>
       </body>
     </html>
   );
