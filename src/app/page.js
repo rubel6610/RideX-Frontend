@@ -1,9 +1,12 @@
+import Banner from '@/components/Shared/Banner';
+import FeaturedDrivers from '@/components/Shared/FeaturedDrivers';
 import React from 'react';
 
 const Home = () => {
   return (
-    <div>
-      Home
+    <div className=''>
+      <Banner/>
+      <FeaturedDrivers/>
     </div>
   );
 };
