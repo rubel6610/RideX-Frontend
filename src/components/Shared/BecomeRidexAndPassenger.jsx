@@ -3,8 +3,6 @@ import React from 'react';
 
 const landingPage = () => {
     return (
-        
-
    
    <div>
      <section className="py-16">
@@ -67,9 +65,6 @@ const landingPage = () => {
 
       </div>
     </section>
-
-    
-        
    </div>
         
     );
