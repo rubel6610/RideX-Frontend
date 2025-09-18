@@ -95,7 +95,7 @@ const Navbar = () => {
               </button>
 
               {/* Dropdown menu */}
-              <div className="absolute top-full left-0 mt-0.5 border border-border flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
+              <div className="absolute top-full left-0 mt-0.5 border border-border bg-background flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
                 <Link
                   href="/ride-bike"
                   className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-border ${activeStyle(
@@ -163,7 +163,7 @@ const Navbar = () => {
           <ModeToggle />
 
           {/* Ride Now Button */}
-          <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base font-semibold text-primary">
+          <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-border font-semibold text-primary">
             <Link
               href="/ride-now"
             >

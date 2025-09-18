@@ -90,7 +90,7 @@ export default function Footer() {
         <p>©2025 RIdeX Technologies. All rights reserved</p>
         <div className="flex gap-4 mt-2 md:mt-0">
           <Link href="#" className="hover:underline">Terms of Service</Link>
-          <Link href="#" className="hover:underline">Privacy Policy</Link>
+          <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
         </div>
       </div>
     </footer>
