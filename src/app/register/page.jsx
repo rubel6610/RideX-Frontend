@@ -1,17 +1,24 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import CarLogo from '../../Assets/car-icon.png'
+import Image from 'next/image'
 import React from 'react'
 
 function RegisterPage() {
 
-
-
   return (
-    <div className='mt-24 container mx-auto mb-16'>
+    <div className='mt-28 container mx-auto mb-16'>
 
       {/* title and logo  */}
-      <div className='text-center space-y-3 my-10'>
-        <h2 className='text-4xl text-primary font-bold'>Join RedeX</h2>
+      <div className='flex flex-col items-center space-y-2 my-10'>
+        <Image
+          src={CarLogo}
+          alt="car-logo"
+          width={60}
+          height={60}
+          className=''
+        />
+        <h2 className='text-3xl text-primary font-bold'>Join RedeX</h2>
         <p className='text-muted-foreground'>Create your account to get started</p>
       </div>
 
@@ -50,8 +57,12 @@ function RegisterPage() {
         <input type="checkbox" /> <small className='text-muted-foreground'>
           I agree to the <span className='text-primary'>Terms of Service</span> and <span className='text-primary'>Privacy Policy</span>
         </small>
-        <br />
+
         <Button variant="primaryBtn" className="w-full">Create Account</Button>
+        {/* google register button  */}
+        <Button variant="outline" className="w-full"> Continue with Google</Button>
+        {/* facebook register button  */}
+        <Button variant="outline" className="w-full"> Continue with Facebook</Button>
       </form>
     </div>
   )
