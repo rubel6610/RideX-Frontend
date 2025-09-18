@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Bike, Car, BusFront, TextAlignJustify } from 'lucide-react';
+import logo from '../../../Assets/ridex-logo.webp';
+import darkLogo from '../../../Assets/logo-dark.webp';
 import Sidebar from './Sidebar';
 import Image from "next/image";
 import { ModeToggle } from "@/components/ModeToggle";
@@ -70,10 +72,22 @@ const Navbar = () => {
           {/* Left: Brand */}
           <Link
             href="/"
-            className="text-xl md:text-2xl leading-0 font-bold font-oxygen text-[var(--primary)]"
+            className="dark:hidden text-xl md:text-2xl leading-0 font-bold font-oxygen text-[var(--primary)]"
           >
             <Image
-              src="/ridex-logo.webp"
+              src={logo}
+              alt="RideX Logo"
+              width={120}
+              height={50}
+              className="object-contain"
+            />
+          </Link>
+          <Link
+            href="/"
+            className="hidden dark:block text-xl md:text-2xl leading-0 font-bold font-oxygen text-[var(--primary)]"
+          >
+            <Image
+              src={darkLogo}
               alt="RideX Logo"
               width={120}
               height={50}
