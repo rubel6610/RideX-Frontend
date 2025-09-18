@@ -1,9 +1,8 @@
+export default Home;
 // tailwind.config.js
 module.exports = {
-  darkMode: "class",
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  darkMode: 'class',
+  content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {},
   },
