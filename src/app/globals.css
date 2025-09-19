@@ -9,3 +9,9 @@
 } 
 
 
+.dark input::placeholder{
+    color: rgba(255, 255, 255, 0.507)
+}
+input::placeholder{
+    color: var(--secondary);
+}
