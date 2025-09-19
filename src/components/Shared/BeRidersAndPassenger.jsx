@@ -8,14 +8,15 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Button } from "../ui/button";
+import Link from "next/link";
 const BeRidersAndPassenger = () => {
   return (
     <div>
       <section className="py-16">
-        <div className="max-w-7xl  mx-auto px-6 grid md:grid-cols-2 gap-10">
+        <div className=" px-6 grid md:grid-cols-2 ">
           {/* Rider Section */}
 
-          <div className="border border-[#90fc47]/20 rounded-2xl  p-8">
+          <div className="border card border-[#90fc47]/20 rounded-2xl  px-10">
             <div className="flex gap-4 bg-[#90fc47]/16 :bg-gray-800 w-40 p-1 rounded-xl text-primary">
               <span className="text-[#90fc47] ml-1">
                 <Users />
@@ -32,7 +33,7 @@ const BeRidersAndPassenger = () => {
               Join millions of Riders who choose RideX for safe, reliable, and
               affordable transportation.
             </p>
-            <ul className="space-y-3 text-gray-700">
+            <ul className="space-y-3  text-gray-700">
               <div className="flex gap-2">
                 <h1 className="text-primary   bg-[#90fc47]/20 dark:bg-[#90fc47]/4 rounded p-1">
                   <span className="text-[#90fc47]">
@@ -71,15 +72,15 @@ const BeRidersAndPassenger = () => {
                 24/7 Availability with dedicated support
               </li>
             </ul>
-            <button className="mt-6 w-full flex items-center justify-center gap-2 bg-[#90fc47] text-black px-6 py-3 rounded-lg font-medium hover:bg-[#90fc47]/80 transition">
+            <Link href={`/register`} className="mt-7 w-full flex items-center justify-center gap-2 btn-primary p-2 rounded">
               <Users />
-              Sign Up as Rider
-            </button>
-            <h1 className="text-gray-600 dark:text-gray-300 mt-6 text-center">Already have an account? <span className="text-[#90fc47]">Sign in here</span></h1>
+              Sign Up as Passenger
+            </Link>
+            <h1 className="text-gray-600 dark:text-gray-300 mt-6 text-center">Already have an account? <Link href={`/SignIn`} className="text-[#90fc47]">Sign in here</Link></h1>
           </div>
 
           {/* Driver Section */}
-          <div className="border border-[#90fc47]/20 rounded-2xl  p-8">
+          <div className="border card border-[#90fc47]/20 rounded-2xl  p-8">
             <div className="flex gap-2  bg-[#90fc47]/16 :bg-gray-800 w-40 p-1 rounded-xl text-primary">
               <span className="text-[#90fc47] ml-2">
                 <Car />
@@ -139,7 +140,7 @@ const BeRidersAndPassenger = () => {
               </li>
             </ul>
 
-            <button className="mt-6 w-full flex items-center justify-center text-black gap-2 bg-[#90fc47]  px-6 py-3 rounded-lg font-medium hover:bg-[#90fc47]/90 transition">
+            <button className="mt-6 w-full flex items-center justify-center btn-primary">
               Apply to Driver
             </button>
               <h1 className="text-gray-600 dark:text-gray-300 mt-6 text-center">Requirements: Valid license,insurance, and vehicle inspection</h1>
