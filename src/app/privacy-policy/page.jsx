@@ -3,9 +3,9 @@ import React from 'react';
 
 const PrivacyPolicy = () => {
     return (
-        <div className="min-h-screen flex justify-center pt-7 pb-10">
-            <div className="w-full max-w-[1440px] px-4 md:px-16 py-12">
-                <div className="w-screen relative left-1/2 right-1/2 -translate-x-1/2 bg-[#eafbe5] py-18 mb-6">
+        <div className=" flex justify-center pt-7 pb-10">
+            <div className="w-full  px-4 md:px-16 py-12">
+                <div className=" underline py-18 mb-6">
                     <h1 className="text-4xl md:text-5xl font-bold text-[var(--primary)] text-center">Privacy Policy</h1>
                 </div>
                 <div className="text-muted-foreground text-base my-8">Last updated: {new Date().toLocaleDateString()}</div>
