@@ -36,11 +36,13 @@ function LoginPage() {
         <Input type="password" placeholder="Create a strong password"></Input>
 
         {/* Create account button  */}
-     
+        <Button variant="primaryBtn" className="w-full">
+          Sign In
+        </Button>
         {/* google login button  */}
-    
+
         {/* facebook login button  */}
-   
+
         {/* toggle sign Up page  */}
         <p className="text-center text-muted-foreground">
           Din't have account? Please{" "}
