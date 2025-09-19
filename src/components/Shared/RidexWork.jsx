@@ -24,7 +24,7 @@ const Belal = () => {
   ];
 
   return (
-    <section className=" section-feature px-6 py-12 text-center">
+    <section className="section-feature px-6 py-12 text-center">
       {/* Top Tag */}
       <div className="inline-flex w-40 items-center justify-center gap-2 bg-[#90fc47]/14 text-sm font-semibold px-3 py-1 rounded mb-4">
         <Car />
