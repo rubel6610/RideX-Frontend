@@ -1,8 +1,7 @@
 // import { Roboto } from 'next/font/google';
+import Navbar from "@/components/Shared/Navbar/Navbar";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import Navbar from '@/components/Shared/Navbar/Navbar';
-import Footer from "@/components/Shared/Footer/Footer";
+import Footer from "@/components/Shared/Footer";
 
 // // ✅ Roboto font config
 // const roboto = Roboto({
@@ -18,20 +17,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`antialiased`}>
-        <ThemeProvider>
-          {/* fixed navbar */}
-          <header>
-            <Navbar />
-          </header>
-
-          {/* main content */}
-          <main>{children}</main>
-
-          {/* fixed footer */}
-          <footer><Footer /></footer>
-        </ThemeProvider>
+    <html lang="en" data-theme="light">
+      <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
+        <Navbar />
+        {children}
+        <Footer />
       </body>
     </html>
   );
