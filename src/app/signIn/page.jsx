@@ -88,8 +88,9 @@ function LoginPage() {
         <p className='text-center text-black/60 dark:text-white/60'>
           Din't have account? Please{" "}
           <span className='text-[var(--primary)] underline cursor-pointer'>
-            <Link href="/register" />
+            <Link href="/register" >
             Sign Up
+            </Link>
           </span>
         </p>
       </form>
