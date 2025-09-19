@@ -42,9 +42,13 @@ function LoginPage() {
         {/* google login button  */}
         <Button variant="outline" className="w-full">
           {" "}
-          Continue with Google 
+          Continue with Google
         </Button>
         {/* facebook login button  */}
+        <Button variant="outline" className="w-full">
+          {" "}
+          Continue with Facebook
+        </Button>
 
         {/* toggle sign Up page  */}
         <p className="text-center text-muted-foreground">
