@@ -3,6 +3,7 @@ import { ArrowRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import  heroImage  from '@/Assets/hero-ridex.jpg';
+import { Input } from '../ui/input';
 const Banner = () => {
   return (
     <section className="pt-10 pb-16 ">
@@ -31,11 +32,11 @@ const Banner = () => {
             <div className=" p-6 space-y-4">
               <h3 className="text-lg font-semibold">Book Your Ride Now</h3>
               <div className="space-y-3">
-                <input 
+                <Input 
                   placeholder="Pickup location" 
                   className="bg-background border-border shadow-xs w-full"
                 />
-                <input 
+                <Input 
                   placeholder="Where to?" 
                   className="border-border shadow-xs w-full"
                 />
