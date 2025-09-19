@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import  heroImage  from '@/Assets/hero-ridex.jpg';
-
-
 const Banner = () => {
   return (
     <section className="pt-10 pb-16 ">
@@ -56,9 +54,9 @@ const Banner = () => {
               <Image src={heroImage} alt='hero image' className='rounded-2xl scale-100 hover:scale-105 transition-transform ease-out delay-100'/>
               
               {/* Floating Stats */}
-              <div className="absolute -bottom-6 -left-6 bg-card border border-border rounded-xl p-4 shadow-lg animate-bounce-in">
+              <div className="absolute -bottom-6 -left-6 bg-card border border-border rounded-xl p-4 shadow-lg animate-bounce-in bg-[#90fc47]/50 dark:bg-[#1A3A05]/50">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-success/10 rounded-lg">
+                  <div className="p-2 bg-success/10 rounded-lg ">
                     <Star className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -68,7 +66,7 @@ const Banner = () => {
                 </div>
               </div>
               
-              <div className="absolute -top-6 -right-6 bg-card border border-border rounded-xl p-4 shadow-lg animate-bounce-in delay-300">
+              <div className="absolute -top-6 -right-6 bg-card border border-border rounded-xl p-4 shadow-lg animate-bounce-in delay-300 bg-[#90fc47]/50 dark:bg-[#1A3A05]/50">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-accent/10 rounded-lg">
                     <ArrowRight className="h-5 w-5 text-primary" />
