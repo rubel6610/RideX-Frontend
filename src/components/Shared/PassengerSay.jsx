@@ -28,7 +28,7 @@ const PassengerSay = () => {
   ];
 
   return (
-    <section className="py-16 px-6 md:px-16">
+    <section className="section-feature py-16 px-6 md:px-16">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-12">
         <p className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#90fc47]/16 dark:bg-gray-800">
