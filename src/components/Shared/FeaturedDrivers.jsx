@@ -32,7 +32,7 @@ const FeaturedDrivers = () => {
   ];
 
   return (
-    <section className="py-16 bg-muted/30">
+    <section className="py-16 section-feature">
       <div className="max-w-11/12 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center space-y-4 mb-12">
@@ -51,7 +51,7 @@ const FeaturedDrivers = () => {
         {/* Drivers Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {drivers.map((driver, index) => (
-            <div key={index} className="card-elevated p-6 space-y-4 hover-lift shadow-md bg-accent/15 rounded-2xl ">
+            <div key={index} className="card p-6 space-y-4 hover-lift shadow-md bg-accent/15 rounded-2xl ">
               <div className="flex items-start space-x-4">
                 <Image 
                   src={driverImage} 
@@ -93,7 +93,7 @@ const FeaturedDrivers = () => {
                 </div>
               </div>
 
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full btn-outline">
                 Request {driver.name.split(' ')[0]}
               </Button>
             </div>
@@ -102,7 +102,7 @@ const FeaturedDrivers = () => {
 
         {/* CTA */}
         <div className="text-center mt-12 w-4/12 mx-auto">
-          <Button variant="primaryBtn" className="px-8 w-full">
+          <Button variant="primaryBtn" className="px-8 w-full btn-primary">
             <Award className="mr-2 h-4 w-10  hover:text-accent-foreground" />
             Become a Featured Driver
           </Button>

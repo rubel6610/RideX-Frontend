@@ -7,7 +7,7 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0a101c] text-white px-5 sm:px-6 xl:px-28 ">
+    <footer className="section-footer text-white px-5 sm:px-6 xl:px-28 ">
       <div className="max-w-7xl mx-auto py-10 grid grid-cols-1 md:grid-cols-5 gap-8">
         {/* Left Section */}
           <div className="md:col-span-2">

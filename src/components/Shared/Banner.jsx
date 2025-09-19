@@ -12,7 +12,7 @@ const Banner = () => {
           {/* Left Content */}
           <div className="space-y-8 animate-fade-in-up">
             <div className="space-y-6">
-              <div className="inline-flex items-center px-4 py-2 bg-accent text-accent-foreground rounded-full text-sm font-medium">
+              <div className="inline-flex items-center px-4 py-2  bg-gray-200 dark:text-black rounded-full text-sm font-medium">
                 <Star className="h-4 w-4 mr-2" />
                 #1 Rated Ride-Sharing Platform
               </div>
@@ -29,18 +29,18 @@ const Banner = () => {
             </div>
 
             {/* Quick Booking Form */}
-            <div className="card-elevated p-6 space-y-4">
+            <div className=" p-6 space-y-4">
               <h3 className="text-lg font-semibold">Book Your Ride Now</h3>
               <div className="space-y-3">
-                <Input 
+                <input 
                   placeholder="Pickup location" 
-                  className="bg-background border-border shadow-xs"
+                  className="bg-background border-border shadow-xs w-full"
                 />
-                <Input 
+                <input 
                   placeholder="Where to?" 
-                  className="bg-background border-border shadow-xs"
+                  className=" border-border shadow-xs w-full"
                 />
-                <Button variant="primaryBtn" className="w-full ">
+                <Button variant="primaryBtn" className="l btn-outline">
                   Find Ride
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

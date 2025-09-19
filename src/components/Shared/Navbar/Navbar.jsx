@@ -68,13 +68,13 @@ const Navbar = () => {
     <>
       {/* Navbar */}
       <div
-        className={`fixed top-0 left-0 right-0 z-[999] bg-white text-black dark:bg-gray-900 dark:text-white border-b border-[#6CC832]/20 shadow-sm flex items-center justify-between h-19 px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
+        className={` navbar fixed top-0 left-0 right-0 z-[999] bg-white text-black dark:text-white border-b border-[#6CC832]/20 shadow-sm flex items-center justify-between h-19 px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
       >
         <div className="flex items-center gap-10">
           {/* Left: Brand */}
           <Link
             href="/"
-            className="dark:hidden text-xl md:text-2xl leading-0 font-bold"
+            className="dark:hidden text-xl md:text-2xl leading-0 font-bold "
           >
             <Image
               src={logo}
@@ -100,11 +100,9 @@ const Navbar = () => {
           {/* Nav Links (Desktop) */}
           <nav className="hidden lg:flex lg:ml-4 gap-6 font-semibold h-full items-center">
             {/* Ride By dropdown */}
-            <div className="relative group h-full flex items-center">
+            <div className="relative group h-full flex items-center dropdown-menu">
               <button
-                className={`flex items-center gap-1 py-6 text-base font-semibold hover:text-[var(--primary)] cursor-pointer ${activeStyle(
-                  "/ride-bike"
-                )}`}
+                className={`flex items-center gap-1 py-6 text-base font-semibold cursor-pointer `}
               >
                 Ride By
                 <ChevronDown className="text-sm transition-transform duration-200 group-hover:rotate-180" />
@@ -182,19 +180,19 @@ const Navbar = () => {
           >
             {/* Sun icon */}
             <Sun
-              className={`absolute text-[var(--secondary)] text-xl transition-all duration-300 ${theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"
+              className={`absolute  text-xl transition-all duration-300 ${theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"
                 }`}
             />
 
             {/* Moon icon */}
             <Moon
-              className={`absolute text-gray-800 dark:text-gray-300 text-lg transition-all duration-300 ${theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"
+              className={`absolute  text-lg transition-all duration-300 ${theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"
                 }`}
             />
           </button>
 
           {/* Ride Now Button */}
-          <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-[#6CC832]/20 font-semibold text-[var(--primary)] mr-3 ml-1">
+          <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-[#6CC832]/20 font-semibold  mr-3 ml-1 button btn-primary">
             <Link
               href="/ride-now"
             >
