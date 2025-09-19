@@ -68,13 +68,13 @@ const Navbar = () => {
     <>
       {/* Navbar */}
       <div
-        className={`fixed top-0 left-0 right-0 z-[999] bg-background shadow-sm flex items-center justify-between px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
+        className={`fixed top-0 left-0 right-0 z-[999] bg-white text-black dark:bg-gray-900 dark:text-white border-b border-[#6CC832]/20 shadow-sm flex items-center justify-between h-19 px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
       >
         <div className="flex items-center gap-10">
           {/* Left: Brand */}
           <Link
             href="/"
-            className="dark:hidden text-xl md:text-2xl leading-0 font-bold font-oxygen text-[var(--primary)]"
+            className="dark:hidden text-xl md:text-2xl leading-0 font-bold"
           >
             <Image
               src={logo}
@@ -86,7 +86,7 @@ const Navbar = () => {
           </Link>
           <Link
             href="/"
-            className="hidden dark:block text-xl md:text-2xl leading-0 font-bold font-oxygen text-[var(--primary)]"
+            className="hidden dark:block text-xl md:text-2xl leading-0 font-bold"
           >
             <Image
               src={darkLogo}
@@ -102,7 +102,7 @@ const Navbar = () => {
             {/* Ride By dropdown */}
             <div className="relative group h-full flex items-center">
               <button
-                className={`flex items-center gap-1 py-6 text-base font-semibold cursor-pointer ${activeStyle(
+                className={`flex items-center gap-1 py-6 text-base font-semibold hover:text-[var(--primary)] cursor-pointer ${activeStyle(
                   "/ride-bike"
                 )}`}
               >
@@ -111,10 +111,10 @@ const Navbar = () => {
               </button>
 
               {/* Dropdown menu */}
-              <div className="absolute top-full left-0 mt-0.5 border border-border bg-background flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
+              <div className="absolute top-full left-0 mt-0.5 border border-[#6CC832]/20 bg-white text-black dark:bg-gray-900 dark:text-white flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
                 <Link
                   href="/ride-bike"
-                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-border ${activeStyle(
+                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-[#6CC832]/20 hover:text-[var(--primary)]  ${activeStyle(
                     "/ride-bike"
                   )}`}
                 >
@@ -124,17 +124,17 @@ const Navbar = () => {
 
                 <Link
                   href="/ride-cng"
-                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-border ${activeStyle(
+                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-[#6CC832]/20 hover:text-[var(--primary)]  ${activeStyle(
                     "/ride-cng"
                   )}`}
                 >
-                  <BusFront className="text-green-600 text-xl border-b border-border p-0.5 rounded" />
+                  <BusFront className="text-green-600 text-xl border p-0.5 rounded" />
                   <span>CNG</span>
                 </Link>
 
                 <Link
                   href="/ride-car"
-                  className={`flex items-center gap-2 px-4 pr-12 py-2 ${activeStyle(
+                  className={`flex items-center gap-2 px-4 pr-12 py-2 hover:text-[var(--primary)]  ${activeStyle(
                     "/ride-car"
                   )}`}
                 >
@@ -146,25 +146,25 @@ const Navbar = () => {
 
             <Link
               href="/offers"
-              className={`h-full flex items-center ${activeStyle("/offers")}`}
+              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle("/offers")}`}
             >
               Offers
             </Link>
             <Link
               href="/contact"
-              className={`h-full flex items-center ${activeStyle("/contact")}`}
+              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle("/contact")}`}
             >
               Contact
             </Link>
             <Link
               href="/about"
-              className={`h-full flex items-center ${activeStyle("/about")}`}
+              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle("/about")}`}
             >
               About
             </Link>
             <Link
               href="/become-rider"
-              className={`h-full flex items-center ${activeStyle(
+              className={`h-full flex items-center hover:text-[var(--primary)] ${activeStyle(
                 "/become-rider"
               )}`}
             >
@@ -174,29 +174,33 @@ const Navbar = () => {
         </div>
 
         {/* Right: Theme Toggle + Ride Now + Hamburger */}
-        <div className="flex items-center gap-2 sm:gap-4 py-4">
-          {/* Theme Toggle */}
+        <div className="flex items-center">
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 transition"
+            className="relative w-10 h-10 flex items-center justify-center rounded-full transition-colors"
           >
-            {theme === "light" ? (
-              <Moon className="w-6 h-6 text-gray-800" />
-            ) : (
-              <Sun className="w-6 h-6 text-yellow-400" />
-            )}
+            {/* Sun icon */}
+            <Sun
+              className={`absolute text-[var(--secondary)] text-xl transition-all duration-300 ${theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"
+                }`}
+            />
+
+            {/* Moon icon */}
+            <Moon
+              className={`absolute text-gray-800 dark:text-gray-300 text-lg transition-all duration-300 ${theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                }`}
+            />
           </button>
 
           {/* Ride Now Button */}
-          <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-border font-semibold text-primary">
+          <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-[#6CC832]/20 font-semibold text-[var(--primary)] mr-3 ml-1">
             <Link
               href="/ride-now"
             >
               Ride Now
             </Link>
           </Button>
-
 
           {/* Hamburger */}
           <div className="lg:hidden flex items-center">
