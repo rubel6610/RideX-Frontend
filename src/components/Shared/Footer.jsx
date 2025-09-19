@@ -7,7 +7,7 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="section-footer text-white px-5 sm:px-6 xl:px-28 ">
+    <footer className="px-5 sm:px-6 xl:px-28 border-t border-gray-400 dark:border-gray-700">
       <div className="max-w-7xl mx-auto py-10 grid grid-cols-1 md:grid-cols-5 gap-8">
         {/* Left Section */}
           <div className="md:col-span-2">
@@ -27,7 +27,7 @@ export default function Footer() {
 
           {/* Logo + Social */}
           <div className="mt-3">
-            <strong className="text-gray-300">outreachPlus</strong>
+            <strong className="text-gray-900 dark:text-gray-300">outreachPlus</strong>
             <div className="flex gap-2 mt-1">
               <Facebook className="cursor-pointer hover:text-blue-600 w-5.5" />
               <Linkedin className="cursor-pointer hover:text-blue-700 w-5.5" />
@@ -39,8 +39,8 @@ export default function Footer() {
 
         {/* Product */}
         <div>
-          <h3 className="text-xl font-semibold mb-3 text-gray-200">PRODUCT</h3>
-          <ul className="space-y-1 text-gray-300">
+          <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-300">PRODUCT</h3>
+          <ul className="space-y-1 text-gray-900 dark:text-gray-300">
             <li>
               <Link href="#" className="hover:underline">Offers</Link>
             </li>
@@ -58,8 +58,8 @@ export default function Footer() {
 
         {/* Use Cases */}
         <div>
-          <h3 className="text-xl font-semibold mb-3 text-gray-200">USE CASES</h3>
-          <ul className="space-y-1 text-gray-300">
+          <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-300">USE CASES</h3>
+          <ul className="space-y-1 text-gray-900 dark:text-gray-300">
             <li>
               <Link href="#" className="hover:underline">Rides</Link>
             </li>
@@ -74,8 +74,8 @@ export default function Footer() {
 
         {/* Resources */}
         <div>
-          <h3 className="text-xl font-semibold mb-3 text-gray-200">SPECIALTIES</h3>
-          <ul className="space-y-1 text-gray-300">
+          <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-300">SPECIALTIES</h3>
+          <ul className="space-y-1 text-gray-900 dark:text-gray-300">
             <li>
               <Link href="#" className="hover:underline">Reports</Link>
             </li>
@@ -90,7 +90,7 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t sm:text-center text-xs py-4 text-gray-300 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="border-t border-gray-300 dark:border-gray-800 shadow-xs sm:text-center text-xs py-4 text-gray-900 dark:text-gray-300 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p>©2025 RIdeX Technologies. All rights reserved</p>
         <div className="flex gap-4 mt-2 md:mt-0">
           <Link href="#" className="hover:underline">Terms & Conditions</Link>

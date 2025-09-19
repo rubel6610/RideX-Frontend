@@ -194,9 +194,9 @@ const Navbar = () => {
           {/* Ride Now Button */}
           <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-[#6CC832]/20 font-semibold  mr-3 ml-1 button btn-primary">
             <Link
-              href="/ride-now"
+              href="/register"
             >
-              Ride Now
+              Sign Up
             </Link>
           </Button>
 

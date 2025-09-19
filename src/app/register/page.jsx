@@ -151,7 +151,7 @@ function RegisterPage() {
         </Button>
 
         {/* toggle sign in page  */}
-        <p className='text-center text-black/60 dark:text-white/60'>Already have an account? <span className='text-[var(--primary)] underline cursor-pointer'><Link href='/signIn' />Sign in</span></p>
+        <p className='text-center text-black/60 dark:text-white/60'>Already have an account? <span className='text-[var(--primary)] underline cursor-pointer'><Link href='/signIn'>Sign In</Link></span></p>
       </form>
     </div>
   )
