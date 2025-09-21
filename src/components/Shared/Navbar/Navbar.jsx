@@ -68,7 +68,7 @@ const Navbar = () => {
     <>
       {/* Navbar */}
       <div
-        className={` navbar fixed top-0 left-0 right-0 z-[999] bg-white text-black dark:text-white border-b border-[#6CC832]/20 shadow-sm flex items-center justify-between h-19 px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
+        className={` navbar fixed top-0 left-0 right-0 z-[999]   border-b border-[#6CC832]/20 shadow-sm flex items-center justify-between h-19 px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
       >
         <div className="flex items-center gap-10">
           {/* Left: Brand */}

@@ -33,7 +33,7 @@ const FeaturedDrivers = () => {
 
   return (
     <section className="py-16 section-feature">
-      <div className="max-w-11/12 mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="  sm:px-6 ">
         {/* Section Header */}
         <div className="text-center space-y-4 mb-12">
           <div className="inline-flex items-center px-4 py-2 bg-accent-foreground/10 dark:bg-accent  text-primary rounded-full text-sm font-medium">

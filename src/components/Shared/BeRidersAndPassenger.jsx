@@ -13,7 +13,7 @@ const BeRidersAndPassenger = () => {
   return (
     <div>
       <section className="py-16">
-        <div className=" px-6 grid md:grid-cols-2 ">
+        <div className=" px-4 grid md:grid-cols-2 gap-4">
           {/* Rider Section */}
 
           <div className="border card border-[#90fc47]/20 rounded-2xl  px-10">
