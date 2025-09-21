@@ -5,6 +5,7 @@ import bikeImg from '../../Assets/bike.png';
 import carImg from '../../Assets/car.png';
 import cngImg from '../../Assets/cng.png';
 import { ArrowRight } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 const PopularRides = () => {
     return (
@@ -12,7 +13,7 @@ const PopularRides = () => {
             <div className="  px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center space-y-4 mb-12">
-                    <div className="inline-flex items-center px-4 py-2 bg-[#6CC832]/20  text-primary rounded-full text-sm font-medium">
+                    <div  className="inline-flex items-center px-4 py-2   text-primary rounded-full text-sm font-medium">
                         <ArrowRight className="h-4 w-4 mr-2" />
                         Popular Rides
                     </div>

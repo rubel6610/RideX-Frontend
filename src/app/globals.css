@@ -130,6 +130,7 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+
 /* Sections */
 .section-hero {
   background-color: var(--section-hero-bg);
@@ -140,7 +141,7 @@ body {
 .section-feature {
   background-color: var(--section-feature-bg);
   color: var(--section-feature-text);
-  padding: 4rem 1rem;
+  
 }
 .section-pricing {
   background-color: var(--section-pricing-bg);

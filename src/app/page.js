@@ -9,7 +9,7 @@ import RidexWork from '@/components/Shared/RidexWork'
 
 const Home = () => {
   return (
-    <div className='max-w[1440px]'>
+    <div className='max-w[1440px] mt-18'>
       <Banner/>
       <FeaturedDrivers/>
       <PopularRides/>
