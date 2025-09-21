@@ -12,7 +12,7 @@
 components.json
 # testing
 /coverage
-
+.netlify
 # next.js
 /.next/
 /out/
