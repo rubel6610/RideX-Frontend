@@ -40,7 +40,7 @@ const Banner = () => {
                   placeholder="Where to?" 
                   className="border-border shadow-xs w-full"
                 />
-                <Button variant="primaryBtn" className="l btn-outline">
+                <Button variant="primary" size="lg">
                   Find Ride
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
