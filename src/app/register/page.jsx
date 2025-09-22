@@ -27,7 +27,7 @@ function RegisterPage() {
 
       {/* register page from  */}
       <form className='shadow-lg p-8 rounded-xl space-y-4 max-w-xl mx-auto border border-[#6CC832]/30'>
-        <p className='text-black/60 dark:text-white/60 text-center mb-8 text-lg'>Sign up as a rider to earn money by providing rides</p>
+        <p className='text-black/60  text-center mb-8 text-lg'>Sign up as a rider to earn money by providing rides</p>
 
         {/* first & last name field  */}
         <div className='space-y-2 md:space-y-0 grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4'>
