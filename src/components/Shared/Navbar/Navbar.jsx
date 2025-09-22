@@ -68,7 +68,7 @@ const Navbar = () => {
     <>
       {/* Navbar */}
       <div
-        className={` navbar fixed top-0 left-0 right-0 z-[999]   border-b border-[#6CC832]/20 shadow-sm flex items-center justify-between h-19 px-5 sm:px-6 xl:px-28 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
+        className={`w-full  max-w-[1440px] mx-auto navbar fixed top-0 left-0 right-0 z-[999] bg-background text-foreground border-b border-primary/30 shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
       >
         <div className="flex items-center gap-10">
           {/* Left: Brand */}
@@ -109,24 +109,24 @@ const Navbar = () => {
               </button>
 
               {/* Dropdown menu */}
-              <div className="absolute top-full left-0 mt-0.5 border border-[#6CC832]/20 bg-white text-black dark:bg-gray-900 dark:text-white flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
+              <div className="absolute top-full left-0 mt-0.5 border border-primary/30 bg-popover text-forground flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
                 <Link
                   href="/ride-bike"
-                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-[#6CC832]/20 hover:text-[var(--primary)]  ${activeStyle(
+                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-primary/30 hover:text-primary ${activeStyle(
                     "/ride-bike"
                   )}`}
                 >
-                  <Bike className="text-blue-500 text-xl border p-0.5 rounded" />
+                  <Bike className="text-primary text-xl border p-0.5 rounded" />
                   <span>Bike</span>
                 </Link>
 
                 <Link
                   href="/ride-cng"
-                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-[#6CC832]/20 hover:text-[var(--primary)]  ${activeStyle(
+                  className={`flex items-center gap-2 pl-4 pr-12 py-2 border-b border-primary/30 hover:text-primary ${activeStyle(
                     "/ride-cng"
                   )}`}
                 >
-                  <BusFront className="text-green-600 text-xl border p-0.5 rounded" />
+                  <BusFront className="text-primary text-xl border p-0.5 rounded" />
                   <span>CNG</span>
                 </Link>
 
@@ -136,7 +136,7 @@ const Navbar = () => {
                     "/ride-car"
                   )}`}
                 >
-                  <Car className="text-red-500 text-xl border p-0.5 rounded" />
+                  <Car className="text-primary text-xl border p-0.5 rounded" />
                   <span>Car</span>
                 </Link>
               </div>
@@ -192,11 +192,11 @@ const Navbar = () => {
           </button>
 
           {/* Ride Now Button */}
-          <Button variant="outline" size="icon" className="h-[2.8rem] w-30 text-base border border-[#6CC832]/20 font-semibold  mr-3 ml-1 button btn-primary">
+          <Button variant="primary" size="lg" className="mr-3 ml-1 button btn-primary">
             <Link
               href="/register"
             >
-              Sign Up
+              Ride Now
             </Link>
           </Button>
 

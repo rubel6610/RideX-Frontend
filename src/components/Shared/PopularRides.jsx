@@ -5,15 +5,14 @@ import bikeImg from '../../Assets/bike.png';
 import carImg from '../../Assets/car.png';
 import cngImg from '../../Assets/cng.png';
 import { ArrowRight } from 'lucide-react';
-import { Badge } from '../ui/badge';
 
 const PopularRides = () => {
     return (
-        <section className="py-16 ">
-            <div className="  px-4 sm:px-6 lg:px-8">
+        <section className="py-16 bg-accent/30">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center space-y-4 mb-12">
-                    <div  className="inline-flex items-center px-4 py-2   text-primary rounded-full text-sm font-medium">
+                    <div className="inline-flex items-center px-4 py-2 bg-accent text-foreground rounded-full text-sm font-medium border border-primary">
                         <ArrowRight className="h-4 w-4 mr-2" />
                         Popular Rides
                     </div>
@@ -28,10 +27,10 @@ const PopularRides = () => {
                 {/* Rides Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 ">
                     <Link href="/rides/bike" className="group">
-                        <div className="card p-6 space-y-4 hover-lift shadow-md bg-[#6CC832]/5 rounded-2xl flex flex-col items-center transition-all duration-200 group-hover:bg-[#6CC832]/10 cursor-pointer border border-[#6CC832]/10">
-                            <h3 className="font-semibold text-xl text-primary mb-2 flex items-center w-full justify-between">
+                        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
+                            <h3 className="font-semibold text-xl text-foreground mb-2 flex items-center w-full justify-between">
                                 Ride by bike
-                                <ArrowRight className="h-5 w-5 text-primary" />
+                                <ArrowRight className="h-5 w-5 text-foreground" />
                             </h3>
                             <Image
                                 src={bikeImg}
@@ -42,10 +41,10 @@ const PopularRides = () => {
                         </div>
                     </Link>
                     <Link href="/rides/cng" className="group">
-                        <div className="card p-6 space-y-4 hover-lift shadow-md bg-[#6CC832]/5 rounded-2xl flex flex-col items-center transition-all duration-200 group-hover:bg-[#6CC832]/10  cursor-pointer border border-[#6CC832]/10">
-                            <h3 className="font-semibold text-xl text-primary mb-2 flex items-center w-full justify-between">
+                        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
+                            <h3 className="font-semibold text-xl text-foreground mb-2 flex items-center w-full justify-between">
                                 Ride by Cng
-                                <ArrowRight className="h-5 w-5 text-primary" />
+                                <ArrowRight className="h-5 w-5 text-foreground" />
                             </h3>
                             <Image
                                 src={cngImg}
@@ -56,10 +55,10 @@ const PopularRides = () => {
                         </div>
                     </Link>
                     <Link href="/rides/car" className="group">
-                        <div className="card p-6 space-y-4 hover-lift shadow-md bg-[#6CC832]/5 rounded-2xl flex flex-col items-center transition-all duration-200 group-hover:bg-[#6CC832]/10  cursor-pointer border border-[#6CC832]/10">
-                            <h3 className="font-semibold text-xl text-primary mb-2 flex items-center w-full justify-between">
+                        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
+                            <h3 className="font-semibold text-xl text-foreground mb-2 flex items-center w-full justify-between">
                                 Ride by Car
-                                <ArrowRight className="h-5 w-5 text-primary" />
+                                <ArrowRight className="h-5 w-5 text-foreground" />
                             </h3>
                             <Image
                                 src={carImg}
