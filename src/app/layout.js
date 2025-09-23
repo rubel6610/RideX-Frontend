@@ -2,6 +2,8 @@
 import Navbar from "@/components/Shared/Navbar/Navbar";
 import "./globals.css";
 import Footer from "@/components/Shared/Footer";
+import { AuthProvider } from "./hooks/AuthProvider";
+
 
 // // ✅ Roboto font config
 // const roboto = Roboto({
@@ -11,17 +13,19 @@ import Footer from "@/components/Shared/Footer";
 // });
 
 export const metadata = {
-  title: 'Ridex',
-  description: 'Ride Sharing Platform',
+  title: "Ridex | Home",
+  description: "Ride Sharing Platform",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light">
       <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
-        <Navbar />
-        {children}
-        <Footer />
+        <AuthProvider>
+          <Navbar />
+          {children}
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
