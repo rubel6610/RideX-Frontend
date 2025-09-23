@@ -2,19 +2,26 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Bike, Car, BusFront, TextAlignJustify } from 'lucide-react';
+import {
+  ChevronDown,
+  Bike,
+  Car,
+  BusFront,
+  TextAlignJustify,
+} from "lucide-react";
 import { Moon, Sun } from "lucide-react";
-import logo from '../../../Assets/ridex-logo.webp';
-import darkLogo from '../../../Assets/logo-dark.webp';
-import Sidebar from './Sidebar';
+import logo from "../../../Assets/ridex-logo.webp";
+import darkLogo from "../../../Assets/logo-dark.webp";
+import Sidebar from "./Sidebar";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import useTheme from "@/app/hooks/themeContext";
+import { useAuth } from "@/app/hooks/AuthProvider";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
-
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rideByOpen, setRideByOpen] = useState(false);
 
@@ -27,9 +34,7 @@ const Navbar = () => {
 
   // Active + hover style
   const activeStyle = (path) =>
-    pathname === path
-      ? "font-semibold"
-      : " transition-colors duration-300";
+    pathname === path ? "font-semibold" : " transition-colors duration-300";
 
   // Scroll detection logic
   useEffect(() => {
@@ -68,7 +73,9 @@ const Navbar = () => {
     <>
       {/* Navbar */}
       <div
-        className={`w-full  max-w-[1440px] mx-auto navbar fixed top-0 left-0 right-0 z-[999] bg-background text-foreground border-b border-primary/30 shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8 transition-transform duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
+        className={`w-full  max-w-[1440px] mx-auto navbar fixed top-0 left-0 right-0 z-[999] bg-background text-foreground border-b border-primary/30 shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8 transition-transform duration-300 ${
+          showNavbar ? "translate-y-0" : "-translate-y-full"
+        }`}
       >
         <div className="flex items-center gap-10">
           {/* Left: Brand */}
@@ -144,19 +151,25 @@ const Navbar = () => {
 
             <Link
               href="/offers"
-              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle("/offers")}`}
+              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle(
+                "/offers"
+              )}`}
             >
               Offers
             </Link>
             <Link
               href="/contact"
-              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle("/contact")}`}
+              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle(
+                "/contact"
+              )}`}
             >
               Contact
             </Link>
             <Link
               href="/about"
-              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle("/about")}`}
+              className={`h-full flex items-center hover:text-[var(--primary)]  ${activeStyle(
+                "/about"
+              )}`}
             >
               About
             </Link>
@@ -180,25 +193,34 @@ const Navbar = () => {
           >
             {/* Sun icon */}
             <Sun
-              className={`absolute  text-xl transition-all duration-300 ${theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"
-                }`}
+              className={`absolute  text-xl transition-all duration-300 ${
+                theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"
+              }`}
             />
 
             {/* Moon icon */}
             <Moon
-              className={`absolute  text-lg transition-all duration-300 ${theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"
-                }`}
+              className={`absolute  text-lg transition-all duration-300 ${
+                theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"
+              }`}
             />
           </button>
 
           {/* Ride Now Button */}
-          <Button variant="primary" size="lg" className="mr-3 ml-1 button btn-primary">
-            <Link
-              href="/register"
+          {!user ? (
+            <Button variant="primary" size="lg" className="mr-3 text-md ml-1 ">
+              <Link href="/register">Sign Up</Link>
+            </Button>
+          ) : (
+            <Button
+              onClick={logout}
+              variant="primary"
+              size="lg"
+              className="mr-3 text-md ml-1 "
             >
-              Ride Now
-            </Link>
-          </Button>
+              Sign Out
+            </Button>
+          )}
 
           {/* Hamburger */}
           <div className="lg:hidden flex items-center">
@@ -211,7 +233,7 @@ const Navbar = () => {
       </div>
 
       {/* Sidebar Component */}
-     <Sidebar
+      <Sidebar
         sidebarOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
         rideByOpen={rideByOpen}
