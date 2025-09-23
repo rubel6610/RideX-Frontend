@@ -42,9 +42,8 @@ function RegisterPage() {
         data.photoUrl = imgData?.data?.url; // Store uploaded image URL
       }
 
-      console.log("Form Data Submitted:", data);
-      // toast.success("Registration successful!");
-      // router.push('/auth/login');
+     
+      
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`, {
         method: "POST",
