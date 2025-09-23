@@ -1,12 +1,12 @@
 "use client";
-import { jwtDecode } from "jwt-decode";
 import { createContext, useContext, useState, useEffect } from "react";
-
+import {jwtDecode} from "jwt-decode";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isAuthChecked, setIsAuthChecked] = useState(false); // ✅ auth check state
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("token");
       }
     }
+    setIsAuthChecked(true); // ✅ check complete
   }, []);
 
   const login = (token) => {
@@ -33,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthChecked }}>
       {children}
     </AuthContext.Provider>
   );
