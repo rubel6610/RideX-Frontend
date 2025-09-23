@@ -21,14 +21,12 @@ function RegisterPage() {
           height={60}
           className=''
         />
-        <h2 className='text-3xl text-[var(--primary)] font-bold'>Join RideX</h2>
-        <p className='text-black dark:text-white text-lg'>Create your account to get started</p>
+        <h2 className='text-3xl text-primary font-bold'>Join RideX</h2>
+        <p className='text-black text-lg'>Create your account to get started</p>
       </div>
 
       {/* register page from  */}
       <form className='shadow-lg p-8 rounded-xl space-y-4 max-w-xl mx-auto border border-[#6CC832]/30'>
-        <p className='text-black/60 dark:text-white/60 text-center mb-8 text-lg'>Sign up as a rider to earn money by providing rides</p>
-
         {/* first & last name field  */}
         <div className='space-y-2 md:space-y-0 grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4'>
           <div>
@@ -36,12 +34,12 @@ function RegisterPage() {
             <Input
               type="text"
               placeholder="Type your first name"
-              className='border border-[#6CC832]/20'></Input>
+              className='border border-accent'></Input>
           </div>
           <div>
             <label>Last Name</label>
             <Input type="text" placeholder="Type your last name"
-              className='border border-[#6CC832]/20'></Input>
+              className='border border-accent'></Input>
           </div>
         </div>
 
@@ -140,7 +138,7 @@ function RegisterPage() {
         </Button>
 
         {/* facebook register button  */}
-        <Button variant="outline" className="w-full dark:bg-white bg-gray-800 hover:bg-gray-900 text-white dark:text-black">
+        <Button variant="outline" className="w-full bg-gray-800 hover:bg-gray-900 text-white">
           <Image
             src={FacebookIcon}
             alt="google-icon"
