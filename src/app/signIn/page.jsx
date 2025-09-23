@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CarLogo from "../../Assets/car-icon.png";
-import GoogleIcon from "../../Assets/google-icon.png";
-import FacebookIcon from "../../Assets/facebook-icon.png";
+// import GoogleIcon from "../../Assets/google-icon.png";
+// import FacebookIcon from "../../Assets/facebook-icon.png";
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
@@ -19,8 +19,8 @@ function LoginPage() {
           height={60}
           className=""
         />
-        <h2 className="text-3xl text-[var(--primary)] font-bold">
-          Wellcome Back
+        <h2 className="text-3xl text-primary font-bold">
+          Welcome Back
         </h2>
         <p className="text-black dark:text-white text-lg">
           Rejoin to get started
@@ -28,17 +28,17 @@ function LoginPage() {
       </div>
 
       {/* login page from  */}
-      <form className="shadow-lg p-8 rounded-xl space-y-4 max-w-xl mx-auto border border-[#6CC832]/30">
-        <p className="text-black/60 dark:text-white/60 text-center mb-8 text-lg w-2/3 flex mx-auto justify-center">
+      <form className="shadow-lg p-8 rounded-xl space-y-4 max-w-xl mx-auto border border-primary">
+        {/* <p className="text-black/60 dark:text-white/60 text-center mb-8 text-lg w-2/3 flex mx-auto justify-center">
           Sign in to access your account and start your journey with RideX
-        </p>
+        </p> */}
 
         {/* email field  */}
         <label>Email</label>
         <Input
           type="email"
           placeholder="your@email.com"
-          className="border border-[#6CC832]/20"
+          className="border border-primary"
         ></Input>
 
         {/* password field  */}
@@ -46,16 +46,16 @@ function LoginPage() {
         <Input
           type="password"
           placeholder="Create a strong password"
-          className="border border-[#6CC832]/20"
+          className="border border-primary"
         ></Input>
 
         {/* sign In button */}
-        <Button className="w-full bg-[var(--primary)]/80 hover:bg-[var(--primary)] text-white dark:text-black">
+        <Button className="w-full bg-primary hover:bg-primary text-white dark:background">
           Create Account
         </Button>
 
         {/* google login button  */}
-        <Button
+        {/* <Button
           variant="outline"
           className="w-full dark:bg-white bg-gray-800 hover:bg-gray-900 text-white dark:text-black"
         >
@@ -67,10 +67,10 @@ function LoginPage() {
             className=""
           />
           Continue with Google
-        </Button>
+        </Button> */}
 
         {/* facebook login button  */}
-        <Button
+        {/* <Button
           variant="outline"
           className="w-full dark:bg-white bg-gray-800 hover:bg-gray-900 text-white dark:text-black"
         >
@@ -82,12 +82,12 @@ function LoginPage() {
             className=""
           />
           Continue with Facebook
-        </Button>
+        </Button> */}
 
         {/* toggle sign Up page  */}
-        <p className='text-center text-black/60 dark:text-white/60'>
-          Din't have account? Please{" "}
-          <span className='text-[var(--primary)] underline cursor-pointer'>
+        <p className='text-center text-foreground '>
+          Don't have account? Please{" "}
+          <span className='text-primary underline cursor-pointer'>
             <Link href="/register" >
             Sign Up
             </Link>
