@@ -3,16 +3,15 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Users, User, Star, DollarSign, MapPin, Search,
-  Bell, LucideLogOut, PanelRightOpen, PanelRightClose,
-  TrendingUp, Shield
-} from "lucide-react";
+import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun } from "lucide-react";
+import useTheme from "@/app/hooks/themeContext";
 
 import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
+import darkLogo from "../../Assets/logo-dark.webp"
 
 export default function DashboardLayout({ children }) {
+  const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
   // TODO: Replace with real user role from context/auth
@@ -27,8 +26,11 @@ export default function DashboardLayout({ children }) {
         <div>
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <Link href="/">
-              <Image src={logo} alt="RideX Logo" className="w-30 h-8 object-contain" />
+            <Link href="/" className="dark:hidden text-xl md:text-2xl leading-0 font-bold">
+              <Image src={logo} alt="RideX Logo" width={120} height={50} className="object-contain" />
+            </Link>
+            <Link href="/" className="hidden dark:block text-xl md:text-2xl leading-0 font-bold">
+              <Image src={darkLogo} alt="RideX Logo" width={120} height={50} className="object-contain" />
             </Link>
           </div>
 
@@ -79,7 +81,7 @@ export default function DashboardLayout({ children }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Topbar */}
-  <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-background/80 sticky top-0 z-30">
+        <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-background/80 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             {!sidebarOpen ? (
               <button onClick={() => setSidebarOpen(true)}>
@@ -100,8 +102,20 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* // TODO: Theme toggle button will added here */}
+            <button
+              type="button"
+              aria-label="Toggle theme"
+              onClick={toggleTheme}
+              className="rounded-full p-2 border border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5 text-foreground" />
+              ) : (
+                <Moon className="w-5 h-5 text-foreground/80" />
+              )}
+            </button>
             <Bell className="w-6 h-6 text-muted-foreground" />
+
             <Button variant="outline" className="flex items-center gap-2">
               <User className="w-5 h-5 text-primary" />
               <span className="hidden md:inline">Profile</span>
