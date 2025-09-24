@@ -3,7 +3,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun, Truck, PlayCircle, Clock } from "lucide-react";
+import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun, Truck, PlayCircle, Clock, BarChart3 } from "lucide-react";
 import useTheme from "@/app/hooks/themeContext";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
   // TODO: Replace with real user role from context/auth
-  const userRole = "user"; // Change to "rider" to test rider view
+  const userRole = "rider"; // Change to "rider" to test rider view
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -46,6 +46,8 @@ export default function DashboardLayout({ children }) {
                 <Link href="/dashboard/support" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/support' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <User className="w-5 h-5" /> Support</Link>
               </>
             )}
+
+            {/* rider role routes  */}
             {userRole === "rider" && (
               <>
                 {/* Ride Requests */}
@@ -57,17 +59,6 @@ export default function DashboardLayout({ children }) {
                     }`}
                 >
                   <TrendingUp className="w-5 h-5" /> Ride Requests
-                </Link>
-
-                {/* Available Rides */}
-                <Link
-                  href="/dashboard/available-rides"
-                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/available-rides"
-                    ? "bg-primary/90 text-background"
-                    : "text-foreground hover:bg-primary/10 hover:text-primary"
-                    }`}
-                >
-                  <Truck className="w-5 h-5" /> Available Rides
                 </Link>
 
                 {/* Ongoing Ride */}
@@ -105,16 +96,26 @@ export default function DashboardLayout({ children }) {
 
                 {/* Profile & Vehicle Info */}
                 <Link
-                  href="/dashboard/profile"
-                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/profile"
+                  href="/dashboard/profile-vehicle-info"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/profile-vehicle-info"
                     ? "bg-primary/90 text-background"
                     : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
                 >
                   <User className="w-5 h-5" /> Profile & Vehicle Info
                 </Link>
-              </>
 
+                {/* Performance Stats */}
+                <Link
+                  href="/dashboard/performance-stats"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/performance-stats"
+                    ? "bg-primary/90 text-background"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  <BarChart3 className="w-5 h-5" /> Performance Stats
+                </Link>
+              </>
             )}
 
             {userRole === "admin" && (

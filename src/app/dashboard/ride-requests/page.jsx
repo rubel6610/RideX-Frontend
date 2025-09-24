@@ -1,9 +1,10 @@
 import React from 'react'
 
-export const RideRequestsPage = () => {
+export default function RideRequestsPage() {
     return (
         <div>
-            <h1>RideRequestsPage</h1>
+            <h2 className="text-2xl font-bold mb-4">Ride Requests Page</h2>
+            <p>View and manage all ride requests.</p>
         </div>
     )
 }
