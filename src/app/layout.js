@@ -7,30 +7,17 @@ import Footer from "@/components/Shared/Footer";
 import { AuthProvider } from "./hooks/AuthProvider";
 
 
-// // ✅ Roboto font config
-// const roboto = Roboto({
-//   variable: '--font-roboto',
-//   subsets: ['latin'],
-//   weight: ['400', '500', '600', '700'],
-// });
-
-// export const metadata = {
-//   title: "Ridex | Home",
-//   description: "Ride Sharing Platform",
-// };
-
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-
-  const hideNavbarFooter = pathname.startsWith("/dashboard");
+  const hideNavbarFooter = pathname?.startsWith("/dashboard");
 
   return (
     <html lang="en" data-theme="light">
-      <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
+      <body className="">
         <AuthProvider>
-          <Navbar />
+          {!hideNavbarFooter && <Navbar />}
           {children}
-          <Footer />
+          {!hideNavbarFooter && <Footer />}
         </AuthProvider>
       </body>
     </html>
