@@ -6,7 +6,7 @@ import Image from "next/image";
 import {
   Users, User, Star, DollarSign, MapPin, Search,
   Bell, LucideLogOut, PanelRightOpen, PanelRightClose,
-  TrendingUp
+  TrendingUp, Shield
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
   // TODO: Replace with real user role from context/auth
-  const userRole = "rider"; // Change to "rider" to test rider view
+  const userRole = "admin"; // Change to "rider" to test rider view
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -49,6 +49,11 @@ export default function DashboardLayout({ children }) {
             {userRole === "rider" && (
               <Link href="/dashboard/ride-requests" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/ride-requests' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}>
                 <TrendingUp className="w-5 h-5" /> Ride Requests
+              </Link>
+            )}
+            {userRole === "admin" && (
+              <Link href="/dashboard/user-management" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/user-management' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}>
+                <Shield className="w-5 h-5" /> User Management
               </Link>
             )}
           </nav>
