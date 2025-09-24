@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en" data-theme="light">
-      <body className="">
+      <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
         <AuthProvider>
           {!hideNavbarFooter && <Navbar />}
           {children}

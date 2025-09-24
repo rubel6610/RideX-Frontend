@@ -135,9 +135,9 @@ const Navbar = () => {
           </button>
 
           {!user ? (
-            <Link href="/register">
+            <Link href="/signIn">
               <Button variant="primary" size="lg" className="mr-3 text-md ml-1">
-                Sign Up
+                Sign In Now
               </Button>
             </Link>
           ) : (

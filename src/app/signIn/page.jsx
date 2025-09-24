@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/AuthProvider"; // Import the auth context
+import GuestOnlyRoute from "../hooks/GuestOnlyRoute";
 
 function LoginPage() {
   const router = useRouter();
@@ -39,7 +40,8 @@ function LoginPage() {
   };
 
   return (
-    <div className="mt-28 container mx-auto mb-16">
+    <GuestOnlyRoute>
+      <div className="mt-28 container mx-auto mb-16">
       {/* title and logo */}
       <div className="flex flex-col items-center space-y-2 my-6">
         <Image src={CarLogo} alt="car-logo" width={60} height={60} />
@@ -123,6 +125,8 @@ function LoginPage() {
         </p>
       </form>
     </div>
+    </GuestOnlyRoute>
+    
   );
 }
 
