@@ -34,18 +34,35 @@ function RegisterPage() {
       if (data.image && data.image.length > 0) {
         const imgForm = new FormData();
         imgForm.append("image", data.image[0]);
-
         const res = await fetch(process.env.NEXT_PUBLIC_IMGBB_KEY, {
           method: "POST",
           body: imgForm,
         });
         const imgData = await res.json();
-        data.image = imgData?.data?.url; // Store uploaded image URL
+        data.photoUrl = imgData?.data?.url; // Store uploaded image URL
       }
 
       console.log("Form Data Submitted:", data);
       // toast.success("Registration successful!");
       // router.push('/auth/login');
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...data,
+          }),
+        }
+      );
+
+      const userdata = await res.json();
+      if (res.ok) {
+        alert("Registered successfully!");
+      } else {
+        alert(userdata.message);
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -77,30 +94,20 @@ function RegisterPage() {
         onSubmit={handleSubmit(onSubmit)}
         className="shadow-lg p-8 rounded-xl space-y-4 max-w-2xl mx-auto border border-primary"
       >
-        {/* First & Last Name */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>
-              First Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="First name"
-              {...register("firstName", { required: "First name is required" })}
-            />
-            {errors.firstName && (
-              <p className="text-red-500 text-sm">{errors.firstName.message}</p>
-            )}
-          </div>
+        {/* Full Name */}
 
-          <div>
-            <Label>Last Name</Label>
-            <Input
-              type="text"
-              placeholder="(Optional)"
-              {...register("lastName")}
-            />
-          </div>
+        <div>
+          <Label>
+            Full Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            type="text"
+            placeholder="Full name"
+            {...register("fullName", { required: "Full name is required" })}
+          />
+          {errors.fullName && (
+            <p className="text-red-500 text-sm">{errors.firstName.message}</p>
+          )}
         </div>
 
         {/* Image Upload */}
@@ -133,45 +140,6 @@ function RegisterPage() {
           )}
         </div>
 
-        {/* Father's & Mother's Name */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>
-              Father's Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="Father's name"
-              {...register("fatherName", {
-                required: "Father name is required",
-              })}
-            />
-            {errors.fatherName && (
-              <p className="text-red-500 text-sm">
-                {errors.fatherName.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label>
-              Mother's Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="Mother's name"
-              {...register("motherName", {
-                required: "Mother name is required",
-              })}
-            />
-            {errors.motherName && (
-              <p className="text-red-500 text-sm">
-                {errors.motherName.message}
-              </p>
-            )}
-          </div>
-        </div>
-
         {/* Date of Birth & NID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -180,7 +148,9 @@ function RegisterPage() {
             </Label>
             <Input
               type="date"
-              {...register("dob", { required: "Date of birth is required" })}
+              {...register("dateOfBirth", {
+                required: "Date of birth is required",
+              })}
             />
             {errors.dob && (
               <p className="text-red-500 text-sm">{errors.dob.message}</p>
@@ -194,76 +164,10 @@ function RegisterPage() {
             <Input
               type="number"
               placeholder="NID no"
-              {...register("nidNo", { required: "NID number is required" })}
+              {...register("NIDno", { required: "NID number is required" })}
             />
             {errors.nidNo && (
               <p className="text-red-500 text-sm">{errors.nidNo.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* District & Thana */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>
-              District <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="Enter district"
-              {...register("district", { required: "District is required" })}
-            />
-            {errors.district && (
-              <p className="text-red-500 text-sm">{errors.district.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label>
-              Thana <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="Enter thana"
-              {...register("thana", { required: "Thana is required" })}
-            />
-            {errors.thana && (
-              <p className="text-red-500 text-sm">{errors.thana.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Phone & Blood Group */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>
-              Phone Number <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="number"
-              placeholder="+880 1648730*"
-              {...register("phone", { required: "Phone number is required" })}
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm">{errors.phone.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label>
-              Blood Group <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="O+ positive"
-              {...register("bloodGroup", {
-                required: "Blood group is required",
-              })}
-            />
-            {errors.bloodGroup && (
-              <p className="text-red-500 text-sm">
-                {errors.bloodGroup.message}
-              </p>
             )}
           </div>
         </div>
