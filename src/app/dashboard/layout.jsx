@@ -16,15 +16,13 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
   // TODO: Replace with real user role from context/auth
-  const userRole = "admin"; // Change to "rider" to test rider view
+  const userRole = "user"; // Change to "rider" to test rider view
 
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
       <aside
-        className={`bg-accent/30 border-r border-border flex flex-col justify-between py-8 px-6 text-foreground transition-all duration-300 ${
-          sidebarOpen ? "w-64" : "w-0 overflow-hidden p-0 border-none"
-        }`}
+        className={`flex flex-col justify-between transition-all duration-300 ${sidebarOpen ? "bg-accent/30 border-r border-border py-8 px-6 text-foreground w-64" : "hidden transition-all duration-500"}`}
       >
         <div>
           {/* Logo */}
@@ -85,11 +83,11 @@ export default function DashboardLayout({ children }) {
           <div className="flex items-center gap-3">
             {!sidebarOpen ? (
               <button onClick={() => setSidebarOpen(true)}>
-                <PanelRightOpen className="w-6 h-6 text-muted-foreground" />
+                <PanelRightClose className="w-6 h-6 text-muted-foreground" />
               </button>
             ) : (
               <button onClick={() => setSidebarOpen(false)}>
-                <PanelRightClose className="w-6 h-6 text-muted-foreground" />
+                <PanelRightOpen className="w-6 h-6 text-muted-foreground" />
               </button>
             )}
             <div className="relative">
@@ -102,6 +100,7 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {/* // TODO: Theme toggle button will added here */}
             <Bell className="w-6 h-6 text-muted-foreground" />
             <Button variant="outline" className="flex items-center gap-2">
               <User className="w-5 h-5 text-primary" />
