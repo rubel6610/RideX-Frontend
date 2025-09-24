@@ -1,11 +1,102 @@
-import React from 'react'
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
+} from "chart.js";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default function EarningPage() {
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Earning Page</h2>
-      <p>Monitor your daily, weekly, and monthly earnings.</p>
-    </div>
-  )
-}
+  // Dummy data
+  const [earnings, setEarnings] = useState({
+    daily: [50, 75, 100, 80, 60, 90, 120],
+    weekly: [400, 550, 600, 450],
+    monthly: [1500, 1800, 2000, 1700, 2200, 2100, 1900, 2300, 2500, 2400, 2600, 2800],
+  });
 
+  const [period, setPeriod] = useState("daily");
+
+  // Summary cards values
+  const summary = {
+    today: earnings.daily?.[earnings.daily.length - 1] || 0,
+    week: earnings.weekly?.reduce((a, b) => a + b, 0) || 0,
+    month: earnings.monthly?.reduce((a, b) => a + b, 0) || 0,
+  };
+
+  // Labels
+  const labels = {
+    daily: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    weekly: ["Week 1", "Week 2", "Week 3", "Week 4"],
+    monthly: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  };
+
+  const data = {
+    labels: labels[period],
+    datasets: [
+      {
+        label: "Income ($)",
+        data: earnings[period],
+        backgroundColor: "rgba(59, 130, 246, 0.7)",
+        borderRadius: 6,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: { position: "top" },
+      title: { display: true, text: `Earnings Overview (${period})`, font: { size: 18 } },
+    },
+    scales: { y: { beginAtZero: true } },
+  };
+
+  return (
+    <div className="p-4 space-y-6">
+      {/* Top 3 summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="shadow-md rounded-xl p-4 text-center">
+          <CardTitle className="text-lg font-semibold">Today's Earning</CardTitle>
+          <CardContent className="text-2xl font-bold text-primary">${summary.today}</CardContent>
+        </Card>
+
+        <Card className="shadow-md rounded-xl p-4 text-center">
+          <CardTitle className="text-lg font-semibold">This Week</CardTitle>
+          <CardContent className="text-2xl font-bold text-primary">${summary.week}</CardContent>
+        </Card>
+
+        <Card className="shadow-md rounded-xl p-4 text-center">
+          <CardTitle className="text-lg font-semibold">This Month</CardTitle>
+          <CardContent className="text-2xl font-bold text-primary">${summary.month}</CardContent>
+        </Card>
+      </div>
+
+      {/* Chart + Period toggle */}
+      <Card className="max-w-4xl mx-auto shadow-lg rounded-2xl">
+        <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          <CardTitle className="text-xl font-semibold">Earnings Chart</CardTitle>
+          <div className="flex gap-2 mt-2 sm:mt-0">
+            {["daily","weekly","monthly"].map((p) => (
+              <button
+                key={p}
+                className={`px-4 py-1 rounded-lg font-medium transition-colors ${period===p ? "bg-primary text-background":"bg-gray-100 hover:bg-primary/20 text-gray-700"}`}
+                onClick={() => setPeriod(p)}
+              >
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Bar data={data} options={options} />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
