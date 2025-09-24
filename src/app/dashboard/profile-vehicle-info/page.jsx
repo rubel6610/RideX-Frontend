@@ -58,7 +58,7 @@ export default function ProfileVehicleInfoPage() {
   if (!currentRider) {
     return <p className="text-center mt-10 text-red-500">No profile data found.</p>;
   }
-  
+
   return (
     <Card className="max-w-2xl mx-auto shadow-lg rounded-2xl mt-6">
       <CardHeader>
@@ -114,24 +114,23 @@ export default function ProfileVehicleInfoPage() {
         </div>
 
         {/* Future Document Upload */}
-        <div className="border-t pt-3 space-y-3">
-          <p className="font-medium">Documents:</p>
-          {["License", "NID", "Vehicle Registration", "Insurance"].map(
-            (doc) => (
-              <div
-                key={doc}
-                className="flex items-center justify-between gap-3"
-              >
-                <Input type="file" className="hidden" id={doc} />
-                <label
-                  htmlFor={doc}
-                  className="flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline"
-                >
-                  Upload {doc}
-                </label>
+        <div className="border-t pt-4 space-y-4">
+          <p className="font-medium flex items-center gap-2 text-base md:text-lg">
+            Documents:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {["License", "NID", "Vehicle Registration", "Insurance"].map((doc) => (
+              <div key={doc}>
+                <label>Upload {doc}</label>
+                <Input
+                  type="file"
+                  id={doc}
+                  className="w-full h-10 sm:h-12 border rounded-md cursor-pointer"
+                />
               </div>
-            )
-          )}
+            ))}
+          </div>
         </div>
 
         <Button className="w-full mt-2">Update Profile</Button>
