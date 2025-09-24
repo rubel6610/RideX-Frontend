@@ -5,11 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun } from "lucide-react";
 import useTheme from "@/app/hooks/themeContext";
-
 import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp"
-
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
