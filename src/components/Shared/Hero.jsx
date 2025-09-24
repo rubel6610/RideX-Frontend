@@ -9,7 +9,7 @@ import  heroImage  from '@/Assets/hero-img.svg';
 const Hero = () => {
     return (
         <section className="bg-accent/30 py-10 px-4 md:px-0">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                 {/* Left Content */}
                 <div className="space-y-6">
                     <div className="inline-flex items-center px-4 py-2 bg-accent text-foreground rounded-full text-sm font-medium border border-primary">
@@ -17,7 +17,7 @@ const Hero = () => {
                         #1 Rated Ride-Sharing Platform
                     </div>
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight text-foreground">
-                        Your Ride, Your Way<br />with <span className="text-primary">RideX</span>
+                        Your Ride, Your Way with <span className="text-primary">RideX</span>
                     </h1>
                     <p className="text-xl text-muted-foreground leading-relaxed mb-6">
                         Experience seamless transportation with trusted drivers, affordable prices, and rides that arrive when you need them most.

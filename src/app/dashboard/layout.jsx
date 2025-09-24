@@ -118,7 +118,7 @@ export default function DashboardLayout({ children }) {
 
             <Button variant="outline" className="flex items-center gap-2">
               <User className="w-5 h-5 text-primary" />
-              <span className="hidden md:inline">Profile</span>
+              <span className="hidden md:inline text-foreground">Profile</span>
             </Button>
           </div>
         </header>

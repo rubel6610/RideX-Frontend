@@ -1,4 +1,3 @@
-// import Banner from '@/components/Shared/Banner';
 import BeRidersAndPassenger from '@/components/Shared/BeRidersAndPassenger';
 import FeaturedDrivers from '@/components/Shared/FeaturedDrivers';
 import PopularRides from '@/components/Shared/PopularRides';
