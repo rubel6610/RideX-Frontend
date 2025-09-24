@@ -36,7 +36,7 @@ const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY <= 0) {
         setShowNavbar(true);
       } else if (currentScrollY > lastScrollY) {
@@ -44,7 +44,7 @@ const Navbar = () => {
       } else {
         setShowNavbar(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -55,9 +55,11 @@ const Navbar = () => {
 
   return (
     <>
-      <div className={`w-full max-w-[1440px] mx-auto navbar fixed top-0 left-0 right-0 z-[999] bg-background text-foreground border-b border-primary/30 shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8 transition-transform duration-300 ${
-        showNavbar ? "translate-y-0" : "-translate-y-full"
-      }`}>
+      <div
+        className={`w-full max-w-[1440px] mx-auto navbar fixed top-0 left-0 right-0 z-[999] bg-background text-foreground border-b border-primary/30 shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8 transition-transform duration-300 ${
+          showNavbar ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         <div className="flex items-center gap-10">
           {/* Logo */}
           <Link href="/" className="dark:hidden">
@@ -75,31 +77,60 @@ const Navbar = () => {
                 <ChevronDown className="text-sm transition-transform duration-200 group-hover:rotate-180" />
               </button>
               <div className="absolute top-full left-0 mt-0.5 border border-primary/30 bg-popover text-foreground flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
-                <Link href="/ride-bike" className="flex items-center gap-2 pl-4 pr-12 py-2 border-b border-primary/30 hover:text-primary">
+                <Link
+                  href="/ride-bike"
+                  className="flex items-center gap-2 pl-4 pr-12 py-2 border-b border-primary/30 hover:text-primary"
+                >
                   <Bike className="text-primary text-xl border p-0.5 rounded" />
                   <span>Bike</span>
                 </Link>
-                <Link href="/ride-cng" className="flex items-center gap-2 pl-4 pr-12 py-2 border-b border-primary/30 hover:text-primary">
+                <Link
+                  href="/ride-cng"
+                  className="flex items-center gap-2 pl-4 pr-12 py-2 border-b border-primary/30 hover:text-primary"
+                >
                   <BusFront className="text-primary text-xl border p-0.5 rounded" />
                   <span>CNG</span>
                 </Link>
-                <Link href="/ride-car" className="flex items-center gap-2 px-4 pr-12 py-2 hover:text-primary">
+                <Link
+                  href="/ride-car"
+                  className="flex items-center gap-2 px-4 pr-12 py-2 hover:text-primary"
+                >
                   <Car className="text-primary text-xl border p-0.5 rounded" />
                   <span>Car</span>
                 </Link>
               </div>
             </div>
 
-            <Link href="/offers" className={`h-full flex items-center hover:text-primary ${activeStyle("/offers")}`}>
+            <Link
+              href="/offers"
+              className={`h-full flex items-center hover:text-primary ${activeStyle(
+                "/offers"
+              )}`}
+            >
               Offers
             </Link>
-            <Link href="/contact" className={`h-full flex items-center hover:text-primary ${activeStyle("/contact")}`}>
+            <Link
+              href="/contact"
+              className={`h-full flex items-center hover:text-primary ${activeStyle(
+                "/contact"
+              )}`}
+            >
               Contact
             </Link>
-            <Link href="/about" className={`h-full flex items-center hover:text-primary ${activeStyle("/about")}`}>
+            <Link
+              href="/about"
+              className={`h-full flex items-center hover:text-primary ${activeStyle(
+                "/about"
+              )}`}
+            >
               About
             </Link>
-            <Link href="/become-rider" className={`h-full flex items-center hover:text-primary ${activeStyle("/become-rider")}`}>
+            <Link
+              href="/become-rider"
+              className={`h-full flex items-center hover:text-primary ${activeStyle(
+                "/become-rider"
+              )}`}
+            >
               Become a Rider
             </Link>
           </nav>
@@ -107,11 +138,20 @@ const Navbar = () => {
 
         {/* Right Side */}
         <div className="flex items-center">
-          <button onClick={toggleTheme} className="relative w-10 h-10 flex items-center justify-center rounded-full">
-            <Sun className={`absolute text-xl transition-all duration-300 ${
-              theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"}`} />
-            <Moon className={`absolute text-lg transition-all duration-300 ${
-              theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"}`} />
+          <button
+            onClick={toggleTheme}
+            className="relative w-10 h-10 flex items-center justify-center rounded-full"
+          >
+            <Sun
+              className={`absolute text-xl transition-all duration-300 ${
+                theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"
+              }`}
+            />
+            <Moon
+              className={`absolute text-lg transition-all duration-300 ${
+                theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"
+              }`}
+            />
           </button>
 
           {!user ? (
@@ -121,22 +161,30 @@ const Navbar = () => {
               </Button>
             </Link>
           ) : (
-            <Button onClick={logout} variant="primary" size="lg" className="mr-3 text-md ml-1">
+            <Button
+              onClick={logout}
+              variant="primary"
+              size="lg"
+              className="mr-3 text-md ml-1"
+            >
               Sign Out
             </Button>
           )}
 
           <div className="lg:hidden flex items-center">
-            <TextAlignJustify className="text-2xl cursor-pointer" onClick={toggleSidebar} />
+            <TextAlignJustify
+              className="text-2xl cursor-pointer"
+              onClick={toggleSidebar}
+            />
           </div>
         </div>
       </div>
 
-      <Sidebar 
-        sidebarOpen={sidebarOpen} 
-        toggleSidebar={toggleSidebar} 
-        rideByOpen={rideByOpen} 
-        toggleRideBy={toggleRideBy} 
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        toggleSidebar={toggleSidebar}
+        rideByOpen={rideByOpen}
+        toggleRideBy={toggleRideBy}
       />
     </>
   );
