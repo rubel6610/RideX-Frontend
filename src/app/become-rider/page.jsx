@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Input } from "@/components/ui/input"; // যদি ShadCN Input use করো
-import { Label } from "@/components/ui/label"; // Label import করা লাগবে
+import { Input } from "@/components/ui/input"; 
+import { Label } from "@/components/ui/label"; 
 
 export default function BecomeRiderPage() {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -18,7 +18,7 @@ export default function BecomeRiderPage() {
     const today = new Date();
     const age = today.getFullYear() - dob.getFullYear();
     if (age < 18) {
-      alert("আপনার বয়স কমপক্ষে 18 হতে হবে");
+      alert("You must be at least 18 years old.");
       return;
     }
 
@@ -76,7 +76,7 @@ export default function BecomeRiderPage() {
                 type="email"
                 {...register("email", { 
                   required: "Email is required", 
-                  pattern: { value: /^\S+@\S+$/i, message: "ইনভ্যালিড ইমেইল" }
+                  pattern: { value: /^\S+@\S+$/i, message: "invalidate Your Email" }
                 })}
                 className="w-full p-2 border border-primary rounded"
                 placeholder="Enter Your Email"
@@ -89,7 +89,7 @@ export default function BecomeRiderPage() {
                 type="tel"
                 {...register("phone", { 
                   required: "Phone number is required",
-                  pattern: { value: /^\+?8801[3-9]\d{8}$/, message: "ইনভ্যালিড ফোন নম্বর" }
+                  pattern: { value: /^\+?8801[3-9]\d{8}$/, message: "invalidate  In Your Phone Number" }
                 })}
                 className="w-full p-2 border border-primary rounded"
                 placeholder="Enter Your Phone Number"
@@ -224,12 +224,14 @@ export default function BecomeRiderPage() {
             )}
           </div>
 
+
+
           {/* Password */}
           <div className="flex flex-col md:flex-row gap-4">
             
              <div className="relative w-full">
-            <Label>
-              Password <span className="text-red-500"></span>
+            <Label className="font-semibold text-lg">
+              Password 
             </Label>
             <Input
               type={showPassword ? "text" : "password"}
@@ -238,7 +240,7 @@ export default function BecomeRiderPage() {
             />
             <button
               type="button"
-              className="absolute top-6 right-3"
+              className="absolute top-9 right-3"
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
