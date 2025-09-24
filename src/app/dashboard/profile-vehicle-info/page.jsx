@@ -126,7 +126,7 @@ export default function ProfileVehicleInfoPage() {
                 <Input
                   type="file"
                   id={doc}
-                  className="w-full h-10 sm:h-12 border rounded-md cursor-pointer"
+                  className="w-full border rounded-md cursor-pointer"
                 />
               </div>
             ))}

@@ -50,15 +50,15 @@ export default function DashboardLayout({ children }) {
             {/* rider role routes  */}
             {userRole === "rider" && (
               <>
-                {/* Ride Requests */}
+                {/* Available Rides */}
                 <Link
-                  href="/dashboard/ride-requests"
-                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/ride-requests"
-                    ? "bg-primary/90 text-background"
-                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                  href="/dashboard/available-rides"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/available-rides"
+                      ? "bg-primary/90 text-background"
+                      : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
                 >
-                  <TrendingUp className="w-5 h-5" /> Ride Requests
+                  <Truck className="w-5 h-5" /> Available Rides
                 </Link>
 
                 {/* Ongoing Ride */}
