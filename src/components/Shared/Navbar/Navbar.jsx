@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Bike, Car, BusFront, TextAlignJustify, Moon, Sun } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import logo from "../../../Assets/ridex-logo.webp";
 import darkLogo from "../../../Assets/logo-dark.webp";
 import Sidebar from "./Sidebar";
@@ -15,16 +14,16 @@ import { useAuth } from "@/app/hooks/AuthProvider";
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
-  const { user, logout, isAuthChecked } = useAuth();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rideByOpen, setRideByOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
+
 
   // Set mounted state to avoid hydration issues
   useEffect(() => {
-    setIsMounted(true);
+    
   }, []);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -53,25 +52,6 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Show loading skeleton until mounted and auth checked
-  if (!isMounted || !isAuthChecked) {
-    return (
-      <div className="w-full max-w-[1440px] mx-auto navbar fixed top-0 left-0 right-0 z-[999] bg-background text-foreground border-b border-primary/30 shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8">
-        <div className="flex items-center gap-10">
-          <Skeleton className="h-8 w-32" />
-          <div className="hidden lg:flex gap-6">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-6 w-20" />
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-8 w-8 rounded-full" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
