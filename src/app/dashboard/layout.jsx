@@ -3,7 +3,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun } from "lucide-react";
+import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun, Truck, PlayCircle, Clock, BarChart3 } from "lucide-react";
 import useTheme from "@/app/hooks/themeContext";
 
 import { Button } from "@/components/ui/button";
@@ -45,11 +45,78 @@ export default function DashboardLayout({ children }) {
                 <Link href="/dashboard/support" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/support' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <User className="w-5 h-5" /> Support</Link>
               </>
             )}
+
+            {/* rider role routes  */}
             {userRole === "rider" && (
-              <Link href="/dashboard/ride-requests" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/ride-requests' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}>
-                <TrendingUp className="w-5 h-5" /> Ride Requests
-              </Link>
+              <>
+                {/* Available Rides */}
+                <Link
+                  href="/dashboard/available-rides"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/available-rides"
+                      ? "bg-primary/90 text-background"
+                      : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  <Truck className="w-5 h-5" /> Available Rides
+                </Link>
+
+                {/* Ongoing Ride */}
+                <Link
+                  href="/dashboard/ongoing-ride"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/ongoing-ride"
+                    ? "bg-primary/90 text-background"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  <PlayCircle className="w-5 h-5" /> Ongoing Ride
+                </Link>
+
+                {/* Earnings Overview */}
+                <Link
+                  href="/dashboard/earnings"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/earnings"
+                    ? "bg-primary/90 text-background"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  <DollarSign className="w-5 h-5" /> Earnings Overview
+                </Link>
+
+                {/* Ride History */}
+                <Link
+                  href="/dashboard/ride-history"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/ride-history"
+                    ? "bg-primary/90 text-background"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  <Clock className="w-5 h-5" /> Ride History
+                </Link>
+
+                {/* Profile & Vehicle Info */}
+                <Link
+                  href="/dashboard/profile-vehicle-info"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/profile-vehicle-info"
+                    ? "bg-primary/90 text-background"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  <User className="w-5 h-5" /> Profile & Vehicle Info
+                </Link>
+
+                {/* Performance Stats */}
+                <Link
+                  href="/dashboard/performance-stats"
+                  className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/performance-stats"
+                    ? "bg-primary/90 text-background"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  <BarChart3 className="w-5 h-5" /> Performance Stats
+                </Link>
+              </>
             )}
+
             {userRole === "admin" && (
               <Link href="/dashboard/user-management" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/user-management' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}>
                 <Shield className="w-5 h-5" /> User Management
