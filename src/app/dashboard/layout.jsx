@@ -110,7 +110,7 @@ export default function DashboardLayout({ children }) {
                     <Users className="w-5 h-5" /> Book A Ride
                   </Link>
                   <Link
-                    href="/dashboard/ride-history"
+                    href="/dashboard/user-ride-history"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
                       pathname === "/dashboard/ride-history"
                         ? "bg-primary/90 text-background"
@@ -199,7 +199,7 @@ export default function DashboardLayout({ children }) {
                   <Link
                     href="/dashboard/ride-history"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      pathname === "/dashboard/ride-history"
+                      pathname === "/dashboard/rider-ride-history"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}

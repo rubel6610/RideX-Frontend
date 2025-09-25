@@ -6,49 +6,47 @@ import "leaflet/dist/leaflet.css";
 
 // Red icon for marker
 const redIcon = new L.Icon({
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x-red.png",
+  iconUrl: "https://i.ibb.co.com/C5LtG4gz/logo-sm.png",
   shadowUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-  iconSize: [25, 41],
+  iconSize: [31, 45],
   iconAnchor: [12, 41],
 });
 
 const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   const mapRef = useRef();
   const [searchInput, setSearchInput] = useState("");
-  // Default to Dhaka if not explicitly set to current location
   const [markerPos, setMarkerPos] = useState({
     lat: 23.8103,
     lng: 90.4125,
   });
-  const [currentLocationName, setCurrentLocationName] = useState(""); // To store the resolved location name
+  const [currentLocationName, setCurrentLocationName] = useState("");
 
   // Helper: reverse geocode and update location name
-  const updateLocationName = async (lat, lng) => {
+  const resolveLocationName = async (lat, lng, shouldSelect = false) => {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
       );
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const data = await res.json();
-        const locName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-        setCurrentLocationName(locName);
-        onSelect(locName); // Pass the location name up to the parent
-      } else {
-        const text = await res.text();
-        throw new Error("Invalid response from location service: " + text);
+      const data = await res.json();
+      const locName =
+        data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      setCurrentLocationName(locName);
+
+      if (shouldSelect) {
+        onSelect(locName); // send to parent, but don't close popup
       }
     } catch (error) {
       console.error("Error reverse geocoding:", error);
       const locName = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       setCurrentLocationName(locName);
-      onSelect(locName); // Fallback to coordinates
+      if (shouldSelect) {
+        onSelect(locName);
+      }
     }
   };
 
-  // Auto detect current location on mount if defaultCurrent is true
+  // Auto detect current location on mount
   useEffect(() => {
     if (defaultCurrent && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -56,38 +54,34 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setMarkerPos({ lat, lng });
-          // Update map view and location name after setting marker position
           if (mapRef.current) {
             mapRef.current.setView([lat, lng], 14);
           }
-          updateLocationName(lat, lng);
+          resolveLocationName(lat, lng, false);
         },
-        (error) => {
-          console.error("Error getting current location:", error);
-          // If geolocation fails, still try to resolve the default markerPos (Dhaka)
-          updateLocationName(markerPos.lat, markerPos.lng);
+        () => {
+          resolveLocationName(markerPos.lat, markerPos.lng, false);
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     } else {
-      // If not defaultCurrent, or geolocation not supported, still resolve the initial markerPos (Dhaka)
-      updateLocationName(markerPos.lat, markerPos.lng);
+      resolveLocationName(markerPos.lat, markerPos.lng, false);
     }
-  }, [defaultCurrent]); // Only run on mount or when defaultCurrent changes
+  }, [defaultCurrent]);
 
-  // Map click handler component
+  // Map click handler
   const MapClickHandler = () => {
     useMapEvents({
       click: (e) => {
         const { lat, lng } = e.latlng;
         setMarkerPos({ lat, lng });
-        updateLocationName(lat, lng);
+        resolveLocationName(lat, lng, true);
       },
     });
     return null;
   };
 
-  // Handle search input
+  // Handle search
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchInput) return;
@@ -97,25 +91,19 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
           searchInput
         )}&format=json&limit=1`
       );
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data && data.length > 0) {
-          const { lat, lon, display_name } = data[0];
-          const latNum = parseFloat(lat);
-          const lonNum = parseFloat(lon);
-          setMarkerPos({ lat: latNum, lng: lonNum });
-          if (mapRef.current) {
-            mapRef.current.setView([latNum, lonNum], 14);
-          }
-          setCurrentLocationName(display_name);
-          onSelect(display_name); // Update parent with searched location
-        } else {
-          alert("Location not found. Please try a different search.");
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const { lat, lon, display_name } = data[0];
+        const latNum = parseFloat(lat);
+        const lonNum = parseFloat(lon);
+        setMarkerPos({ lat: latNum, lng: lonNum });
+        if (mapRef.current) {
+          mapRef.current.setView([latNum, lonNum], 14);
         }
+        setCurrentLocationName(display_name);
+        onSelect(display_name); // only send location, no auto close
       } else {
-        const text = await res.text();
-        throw new Error("Invalid response from location service: " + text);
+        alert("Location not found. Please try a different search.");
       }
     } catch (error) {
       console.error("Error searching location:", error);
@@ -157,7 +145,7 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
           </button>
         </form>
 
-        {/* Display selected location name */}
+        {/* Selected name */}
         <div className="p-2 bg-muted text-sm text-center border-b border-border text-foreground">
           Selected: <span className="font-medium">{currentLocationName}</span>
         </div>
@@ -165,14 +153,14 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
         {/* Map */}
         <div className="flex-1">
           <MapContainer
-            center={[markerPos.lat, markerPos.lng]} // Map centers on current marker position
+            center={[markerPos.lat, markerPos.lng]}
             zoom={13}
             style={{ height: "100%", width: "100%" }}
-            ref={mapRef} // Use ref directly, no need for whenCreated
+            ref={mapRef}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
             <Marker
               position={[markerPos.lat, markerPos.lng]}
@@ -182,7 +170,7 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
                 dragend: (e) => {
                   const { lat, lng } = e.target.getLatLng();
                   setMarkerPos({ lat, lng });
-                  updateLocationName(lat, lng);
+                  resolveLocationName(lat, lng, true);
                 },
               }}
             />

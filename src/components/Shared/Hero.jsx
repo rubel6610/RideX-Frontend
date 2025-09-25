@@ -25,9 +25,9 @@ const Hero = () => {
             return;
         }
         router.push(
-            `/book-ride?pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(
-                drop
-            )}`
+            `/dashboard/book-a-ride?pickup=${encodeURIComponent(
+                pickup
+            )}&drop=${encodeURIComponent(drop)}`
         );
     };
 
@@ -91,17 +91,15 @@ const Hero = () => {
                             </div>
 
                             <div className="col-span-1 md:col-span-2 mt-2">
-                                <Link href="/dashboard/book-a-ride">
-                                    <Button
-                                        type="submit"
-                                        variant="primary"
-                                        size="lg"
-                                        className="w-full justify-center"
-                                    >
-                                        Find Ride Now
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </Link>
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    size="lg"
+                                    className="w-full justify-center"
+                                >
+                                    Find Ride Now
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -141,7 +139,7 @@ const Hero = () => {
                     title="Select Pickup Location"
                     onClose={() => setShowPickupMap(false)}
                     onSelect={(locName) => setPickup(locName)}
-                    defaultCurrent // This prop ensures current location detection for pickup
+                    defaultCurrent // current location detection for pickup
                 />
             )}
 
@@ -151,7 +149,7 @@ const Hero = () => {
                     title="Select Drop Location"
                     onClose={() => setShowDropMap(false)}
                     onSelect={(locName) => setDrop(locName)}
-                    defaultCurrent={false} // Explicitly set to false, so it doesn't try to get current location
+                    defaultCurrent={false}
                 />
             )}
         </section>
