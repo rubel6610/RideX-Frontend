@@ -16,47 +16,66 @@ const redIcon = new L.Icon({
 
 const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   const mapRef = useRef();
-  const markerRef = useRef();
   const [searchInput, setSearchInput] = useState("");
+  // Default to Dhaka if not explicitly set to current location
   const [markerPos, setMarkerPos] = useState({
     lat: 23.8103,
     lng: 90.4125,
-  }); // Dhaka default
+  });
+  const [currentLocationName, setCurrentLocationName] = useState(""); // To store the resolved location name
 
-  // Helper: reverse geocode
-  const updateLocation = (lat, lng) => {
-    fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        const locName = data.display_name || `${lat}, ${lng}`;
-        onSelect(locName);
-      });
+  // Helper: reverse geocode and update location name
+  const updateLocationName = async (lat, lng) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+      );
+      const data = await res.json();
+      const locName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      setCurrentLocationName(locName);
+      onSelect(locName); // Pass the location name up to the parent
+    } catch (error) {
+      console.error("Error reverse geocoding:", error);
+      const locName = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      setCurrentLocationName(locName);
+      onSelect(locName); // Fallback to coordinates
+    }
   };
 
-  // Auto detect current location
+  // Auto detect current location on mount if defaultCurrent is true
   useEffect(() => {
     if (defaultCurrent && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setMarkerPos({ lat, lng });
-        updateLocation(lat, lng);
-        if (mapRef.current) {
-          mapRef.current.setView([lat, lng], 14);
-        }
-      });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setMarkerPos({ lat, lng });
+          // Update map view and location name after setting marker position
+          if (mapRef.current) {
+            mapRef.current.setView([lat, lng], 14);
+          }
+          updateLocationName(lat, lng);
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+          // If geolocation fails, still try to resolve the default markerPos (Dhaka)
+          updateLocationName(markerPos.lat, markerPos.lng);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    } else {
+      // If not defaultCurrent, or geolocation not supported, still resolve the initial markerPos (Dhaka)
+      updateLocationName(markerPos.lat, markerPos.lng);
     }
-  }, [defaultCurrent]);
+  }, [defaultCurrent]); // Only run on mount or when defaultCurrent changes
 
-  // Handle map clicks
+  // Map click handler component
   const MapClickHandler = () => {
     useMapEvents({
       click: (e) => {
         const { lat, lng } = e.latlng;
         setMarkerPos({ lat, lng });
-        updateLocation(lat, lng);
+        updateLocationName(lat, lng);
       },
     });
     return null;
@@ -66,21 +85,32 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchInput) return;
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-        searchInput
-      )}&format=json&limit=1`
-    );
-    const data = await res.json();
-    if (data && data.length > 0) {
-      const { lat, lon, display_name } = data[0];
-      const latNum = parseFloat(lat);
-      const lonNum = parseFloat(lon);
-      setMarkerPos({ lat: latNum, lng: lonNum });
-      if (mapRef.current) {
-        mapRef.current.setView([latNum, lonNum], 14);
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          searchInput
+        )}&format=json&limit=1`
+      );
+      const data = await res.json();
+
+      if (data && data.length > 0) {
+        const { lat, lon, display_name } = data[0];
+        const latNum = parseFloat(lat);
+        const lonNum = parseFloat(lon);
+
+        setMarkerPos({ lat: latNum, lng: lonNum });
+        if (mapRef.current) {
+          mapRef.current.setView([latNum, lonNum], 14);
+        }
+        setCurrentLocationName(display_name);
+        onSelect(display_name); // Update parent with searched location
+      } else {
+        alert("Location not found. Please try a different search.");
       }
-      onSelect(display_name);
+    } catch (error) {
+      console.error("Error searching location:", error);
+      alert("Failed to search location. Please try again.");
     }
   };
 
@@ -108,38 +138,42 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
             placeholder="Search location..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="flex-1 border rounded px-3 py-2 text-sm"
+            className="flex-1 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors duration-200"
           >
             Search
           </button>
         </form>
 
+        {/* Display selected location name */}
+        <div className="p-2 bg-gray-100 text-sm text-center border-b">
+          Selected: <span className="font-medium">{currentLocationName}</span>
+        </div>
+
         {/* Map */}
         <div className="flex-1">
           <MapContainer
-            center={[markerPos.lat, markerPos.lng]}
+            center={[markerPos.lat, markerPos.lng]} // Map centers on current marker position
             zoom={13}
             style={{ height: "100%", width: "100%" }}
-            whenCreated={(mapInstance) => (mapRef.current = mapInstance)}
+            ref={mapRef} // Use ref directly, no need for whenCreated
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenStreetMap'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <Marker
               position={[markerPos.lat, markerPos.lng]}
               draggable
               icon={redIcon}
-              ref={markerRef}
               eventHandlers={{
                 dragend: (e) => {
                   const { lat, lng } = e.target.getLatLng();
                   setMarkerPos({ lat, lng });
-                  updateLocation(lat, lng);
+                  updateLocationName(lat, lng);
                 },
               }}
             />

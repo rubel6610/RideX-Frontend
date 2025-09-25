@@ -138,7 +138,7 @@ const Hero = () => {
           title="Select Pickup Location"
           onClose={() => setShowPickupMap(false)}
           onSelect={(locName) => setPickup(locName)}
-          defaultCurrent
+          defaultCurrent // This prop ensures current location detection for pickup
         />
       )}
 
@@ -148,7 +148,7 @@ const Hero = () => {
           title="Select Drop Location"
           onClose={() => setShowDropMap(false)}
           onSelect={(locName) => setDrop(locName)}
-          defaultCurrent={false}
+          defaultCurrent={false} // Explicitly set to false, so it doesn't try to get current location
         />
       )}
     </section>

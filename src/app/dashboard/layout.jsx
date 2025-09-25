@@ -28,6 +28,7 @@ import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp";
 import ProtectedRoute from "../hooks/ProtectedRoute";
 import useTheme from "../hooks/useTheme";
+import { useAuth } from "../hooks/AuthProvider";
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -38,7 +39,7 @@ export default function DashboardLayout({ children }) {
   //     `${NEXT_PUBLIC_SERVER_BASE_URL}/api/users?email=${user.email}`
   //   );
   // };
-  userdata()
+  // userdata()
 
   const userRole = "user";
   const { logout } = useAuth();
