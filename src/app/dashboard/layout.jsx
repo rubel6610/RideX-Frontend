@@ -61,14 +61,15 @@ export default function DashboardLayout({ children }) {
   }, [user?.email]);
 
   // Determine role dynamically from fetched data or fallback
-  const userRole = userData?.role || "user";
+  // const userRole = userData?.role || "user";
+  const userRole = "admin";
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex h-screen overflow-hidden bg-background">
         {/* Sidebar */}
         <aside
-          className={`flex flex-col justify-between transition-all duration-300 ${
+          className={`flex flex-col justify-between transition-all duration-300 h-full flex-shrink-0 ${
             sidebarOpen
               ? "bg-accent/30 border-r border-border py-8 px-6 text-foreground w-64"
               : "hidden transition-all duration-500"
@@ -256,10 +257,13 @@ export default function DashboardLayout({ children }) {
             {/* User Card */}
             <div className="mt-8 flex items-center gap-2 p-3 rounded-lg bg-accent border border-border">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
-                {userData?.fullName
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("") || "JD"}
+                <Image
+                  src={userData?.photoUrl || "/default-avatar.png"}
+                  width={30}
+                  height={30}
+                  alt={userData?.fullName || "username"}
+                  className="rounded-full"
+                />
               </div>
               <div>
                 <div className=" text-foreground flex items-center gap-2">
@@ -273,21 +277,20 @@ export default function DashboardLayout({ children }) {
                 </div>
               </div>
             </div>
+            <Button
+              onClick={logout}
+              variant="destructiveOutline"
+              size="lg"
+              className="w-full m-3 text-md ml-1"
+            >
+              <LucideLogOut className="w-5 h-5" />
+              Sign Out
+            </Button>
           </div>
-
-          <Button
-            onClick={logout}
-            variant="destructiveOutline"
-            size="lg"
-            className="m-3 text-md ml-1"
-          >
-            <LucideLogOut className="w-5 h-5" />
-            Sign Out
-          </Button>
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex flex-1 flex-col h-full">
           {/* Topbar */}
           <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-background/80 sticky top-0 z-30">
             <div className="flex items-center gap-3">
@@ -336,7 +339,9 @@ export default function DashboardLayout({ children }) {
           </header>
 
           {/* Dynamic page content */}
-          <main className="flex-1 px-10 py-8">{children}</main>
+          <main className="flex-1 overflow-y-auto scrollbar-hidden px-10 py-8">
+            {children}
+          </main>
         </div>
       </div>
     </ProtectedRoute>
