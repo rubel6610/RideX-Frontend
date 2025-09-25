@@ -132,7 +132,7 @@ function ProfileSkeleton() {
                     </Button>
                 </Link>
                 <Button variant="destructive" size="lg" className="flex items-center gap-2" onClick={logout}>
-                    <LogOut className="w-5 h-5" /> Logout
+                    <LogOut className="w-5 h-5" /> Sign Out
                 </Button>
             </div>
         </div>
