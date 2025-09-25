@@ -8,9 +8,9 @@ const RiderDashboard = () => {
     return (
         <>
                           <Link
-                            href="/dashboard/available-rides"
+                            href="/dashboard/rider/available-rides"
                             className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                              usePathname === "/dashboard/available-rides"
+                              usePathname === "/dashboard/rider/available-rides"
                                 ? "bg-primary/90 text-background"
                                 : "text-foreground hover:bg-primary/10 hover:text-primary"
                             }`}
@@ -18,9 +18,9 @@ const RiderDashboard = () => {
                             <Truck className="w-5 h-5" /> Available Rides
                           </Link>
                           <Link
-                            href="/dashboard/ongoing-ride"
+                            href="/dashboard/rider/ongoing-ride"
                             className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                              pathname === "/dashboard/ongoing-ride"
+                              pathname === "/dashboard/rider/ongoing-ride"
                                 ? "bg-primary/90 text-background"
                                 : "text-foreground hover:bg-primary/10 hover:text-primary"
                             }`}
@@ -28,9 +28,9 @@ const RiderDashboard = () => {
                             <PlayCircle className="w-5 h-5" /> Ongoing Ride
                           </Link>
                           <Link
-                            href="/dashboard/earnings"
+                            href="/dashboard/rider/earnings"
                             className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                              pathname === "/dashboard/earnings"
+                              pathname === "/dashboard/rider/earnings"
                                 ? "bg-primary/90 text-background"
                                 : "text-foreground hover:bg-primary/10 hover:text-primary"
                             }`}
@@ -38,9 +38,9 @@ const RiderDashboard = () => {
                             <DollarSign className="w-5 h-5" /> Earnings Overview
                           </Link>
                           <Link
-                            href="/dashboard/ride-history"
+                            href="/dashboard/rider/ride-history"
                             className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                              pathname === "/dashboard/ride-history"
+                              pathname === "/dashboard/rider/ride-history"
                                 ? "bg-primary/90 text-background"
                                 : "text-foreground hover:bg-primary/10 hover:text-primary"
                             }`}
@@ -48,9 +48,9 @@ const RiderDashboard = () => {
                             <Clock className="w-5 h-5" /> Ride History
                           </Link>
                           <Link
-                            href="/dashboard/profile-vehicle-info"
+                            href="/dashboard/rider/profile-vehicle-info"
                             className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                              pathname === "/dashboard/profile-vehicle-info"
+                              pathname === "/dashboard/rider/profile-vehicle-info"
                                 ? "bg-primary/90 text-background"
                                 : "text-foreground hover:bg-primary/10 hover:text-primary"
                             }`}
@@ -58,9 +58,9 @@ const RiderDashboard = () => {
                             <User className="w-5 h-5" /> Profile & Vehicle Info
                           </Link>
                           <Link
-                            href="/dashboard/performance-stats"
+                            href="/dashboard/rider/performance-stats"
                             className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                              pathname === "/dashboard/performance-stats"
+                              pathname === "/dashboard/rider/performance-stats"
                                 ? "bg-primary/90 text-background"
                                 : "text-foreground hover:bg-primary/10 hover:text-primary"
                             }`}
