@@ -1,29 +1,100 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Input } from "@/components/ui/input"; 
-import { Label } from "@/components/ui/label"; 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "../hooks/AuthProvider";
 
 export default function BecomeRiderPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
   const [licensePreview, setLicensePreview] = useState(null);
   const [licenseFileName, setLicenseFileName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loggedUser, setLoggedUser] = useState(null)
+  const { user } = useAuth();
 
-  const onSubmit = (data) => {
-    // Age check
-    const dob = new Date(data.dob);
-    const today = new Date();
-    const age = today.getFullYear() - dob.getFullYear();
-    if (age < 18) {
-      alert("You must be at least 18 years old.");
-      return;
+  useEffect(() => {
+    if (user?.id || user?.email) {
+      fetchUser();
     }
+  }, [user]);
 
-    console.log("Form Data:", data);
-    alert("Form submitted successfully!");
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?id=${user.id}&email=${user.email}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log(data.message || "Error fetching user");
+        return;
+      }
+
+      setLoggedUser(data);
+
+      // Set default values for form fields except emergency/vehicle/license
+      setValue("fullName", data.fullName || "");
+      setValue("dob", data.dateOfBirth || "");
+      setValue("email", data.email || "");
+      setValue("phone", data.phoneNumber || "");
+      setValue("present_address.village", data.present_address?.village || "");
+      setValue("present_address.post", data.present_address?.post || "");
+      setValue("present_address.upazila", data.present_address?.upazila || "");
+      setValue("present_address.district", data.present_address?.district || "");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    try {
+      if (!loggedUser) return alert("User not logged in");
+
+      // Age check
+      const dob = new Date(data.dob);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 18) {
+        alert("You must be at least 18 years old.");
+        return;
+      }
+
+      const baseUrl = "http://localhost:5000";
+
+      // Prepare payload
+      const payload = {
+        userId: loggedUser._id,
+        present_address: {
+          village: data.present_address.village,
+          post: data.present_address.post,
+          upazila: data.present_address.upazila,
+          district: data.present_address.district,
+        },
+        vehicleType: data.vehicle,
+        vehicleModel: data.vehicleModel,
+        vehicleRegisterNumber: data.vehicleReg,
+        drivingLicense: licenseFileName,
+        password: data.password,
+      };
+
+      const res = await fetch(`${baseUrl}/api/rider/become-rider`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Rider request submitted successfully!");
+        console.log(result.rider);
+      } else {
+        alert(result.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
   };
 
   const handleLicenseChange = (e) => {
@@ -49,8 +120,8 @@ export default function BecomeRiderPage() {
           Join our rider network and start your journey today.
         </p>
 
-        <form 
-          onSubmit={handleSubmit(onSubmit)} 
+        <form
+          onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col p-6 border border-primary dark:border-primary gap-6 rounded-lg"
         >
           {/* Row 1: Full Name & DOB */}
@@ -65,7 +136,15 @@ export default function BecomeRiderPage() {
               />
               {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
             </div>
-           
+            <div className="flex-1">
+              <label className="block mb-1 font-semibold">Date of Birth</label>
+              <input
+                type="date"
+                {...register("dob", { required: "DOB is required" })}
+                className="w-full p-2 border border-primary rounded"
+              />
+              {errors.dob && <p className="text-red-500 text-sm">{errors.dob.message}</p>}
+            </div>
           </div>
 
           {/* Row 2: Email & Phone */}
@@ -74,9 +153,9 @@ export default function BecomeRiderPage() {
               <label className="block mb-1 font-semibold">Email</label>
               <input
                 type="email"
-                {...register("email", { 
-                  required: "Email is required", 
-                  pattern: { value: /^\S+@\S+$/i, message: "invalidate Your Email" }
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: { value: /^\S+@\S+$/i, message: "Invalid Email" }
                 })}
                 className="w-full p-2 border border-primary rounded"
                 placeholder="Enter Your Email"
@@ -87,9 +166,9 @@ export default function BecomeRiderPage() {
               <label className="block mb-1 font-semibold">Phone</label>
               <input
                 type="tel"
-                {...register("phone", { 
+                {...register("phone", {
                   required: "Phone number is required",
-                  pattern: { value: /^\+?8801[3-9]\d{8}$/, message: "invalidate  In Your Phone Number" }
+                  pattern: { value: /^\+?8801[3-9]\d{8}$/, message: "Invalid Phone Number" }
                 })}
                 className="w-full p-2 border border-primary rounded"
                 placeholder="Enter Your Phone Number"
@@ -131,7 +210,6 @@ export default function BecomeRiderPage() {
                   placeholder="Upazila"
                 />
                 {errors.present_address?.upazila && <p className="text-red-500 text-sm">{errors.present_address.upazila.message}</p>}
-
               </div>
               <div>
                 <label className="block mb-1 font-semibold">District</label>
@@ -224,32 +302,26 @@ export default function BecomeRiderPage() {
             )}
           </div>
 
-
-
           {/* Password */}
           <div className="flex flex-col md:flex-row gap-4">
-            
-             <div className="relative w-full">
-            <Label className="font-semibold text-lg">
-              Password 
-            </Label>
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter Your Password"
-              {...register("password", { required: "Password is required" })}
-            />
-            <button
-              type="button"
-              className="absolute top-9 right-3"
-              onClick={() => setShowPassword((prev) => !prev)}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-            {errors.password && (
-              <p className="text-red-500 text-sm">{errors.password.message}</p>
-            )}
-          </div>
-           
+            <div className="relative w-full">
+              <Label className="font-semibold text-lg">Password</Label>
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter Your Password"
+                {...register("password", { required: "Password is required" })}
+              />
+              <button
+                type="button"
+                className="absolute top-9 right-3"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+              {errors.password && (
+                <p className="text-red-500 text-sm">{errors.password.message}</p>
+              )}
+            </div>
           </div>
 
           <Button type="submit" variant="primary" size="lg">

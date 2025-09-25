@@ -29,7 +29,8 @@ function RegisterPage() {
   const password = watch("password");
 
   // Submit Handler
-  const onSubmit = async (data) => {
+  const onSubmit = async (e, data) => {
+    e.preventDefault();
     try {
       // Handle image upload
       if (data.image && data.image.length > 0) {
@@ -43,19 +44,13 @@ function RegisterPage() {
         data.photoUrl = imgData?.data?.url; // Store uploaded image URL
       }
 
-     
-      
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...data,
-          }),
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+        }),
+      });
 
       const userdata = await res.json();
       if (res.ok) {
@@ -113,7 +108,7 @@ function RegisterPage() {
 
         {/* Image Upload */}
         <div>
-          <Label>
+          <Label className='mb-1.5'>
             Profile Image <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -144,7 +139,7 @@ function RegisterPage() {
         {/* Date of Birth & NID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               Date Of Birth <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -159,7 +154,7 @@ function RegisterPage() {
           </div>
 
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               NID Number <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -175,9 +170,8 @@ function RegisterPage() {
 
         {/* Email & Gender */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Email */}
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               Email <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -190,9 +184,8 @@ function RegisterPage() {
             )}
           </div>
 
-          {/* Gender */}
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               Gender <span className="text-red-500">*</span>
             </Label>
             <div className="flex gap-6 mt-2">
@@ -231,9 +224,8 @@ function RegisterPage() {
 
         {/* Password & Confirm Password */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Password */}
           <div className="relative">
-            <Label>
+            <Label className='mb-1.5'>
               Password <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -243,7 +235,7 @@ function RegisterPage() {
             />
             <button
               type="button"
-              className="absolute top-6 right-3"
+              className="absolute top-7.5 right-3"
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -253,9 +245,8 @@ function RegisterPage() {
             )}
           </div>
 
-          {/* Confirm Password */}
           <div className="relative">
-            <Label>
+            <Label className='mb-1.5'>
               Confirm Password <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -269,7 +260,7 @@ function RegisterPage() {
             />
             <button
               type="button"
-              className="absolute top-6 right-3"
+              className="absolute  top-7.5 right-3"
               onClick={() => setShowConfirmPassword((prev) => !prev)}
             >
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}

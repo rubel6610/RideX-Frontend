@@ -3,6 +3,9 @@
 @plugin "tailwindcss-animate";
 @import "tw-animate-css";
 
+@import "leaflet/dist/leaflet.css";
+
+
 @custom-variant dark (&:is(.dark *));
 
 /* 🌞 Light Mode */
@@ -165,7 +168,16 @@
 body {
   letter-spacing: var(--tracking-normal);
 }
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
 
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hidden {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
 /* @layer base {
   * {
     @apply border-border outline-ring/50;
