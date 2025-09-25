@@ -55,7 +55,7 @@ export default function RideHistory() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-6  max-w-5xl mx-auto">
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Completed Rides */}
@@ -88,8 +88,8 @@ export default function RideHistory() {
 
       {/* Ride Table */}
       <div className="overflow-x-auto">
-        <table className="w-full border border-gray-200 rounded-xl">
-          <thead className="bg-gray-100">
+        <table className="w-full  border border-primary/30 rounded-xl">
+          <thead className="bg-primary">
             <tr>
               <th className="px-4 py-2 text-left">Date</th>
               <th className="px-4 py-2 text-left">Pickup → Dropoff</th>
