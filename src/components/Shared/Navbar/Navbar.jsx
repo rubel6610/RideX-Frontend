@@ -20,7 +20,6 @@ const Navbar = () => {
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-
   // Set mounted state to avoid hydration issues
   useEffect(() => {
     
