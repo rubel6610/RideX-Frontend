@@ -25,7 +25,7 @@ const Hero = () => {
             return;
         }
         router.push(
-            `/dashboard/book-a-ride?pickup=${encodeURIComponent(
+            `/dashboard/user/book-a-ride?pickup=${encodeURIComponent(
                 pickup
             )}&drop=${encodeURIComponent(drop)}`
         );
