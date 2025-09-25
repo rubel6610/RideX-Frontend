@@ -52,10 +52,10 @@ export default function OngoingRidePage() {
                         <span className="font-medium">Status:</span>{" "}
                         <span
                             className={`px-2 py-1 rounded text-xs ${ride.status === "completed"
-                                    ? "bg-green-100 text-green-700"
-                                    : ride.status === "cancelled"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-blue-100 text-blue-700"
+                                ? "bg-green-100 text-green-700"
+                                : ride.status === "cancelled"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-blue-100 text-blue-700"
                                 }`}
                         >
                             {ride.status}
@@ -122,7 +122,34 @@ export default function OngoingRidePage() {
                 </Dialog>
             </div>
 
-           
+            {/* Control Buttons */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Controls</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                    {ride.status === "assigned" && (
+                        <Button onClick={handleStart} className="flex items-center gap-2 cursor-pointer">
+                            <Play className="w-4 h-4" /> Start Ride
+                        </Button>
+                    )}
+
+                    {ride.status === "on_the_way" && (
+                        <Button onClick={handleEnd} className="flex items-center gap-2  cursor-pointer">
+                            <StopCircle className="w-4 h-4" /> End Ride
+                        </Button>
+                    )}
+
+                    {ride.status !== "completed" && ride.status !== "cancelled" && (
+                        <Button
+                            onClick={handleCancel}
+                            variant="destructiveOutline"
+                        >
+                            <XCircle className="w-4 h-4" /> Cancel Ride
+                        </Button>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     )
 }
