@@ -7,6 +7,7 @@ import useHideLayout from "./hooks/useHideLayout";
 import { useAuth } from "./hooks/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeProvider } from "./hooks/themeContext";
+import { Toaster } from "react-hot-toast";
 
 
 function LayoutContent({ children }) {
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
           <LayoutContent>{children}</LayoutContent>
         </AuthProvider>
         </ThemeProvider>
+         <Toaster position="top-right" />
       </body>
     </html>
   );
