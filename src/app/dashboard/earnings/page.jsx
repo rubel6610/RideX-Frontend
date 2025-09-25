@@ -55,29 +55,29 @@ export default function EarningPage() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-6 max-w-5xl mx-auto">
       {/* Top 3 summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="shadow-md rounded-xl p-4 text-center">
-          <CardTitle className="text-lg font-semibold">Today's Earning</CardTitle>
-          <CardContent className="text-2xl font-bold text-primary">${summary.today}</CardContent>
+          <h2 className="text-lg font-semibold">Today's Earning</h2>
+          <h2 className="text-2xl font-bold text-primary">${summary.today}</h2>
         </Card>
 
         <Card className="shadow-md rounded-xl p-4 text-center">
-          <CardTitle className="text-lg font-semibold">This Week</CardTitle>
-          <CardContent className="text-2xl font-bold text-primary">${summary.week}</CardContent>
+          <h2 className="text-lg font-semibold">This Week</h2>
+          <h2 className="text-2xl font-bold text-primary">${summary.week}</h2>
         </Card>
 
         <Card className="shadow-md rounded-xl p-4 text-center">
-          <CardTitle className="text-lg font-semibold">This Month</CardTitle>
-          <CardContent className="text-2xl font-bold text-primary">${summary.month}</CardContent>
+          <h2 className="text-lg font-semibold">This Month</h2>
+          <h2 className="text-2xl font-bold text-primary">${summary.month}</h2>
         </Card>
       </div>
 
       {/* Chart + Period toggle */}
       <Card className="max-w-4xl mx-auto shadow-lg rounded-2xl">
         <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-          <CardTitle className="text-xl font-semibold">Earnings Chart</CardTitle>
+          <h2 className="text-xl font-semibold">Earnings Chart</h2>
           <div className="flex gap-2 mt-2 sm:mt-0">
             {["daily","weekly","monthly"].map((p) => (
               <button
@@ -91,11 +91,9 @@ export default function EarningPage() {
           </div>
         </CardHeader>
 
-        <CardContent>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto p-6">
             <Bar data={data} options={options} />
           </div>
-        </CardContent>
       </Card>
     </div>
   );

@@ -62,9 +62,9 @@ export default function ProfileVehicleInfoPage() {
   return (
     <Card className="max-w-2xl mx-auto shadow-lg rounded-2xl mt-6">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">
+        <h2 className="text-2xl font-semibold">
           {currentRider.fullName}
-        </CardTitle>
+        </h2>
         <p className="text-sm text-muted-foreground">{currentRider.email}</p>
       </CardHeader>
 

@@ -61,28 +61,28 @@ export default function RideHistory() {
         {/* Completed Rides */}
         <Card className="shadow-md rounded-xl p-4 flex flex-col items-center gap-2">
           <CheckCircle className="w-6 h-6 text-green-500" />
-          <CardTitle className="text-lg font-semibold">Completed Rides</CardTitle>
-          <CardContent className="text-2xl font-bold text-primary">
+          <h2 className="text-lg font-semibold">Completed Rides</h2>
+          <h2 className="text-2xl font-bold text-primary">
             {summary.totalRides}
-          </CardContent>
+          </h2>
         </Card>
 
         {/* Average Rating */}
         <Card className="shadow-md rounded-xl p-4 flex flex-col items-center gap-2">
           <Star className="w-6 h-6 text-yellow-500" />
-          <CardTitle className="text-lg font-semibold">Average Rating</CardTitle>
-          <CardContent className="text-2xl font-bold text-primary">
+          <h2 className="text-lg font-semibold">Average Rating</h2>
+          <h2 className="text-2xl font-bold text-primary">
             {summary.avgRating.toFixed(1)}/5
-          </CardContent>
+          </h2>
         </Card>
 
         {/* Total Commission */}
         <Card className="shadow-md rounded-xl p-4 flex flex-col items-center gap-2">
           <DollarSign className="w-6 h-6 text-blue-500" />
-          <CardTitle className="text-lg font-semibold">Total Commission</CardTitle>
-          <CardContent className="text-2xl font-bold text-primary">
+          <h2 className="text-lg font-semibold">Total Commission</h2>
+          <h2 className="text-2xl font-bold text-primary">
             ${summary.totalCommission}
-          </CardContent>
+          </h2>
         </Card>
       </div>
 

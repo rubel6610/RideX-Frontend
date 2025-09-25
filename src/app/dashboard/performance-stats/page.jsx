@@ -48,47 +48,40 @@ export default function PerformanceStats() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-6 max-w-5xl mx-auto">
       {/* Top 3 summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Rating */}
-        <Card className="shadow-md rounded-xl p-4 flex items-center gap-3">
+        <Card className="shadow-md rounded-xl p-4 flex flex-col justify-center items-center gap-3">
           <Star className="w-6 h-6 text-yellow-500" />
-          <div>
-            <CardTitle className="text-lg font-semibold">Rating</CardTitle>
-            <CardContent className="text-2xl font-bold">{performance.rating}/5</CardContent>
-          </div>
+          <h3 className="text-lg font-semibold">Rating</h3>
+          <h3 className="text-2xl font-bold">{performance.rating}/5</h3>
         </Card>
 
         {/* Cancellation Rate */}
-        <Card className="shadow-md rounded-xl p-4 flex items-center gap-3">
+        <Card className="shadow-md rounded-xl p-4 flex flex-col justify-center items-center gap-3">
           <XCircle className="w-6 h-6 text-red-500" />
-          <div>
-            <CardTitle className="text-lg font-semibold">Cancellation Rate</CardTitle>
-            <CardContent className="text-2xl font-bold">{performance.cancelledRate}%</CardContent>
-          </div>
+          <h3 className="text-lg font-semibold">Cancellation Rate</h3>
+          <h3 className="text-2xl font-bold">{performance.cancelledRate}%</h3>
         </Card>
 
         {/* Acceptance Rate */}
-        <Card className="shadow-md rounded-xl p-4 flex items-center gap-3">
+        <Card className="shadow-md rounded-xl p-4 flex flex-col justify-center items-center gap-3">
           <CheckCircle className="w-6 h-6 text-green-500" />
-          <div>
-            <CardTitle className="text-lg font-semibold">Acceptance Rate</CardTitle>
-            <CardContent className="text-2xl font-bold">{performance.acceptanceRate}%</CardContent>
-          </div>
+          <h3 className="text-lg font-semibold">Acceptance Rate</h3>
+          <h3 className="text-2xl font-bold">{performance.acceptanceRate}%</h3>
         </Card>
       </div>
 
       {/* Trend chart */}
       <Card className="max-w-4xl mx-auto shadow-lg rounded-2xl">
-        <CardHeader>
+        <div className="p-6">
           <CardTitle className="text-xl font-semibold">Rating Trend (Last 7 Weeks)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        </div>
+
+          <div className="overflow-x-auto p-6">
             <Bar data={data} options={options} />
           </div>
-        </CardContent>
       </Card>
     </div>
   );
