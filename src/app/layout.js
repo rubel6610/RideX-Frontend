@@ -6,7 +6,7 @@ import { AuthProvider } from "./hooks/AuthProvider";
 import useHideLayout from "./hooks/useHideLayout";
 import { useAuth } from "./hooks/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeProvider } from "./hooks/ThemeContext";
+import { ThemeProvider } from "./hooks/themeContext";
 
 
 function LayoutContent({ children }) {
