@@ -27,7 +27,7 @@ export default function RideHistory() {
       fare: 100,
       commission: 10,
       rating: 5,
-      status: "Completed",
+      status: "Pending",
     },
     {
       rideId: "RIDE-003",
@@ -106,8 +106,8 @@ export default function RideHistory() {
                 <td className="px-4 py-2">{ride.date}</td>
                 <td className="px-4 py-2">{ride.pickup} → {ride.dropoff}</td>
                 <td className="px-4 py-2">{ride.distance}</td>
-                <td className="px-4 py-2">${ride.fare}</td>
-                <td className="px-4 py-2">${ride.commission}</td>
+                <td className="px-4 py-2 text-primary font-bold">${ride.fare}</td>
+                <td className="px-4 py-2 text-primary font-bold">${ride.commission}</td>
                 <td className="px-4 py-2 flex items-center gap-1">
                   <Star className="w-4 h-4 text-yellow-500" />
                   {ride.rating}
