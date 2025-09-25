@@ -64,7 +64,36 @@ export default function OngoingRidePage() {
                 </CardContent>
             </Card>
 
-          
+            {/* Fare Details */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Fare Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                    <p className="flex justify-between">
+                        <span>Base Fare</span>
+                        <span>${ride.fare.base}</span>
+                    </p>
+                    <p className="flex justify-between">
+                        <span>Distance Fare</span>
+                        <span>${ride.fare.distance}</span>
+                    </p>
+                    <p className="flex justify-between font-medium">
+                        <span>Total</span>
+                        <span>${ride.fare.total}</span>
+                    </p>
+                    <p className="flex justify-between text-red-600">
+                        <span>Commission</span>
+                        <span>-${ride.fare.commission}</span>
+                    </p>
+                    <p className="flex justify-between font-bold text-green-600">
+                        <span>Earning</span>
+                        <span>${ride.fare.total - ride.fare.commission}</span>
+                    </p>
+                </CardContent>
+            </Card>
+
+            
         </div>
     )
 }
