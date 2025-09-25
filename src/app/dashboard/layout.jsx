@@ -4,17 +4,22 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun, Truck, PlayCircle, Clock, BarChart3 } from "lucide-react";
-import useTheme from "@/app/hooks/themeContext";
 import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp"
+import { useAuth } from "../hooks/AuthProvider";
+import ProtectedRoute from "../hooks/ProtectedRoute";
+import useTheme from "../hooks/useTheme";
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
-  const userRole = "admin"; 
-
+  const {user}=useAuth();
+  console.log(user);
+  const userRole = "user"; 
+const {logout}=useAuth();
   return (
+    <ProtectedRoute>
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
       <aside
@@ -137,9 +142,15 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
 
-        <Button variant="destructiveOutline" className="flex items-center justify-center gap-2 mt-8">
-          <LucideLogOut className="w-5 h-5" /> Logout
-        </Button>
+        <Button
+              onClick={logout}
+              variant="primary"
+              size="lg"
+              className="m-3 text-md ml-1"
+            >
+               <LucideLogOut className="w-5 h-5" /> 
+              Sign Out
+            </Button>
       </aside>
 
       {/* Main Content */}
@@ -193,5 +204,6 @@ export default function DashboardLayout({ children }) {
         <main className="flex-1 px-10 py-8">{children}</main>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
