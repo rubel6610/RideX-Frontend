@@ -44,7 +44,6 @@ function RegisterPage() {
         data.photoUrl = imgData?.data?.url; // Store uploaded image URL
       }
 
-
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
