@@ -52,29 +52,29 @@ export default function PerformanceStats() {
       {/* Top 3 summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Rating */}
-        <Card className="shadow-md rounded-xl p-4 flex flex-col justify-center items-center gap-3">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <Star className="w-6 h-6 text-yellow-500" />
           <h3 className="text-lg font-semibold">Rating</h3>
           <h3 className="text-2xl font-bold">{performance.rating}/5</h3>
-        </Card>
+        </div>
 
         {/* Cancellation Rate */}
-        <Card className="shadow-md rounded-xl p-4 flex flex-col justify-center items-center gap-3">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <XCircle className="w-6 h-6 text-red-500" />
           <h3 className="text-lg font-semibold">Cancellation Rate</h3>
           <h3 className="text-2xl font-bold">{performance.cancelledRate}%</h3>
-        </Card>
+        </div>
 
         {/* Acceptance Rate */}
-        <Card className="shadow-md rounded-xl p-4 flex flex-col justify-center items-center gap-3">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <CheckCircle className="w-6 h-6 text-green-500" />
           <h3 className="text-lg font-semibold">Acceptance Rate</h3>
           <h3 className="text-2xl font-bold">{performance.acceptanceRate}%</h3>
-        </Card>
+        </div>
       </div>
 
       {/* Trend chart */}
-      <Card className="max-w-4xl mx-auto shadow-lg rounded-2xl">
+      <div className="p-6 shadow-md rounded-2xl hover:border-primary border border-border">
         <div className="p-6">
           <CardTitle className="text-xl font-semibold">Rating Trend (Last 7 Weeks)</CardTitle>
         </div>
@@ -82,7 +82,7 @@ export default function PerformanceStats() {
           <div className="overflow-x-auto p-6">
             <Bar data={data} options={options} />
           </div>
-      </Card>
+      </div>
     </div>
   );
 }

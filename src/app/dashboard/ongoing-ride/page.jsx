@@ -31,7 +31,7 @@ export default function OngoingRidePage() {
     return (
         <div className="p-4  max-w-4xl mx-auto space-y-4">
             {/* Current Trip Info */}
-            <Card>
+            <div className="p-6 shadow-md rounded-2xl hover:border-primary border border-border bg-accent/50">
                 <CardHeader>
                     <CardTitle className="text-lg">Current Trip Info</CardTitle>
                 </CardHeader>
@@ -62,10 +62,10 @@ export default function OngoingRidePage() {
                         </span>
                     </p>
                 </CardContent>
-            </Card>
+            </div>
 
             {/* Fare Details */}
-            <Card>
+            <div  className="p-6 shadow-md rounded-2xl hover:border-primary border border-border bg-accent/50">
                 <CardHeader>
                     <CardTitle className="text-lg">Fare Details</CardTitle>
                 </CardHeader>
@@ -91,7 +91,7 @@ export default function OngoingRidePage() {
                         <span>${ride.fare.total - ride.fare.commission}</span>
                     </p>
                 </CardContent>
-            </Card>
+            </div>
 
             {/* Passenger Info (Modal) */}
             <div className="flex justify-between gap-2 md:gap-3 xl:gap-4">

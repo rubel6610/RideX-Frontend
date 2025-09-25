@@ -43,8 +43,8 @@ export default function AvailableRides() {
 
       {/* Ride Requests Table */}
       <div className="overflow-x-auto">
-        <table className="w-full border border-primary/30">
-          <thead className="bg-primary">
+        <table className="w-full border border-accent rounded-xl">
+          <thead className="bg-accent">
             <tr>
               <th className="px-4 py-2 text-left">Passenger</th>
               <th className="px-4 py-2 text-left">Fare ($)</th>
@@ -54,7 +54,7 @@ export default function AvailableRides() {
           </thead>
           <tbody>
             {rides.map((ride) => (
-              <tr key={ride.id} className="border-t hover:bg-gray-50">
+              <tr key={ride.id} className="border-t border-accent">
                 <td className="px-4 py-2 gap-2">
                   {ride.passenger.name}
                 </td>

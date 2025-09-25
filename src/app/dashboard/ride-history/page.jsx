@@ -59,37 +59,37 @@ export default function RideHistory() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Completed Rides */}
-        <Card className="shadow-md rounded-xl p-4 flex flex-col items-center gap-2">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <CheckCircle className="w-6 h-6 text-green-500" />
           <h2 className="text-lg font-semibold">Completed Rides</h2>
           <h2 className="text-2xl font-bold text-primary">
             {summary.totalRides}
           </h2>
-        </Card>
+        </div>
 
         {/* Average Rating */}
-        <Card className="shadow-md rounded-xl p-4 flex flex-col items-center gap-2">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <Star className="w-6 h-6 text-yellow-500" />
           <h2 className="text-lg font-semibold">Average Rating</h2>
           <h2 className="text-2xl font-bold text-primary">
             {summary.avgRating.toFixed(1)}/5
           </h2>
-        </Card>
+        </div>
 
         {/* Total Commission */}
-        <Card className="shadow-md rounded-xl p-4 flex flex-col items-center gap-2">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <DollarSign className="w-6 h-6 text-blue-500" />
           <h2 className="text-lg font-semibold">Total Commission</h2>
           <h2 className="text-2xl font-bold text-primary">
             ${summary.totalCommission}
           </h2>
-        </Card>
+        </div>
       </div>
 
       {/* Ride Table */}
       <div className="overflow-x-auto">
-        <table className="w-full  border border-primary/30 rounded-xl">
-          <thead className="bg-primary">
+        <table className="w-full border border-accent rounded-xl">
+          <thead className="bg-accent">
             <tr>
               <th className="px-4 py-2 text-left">Date</th>
               <th className="px-4 py-2 text-left">Pickup → Dropoff</th>
@@ -102,7 +102,7 @@ export default function RideHistory() {
           </thead>
           <tbody>
             {rideHistory.map((ride) => (
-              <tr key={ride.rideId} className="border-t hover:bg-gray-50">
+              <tr key={ride.rideId} className="border-t border-accent">
                 <td className="px-4 py-2">{ride.date}</td>
                 <td className="px-4 py-2">{ride.pickup} → {ride.dropoff}</td>
                 <td className="px-4 py-2">{ride.distance}</td>

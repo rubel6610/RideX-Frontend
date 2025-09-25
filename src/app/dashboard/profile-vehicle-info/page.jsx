@@ -60,7 +60,7 @@ export default function ProfileVehicleInfoPage() {
   }
 
   return (
-    <Card className="max-w-2xl mx-auto shadow-lg rounded-2xl mt-6">
+    <div className="max-w-2xl mx-auto p-6 shadow-md bg-accent/50 rounded-2xl hover:border-primary group-hover:bg-accent border border-border">
       <CardHeader>
         <h2 className="text-2xl font-semibold">
           {currentRider.fullName}
@@ -135,6 +135,6 @@ export default function ProfileVehicleInfoPage() {
 
         <Button className="w-full mt-2">Update Profile</Button>
       </CardContent>
-    </Card>
+    </div>
   )
 }
