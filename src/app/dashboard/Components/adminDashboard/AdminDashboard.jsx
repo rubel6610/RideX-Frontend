@@ -13,7 +13,7 @@ const AdminDashboard = () => {
       <Link
         href="/dashboard/admin/user-management"
         className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-          usePathname === "/dashboard/admin/user-management"
+          pathname === "/dashboard/admin/user-management"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
