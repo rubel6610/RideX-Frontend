@@ -27,7 +27,7 @@ export default function BecomeRiderPage() {
       if (user.id) query = `id=${user.id}`;
       else if (user.email) query = `email=${user.email}`;
 
-      const res = await fetch(`/api/rider/become-rider?${query}`);
+      const res = await fetch(`${NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/become-rider?${query}`);
       const data = await res.json();
 
       if (!res.ok) {
