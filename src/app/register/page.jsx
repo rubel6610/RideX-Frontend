@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import CarLogo from "../../Assets/car-icon.png";
+import GuestOnlyRoute from "../hooks/GuestOnlyRoute";
 
 function RegisterPage() {
   const router = useRouter();
@@ -42,9 +43,8 @@ function RegisterPage() {
         data.photoUrl = imgData?.data?.url; // Store uploaded image URL
       }
 
-      console.log("Form Data Submitted:", data);
-      // toast.success("Registration successful!");
-      // router.push('/auth/login');
+     
+      
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
@@ -79,7 +79,8 @@ function RegisterPage() {
   };
 
   return (
-    <div className="mt-28 container mx-auto mb-16">
+    <GuestOnlyRoute>
+        <div className="mt-28 container mx-auto mb-16">
       {/* Logo & Heading */}
       <div className="flex flex-col items-center space-y-2 my-6">
         <Image src={CarLogo} alt="car-logo" width={60} height={60} />
@@ -308,6 +309,8 @@ function RegisterPage() {
         </p>
       </form>
     </div>
+    </GuestOnlyRoute>
+  
   );
 }
 
