@@ -93,7 +93,36 @@ export default function OngoingRidePage() {
                 </CardContent>
             </Card>
 
-            
+            {/* Passenger Info (Modal) */}
+            <div>
+                <Button variant="outline" onClick={() => setShowPassenger(true)}>
+                    View Passenger Info
+                </Button>
+                <Dialog open={showPassenger} onOpenChange={setShowPassenger}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Passenger Info</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-2 text-sm">
+                            <p>
+                                <span className="font-medium">Name:</span> {ride.passenger.name}
+                            </p>
+                            <p>
+                                <span className="font-medium">Phone:</span> {ride.passenger.phone}
+                            </p>
+                            <Button
+                                variant="ghost"
+                                className="flex items-center gap-2 mt-2"
+                                onClick={() => window.open(`tel:${ride.passenger.phone}`, "_self")}
+                            >
+                                <PhoneCall className="w-4 h-4" /> Call Passenger
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
+           
         </div>
     )
 }
