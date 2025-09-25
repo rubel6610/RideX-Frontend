@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,26 +29,47 @@ import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp";
 import ProtectedRoute from "../hooks/ProtectedRoute";
 import useTheme from "../hooks/useTheme";
+import { useAuth } from "../hooks/AuthProvider";
+
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
-  // const { user } = useAuth();
-  // const userdata = async () => {
-  //   const res = await fetch(
-  //     `${NEXT_PUBLIC_SERVER_BASE_URL}/api/users?email=${user.email}`
-  //   );
-  // };
-  userdata()
+  const { user, logout } = useAuth();
 
-  const userRole = "user";
-  const { logout } = useAuth();
+  const [userData, setUserData] = useState(null);
+
+  // Fetch user data after component mounts
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch user data");
+
+        const data = await res.json();
+        setUserData(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUserData();
+  }, [user?.email]);
+
+  // Determine role dynamically from fetched data or fallback
+  // const userRole = userData?.role || "user";
+  const userRole = "admin";
+
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex h-screen overflow-hidden bg-background">
         {/* Sidebar */}
         <aside
-          className={`flex flex-col justify-between transition-all duration-300 ${
+          className={`flex flex-col justify-between transition-all duration-300 h-full flex-shrink-0 ${
             sidebarOpen
               ? "bg-accent/30 border-r border-border py-8 px-6 text-foreground w-64"
               : "hidden transition-all duration-500"
@@ -92,9 +114,10 @@ export default function DashboardLayout({ children }) {
                     : "text-foreground hover:bg-primary/10 hover:text-primary"
                 }`}
               >
-                {" "}
                 <MapPin className="w-5 h-5" /> Dashboard
               </Link>
+
+              {/* User routes */}
               {userRole === "user" && (
                 <>
                   <Link
@@ -105,7 +128,6 @@ export default function DashboardLayout({ children }) {
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
                   >
-                    {" "}
                     <Users className="w-5 h-5" /> Book A Ride
                   </Link>
                   <Link
@@ -116,7 +138,6 @@ export default function DashboardLayout({ children }) {
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
                   >
-                    {" "}
                     <TrendingUp className="w-5 h-5" /> Ride History
                   </Link>
                   <Link
@@ -127,7 +148,6 @@ export default function DashboardLayout({ children }) {
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
                   >
-                    {" "}
                     <Star className="w-5 h-5" /> Saved Locations
                   </Link>
                   <Link
@@ -138,7 +158,6 @@ export default function DashboardLayout({ children }) {
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
                   >
-                    {" "}
                     <DollarSign className="w-5 h-5" /> Payment Options
                   </Link>
                   <Link
@@ -149,16 +168,14 @@ export default function DashboardLayout({ children }) {
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
                   >
-                    {" "}
                     <User className="w-5 h-5" /> Support
                   </Link>
                 </>
               )}
 
-              {/* rider role routes  */}
+              {/* Rider routes */}
               {userRole === "rider" && (
                 <>
-                  {/* Available Rides */}
                   <Link
                     href="/dashboard/available-rides"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
@@ -169,8 +186,6 @@ export default function DashboardLayout({ children }) {
                   >
                     <Truck className="w-5 h-5" /> Available Rides
                   </Link>
-
-                  {/* Ongoing Ride */}
                   <Link
                     href="/dashboard/ongoing-ride"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
@@ -181,8 +196,6 @@ export default function DashboardLayout({ children }) {
                   >
                     <PlayCircle className="w-5 h-5" /> Ongoing Ride
                   </Link>
-
-                  {/* Earnings Overview */}
                   <Link
                     href="/dashboard/earnings"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
@@ -193,8 +206,6 @@ export default function DashboardLayout({ children }) {
                   >
                     <DollarSign className="w-5 h-5" /> Earnings Overview
                   </Link>
-
-                  {/* Ride History */}
                   <Link
                     href="/dashboard/ride-history"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
@@ -205,8 +216,6 @@ export default function DashboardLayout({ children }) {
                   >
                     <Clock className="w-5 h-5" /> Ride History
                   </Link>
-
-                  {/* Profile & Vehicle Info */}
                   <Link
                     href="/dashboard/profile-vehicle-info"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
@@ -217,8 +226,6 @@ export default function DashboardLayout({ children }) {
                   >
                     <User className="w-5 h-5" /> Profile & Vehicle Info
                   </Link>
-
-                  {/* Performance Stats */}
                   <Link
                     href="/dashboard/performance-stats"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
@@ -232,6 +239,7 @@ export default function DashboardLayout({ children }) {
                 </>
               )}
 
+              {/* Admin routes */}
               {userRole === "admin" && (
                 <Link
                   href="/dashboard/user-management"
@@ -246,16 +254,22 @@ export default function DashboardLayout({ children }) {
               )}
             </nav>
 
-            {/* // TODO: User Card Dynamic Data */}
-            <div className="mt-8 flex items-center gap-3 p-3 rounded-lg bg-accent border border-border">
+            {/* User Card */}
+            <div className="mt-8 flex items-center gap-2 p-3 rounded-lg bg-accent border border-border">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
-                JD
+                <Image
+                  src={userData?.photoUrl || "/default-avatar.png"}
+                  width={30}
+                  height={30}
+                  alt={userData?.fullName || "username"}
+                  className="rounded-full"
+                />
               </div>
               <div>
-                <div className="font-semibold text-foreground flex items-center gap-2">
-                  John Doe
-                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/30">
-                    Rider
+                <div className=" text-foreground flex items-center gap-2">
+                  {userData?.fullName || "John Doe"}
+                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs  border border-primary/30">
+                    {userData?.role || "Rider"}
                   </span>
                 </div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -263,21 +277,20 @@ export default function DashboardLayout({ children }) {
                 </div>
               </div>
             </div>
+            <Button
+              onClick={logout}
+              variant="destructiveOutline"
+              size="lg"
+              className="w-full m-3 text-md ml-1"
+            >
+              <LucideLogOut className="w-5 h-5" />
+              Sign Out
+            </Button>
           </div>
-
-          <Button
-            onClick={logout}
-            variant="primary"
-            size="lg"
-            className="m-3 text-md ml-1"
-          >
-            <LucideLogOut className="w-5 h-5" />
-            Sign Out
-          </Button>
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex flex-1 flex-col h-full">
           {/* Topbar */}
           <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-background/80 sticky top-0 z-30">
             <div className="flex items-center gap-3">
@@ -326,7 +339,9 @@ export default function DashboardLayout({ children }) {
           </header>
 
           {/* Dynamic page content */}
-          <main className="flex-1 px-10 py-8">{children}</main>
+          <main className="flex-1 overflow-y-auto scrollbar-hidden px-10 py-8">
+            {children}
+          </main>
         </div>
       </div>
     </ProtectedRoute>
