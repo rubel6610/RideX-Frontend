@@ -264,7 +264,7 @@ function RegisterPage() {
             />
             <button
               type="button"
-              className="absolute absolute top-7.5 right-3"
+              className="absolute  top-7.5 right-3"
               onClick={() => setShowConfirmPassword((prev) => !prev)}
             >
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
