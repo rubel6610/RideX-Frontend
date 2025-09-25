@@ -30,10 +30,16 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
       );
-      const data = await res.json();
-      const locName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-      setCurrentLocationName(locName);
-      onSelect(locName); // Pass the location name up to the parent
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        const locName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        setCurrentLocationName(locName);
+        onSelect(locName); // Pass the location name up to the parent
+      } else {
+        const text = await res.text();
+        throw new Error("Invalid response from location service: " + text);
+      }
     } catch (error) {
       console.error("Error reverse geocoding:", error);
       const locName = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
@@ -85,28 +91,31 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchInput) return;
-
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           searchInput
         )}&format=json&limit=1`
       );
-      const data = await res.json();
-
-      if (data && data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        const latNum = parseFloat(lat);
-        const lonNum = parseFloat(lon);
-
-        setMarkerPos({ lat: latNum, lng: lonNum });
-        if (mapRef.current) {
-          mapRef.current.setView([latNum, lonNum], 14);
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const { lat, lon, display_name } = data[0];
+          const latNum = parseFloat(lat);
+          const lonNum = parseFloat(lon);
+          setMarkerPos({ lat: latNum, lng: lonNum });
+          if (mapRef.current) {
+            mapRef.current.setView([latNum, lonNum], 14);
+          }
+          setCurrentLocationName(display_name);
+          onSelect(display_name); // Update parent with searched location
+        } else {
+          alert("Location not found. Please try a different search.");
         }
-        setCurrentLocationName(display_name);
-        onSelect(display_name); // Update parent with searched location
       } else {
-        alert("Location not found. Please try a different search.");
+        const text = await res.text();
+        throw new Error("Invalid response from location service: " + text);
       }
     } catch (error) {
       console.error("Error searching location:", error);
@@ -115,13 +124,13 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-lg w-[90%] md:w-[600px] h-[550px] flex flex-col relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 dark:bg-background/90">
+      <div className="bg-background rounded-lg shadow-lg w-[90%] md:w-[600px] h-[550px] flex flex-col relative border border-border">
         {/* Header */}
-        <div className="p-3 border-b flex justify-between items-center">
-          <h3 className="font-semibold">{title}</h3>
+        <div className="p-3 border-b border-border flex justify-between items-center">
+          <h3 className="font-semibold text-foreground">{title}</h3>
           <button
-            className="px-3 py-1 rounded bg-red-500 text-white text-sm"
+            className="px-3 py-1 rounded bg-destructive text-destructive-foreground text-sm"
             onClick={onClose}
           >
             Close
@@ -131,25 +140,25 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
         {/* Search Input */}
         <form
           onSubmit={handleSearch}
-          className="p-3 border-b flex gap-2 items-center"
+          className="p-3 border-b border-border flex gap-2 items-center"
         >
           <input
             type="text"
             placeholder="Search location..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="flex-1 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors duration-200"
+            className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm rounded transition-colors duration-200"
           >
             Search
           </button>
         </form>
 
         {/* Display selected location name */}
-        <div className="p-2 bg-gray-100 text-sm text-center border-b">
+        <div className="p-2 bg-muted text-sm text-center border-b border-border text-foreground">
           Selected: <span className="font-medium">{currentLocationName}</span>
         </div>
 
