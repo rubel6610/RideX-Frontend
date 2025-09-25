@@ -1,12 +1,16 @@
+import { BarChart3, Clock, DollarSign, PlayCircle, Truck, User } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import React from 'react';
 
 const RiderDashboard = () => {
+    const pathname = usePathname();
     return (
         <>
                           <Link
                             href="/dashboard/available-rides"
                             className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                              pathname === "/dashboard/available-rides"
+                              usePathname === "/dashboard/available-rides"
                                 ? "bg-primary/90 text-background"
                                 : "text-foreground hover:bg-primary/10 hover:text-primary"
                             }`}
