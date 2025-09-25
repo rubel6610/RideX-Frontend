@@ -4,33 +4,14 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Users,
-  User,
-  Star,
-  DollarSign,
-  MapPin,
-  Search,
-  Bell,
-  LucideLogOut,
-  PanelRightOpen,
-  PanelRightClose,
-  TrendingUp,
-  Shield,
-  Moon,
-  Sun,
-  Truck,
-  PlayCircle,
-  Clock,
-  BarChart3,
-} from "lucide-react";
+import {User,Star,MapPin,Search,Bell,LucideLogOut,PanelRightOpen,PanelRightClose,Moon,Sun,} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp";
 import ProtectedRoute from "../hooks/ProtectedRoute";
 import useTheme from "../hooks/useTheme";
 import { useAuth } from "../hooks/AuthProvider";
-import adminDashboard from './Components/adminDashboard/AdminDashboard';
+import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
 
@@ -121,19 +102,13 @@ export default function DashboardLayout({ children }) {
               </Link>
 
               {/* User routes */}
-              {userRole === "user" && (
-               <UserDashboard/>
-              )}
+              {userRole === "user" && <UserDashboard />}
 
               {/* Rider routes */}
-              {userRole === "rider" && (
-                <RiderDashboard/>
-              )}
+              {userRole === "rider" && <RiderDashboard />}
 
               {/* Admin routes */}
-              {userRole === "admin" && (
-                <adminDashboard/>
-              )}
+              {userRole === "admin" && <AdminDashboard />}
             </nav>
 
             {/* User Card */}

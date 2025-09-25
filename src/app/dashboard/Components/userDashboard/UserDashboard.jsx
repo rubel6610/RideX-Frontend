@@ -1,12 +1,16 @@
+import { DollarSign, Star, TrendingUp, User, Users } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import React from 'react';
 
 const UserDashboard = () => {
+    const pathname = usePathname();
     return (
        <>
                   <Link
                     href="/dashboard/book-a-ride"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      pathname === "/dashboard/book-a-ride"
+                      usePathname === "/dashboard/book-a-ride"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
