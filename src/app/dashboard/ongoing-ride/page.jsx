@@ -29,7 +29,7 @@ export default function OngoingRidePage() {
     const handleCancel = () => setRide({ ...ride, status: "cancelled" });
 
     return (
-        <div className="p-4  space-y-4">
+        <div className="p-4  max-w-4xl mx-auto space-y-4">
             {/* Current Trip Info */}
             <Card>
                 <CardHeader>
@@ -94,40 +94,38 @@ export default function OngoingRidePage() {
             </Card>
 
             {/* Passenger Info (Modal) */}
-            <div>
-                <Button variant="outline" onClick={() => setShowPassenger(true)}>
-                    View Passenger Info
-                </Button>
-                <Dialog open={showPassenger} onOpenChange={setShowPassenger}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Passenger Info</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-2 text-sm">
-                            <p>
-                                <span className="font-medium">Name:</span> {ride.passenger.name}
-                            </p>
-                            <p>
-                                <span className="font-medium">Phone:</span> {ride.passenger.phone}
-                            </p>
-                            <Button
-                                variant="ghost"
-                                className="flex items-center gap-2 mt-2"
-                                onClick={() => window.open(`tel:${ride.passenger.phone}`, "_self")}
-                            >
-                                <PhoneCall className="w-4 h-4" /> Call Passenger
-                            </Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            </div>
+            <div className="flex justify-between gap-2 md:gap-3 xl:gap-4">
+                {/* view passenger info  */}
+                <div>
+                    <Button variant="outline" onClick={() => setShowPassenger(true)}>
+                        View Passenger Info
+                    </Button>
+                    <Dialog open={showPassenger} onOpenChange={setShowPassenger}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Passenger Info</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-2 text-sm">
+                                <p>
+                                    <span className="font-medium">Name:</span> {ride.passenger.name}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Phone:</span> {ride.passenger.phone}
+                                </p>
+                                <Button
+                                    variant="ghost"
+                                    className="flex items-center gap-2 mt-2"
+                                    onClick={() => window.open(`tel:${ride.passenger.phone}`, "_self")}
+                                >
+                                    <PhoneCall className="w-4 h-4" /> Call Passenger
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </div>
 
-            {/* Control Buttons */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Controls</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-2">
+                {/* controls buttons  */}
+                <div className="flex gap-2 md:gap-3 xl:gap-4">
                     {ride.status === "assigned" && (
                         <Button onClick={handleStart} className="flex items-center gap-2 cursor-pointer">
                             <Play className="w-4 h-4" /> Start Ride
@@ -148,8 +146,8 @@ export default function OngoingRidePage() {
                             <XCircle className="w-4 h-4" /> Cancel Ride
                         </Button>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     )
 }
