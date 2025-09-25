@@ -9,9 +9,9 @@ const AdminDashboard = () => {
   return (
     <div>
       <Link
-        href="/dashboard/user-management"
+        href="/dashboard/admin/user-management"
         className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-          usePathname === "/dashboard/user-management"
+          pathname === "/dashboard/admin/user-management"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
@@ -19,9 +19,9 @@ const AdminDashboard = () => {
         <Shield className="w-5 h-5" /> User Management
       </Link>
        <Link
-        href="/dashboard/monitor-live-rides"
+        href="/dashboard/admin/monitor-live-rides"
         className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-          pathname === "/dashboard/user-management"
+          pathname === "/dashboard/admin/monitor-live-rides"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}

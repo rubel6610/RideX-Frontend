@@ -8,9 +8,9 @@ const UserDashboard = () => {
     return (
        <>
                   <Link
-                    href="/dashboard/book-a-ride"
+                    href="/dashboard/user/book-a-ride"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      usePathname === "/dashboard/book-a-ride"
+                      usePathname === "/dashboard/user/book-a-ride"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
@@ -18,9 +18,9 @@ const UserDashboard = () => {
                     <Users className="w-5 h-5" /> Book A Ride
                   </Link>
                   <Link
-                    href="/dashboard/ride-history"
+                    href="/dashboard/user/ride-history"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      pathname === "/dashboard/ride-history"
+                      pathname === "/dashboard/user/ride-history"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
@@ -28,9 +28,9 @@ const UserDashboard = () => {
                     <TrendingUp className="w-5 h-5" /> Ride History
                   </Link>
                   <Link
-                    href="/dashboard/saved-locations"
+                    href="/dashboard/user/saved-locations"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      pathname === "/dashboard/saved-locations"
+                      pathname === "/dashboard/user/saved-locations"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
@@ -38,9 +38,9 @@ const UserDashboard = () => {
                     <Star className="w-5 h-5" /> Saved Locations
                   </Link>
                   <Link
-                    href="/dashboard/payment-options"
+                    href="/dashboard/user/payment-options"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      pathname === "/dashboard/payment-options"
+                      pathname === "/dashboard/user/payment-options"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
@@ -48,9 +48,9 @@ const UserDashboard = () => {
                     <DollarSign className="w-5 h-5" /> Payment Options
                   </Link>
                   <Link
-                    href="/dashboard/support"
+                    href="/dashboard/user/support"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      pathname === "/dashboard/support"
+                      pathname === "/dashboard/user/support"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
