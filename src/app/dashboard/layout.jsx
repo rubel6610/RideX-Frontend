@@ -29,8 +29,7 @@ export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
-  // TODO: Replace with real user role from context/auth
-  const userRole = "user"; // Change to "rider" to test rider view
+  const userRole = "user"; 
 
   return (
     <div className="flex min-h-screen bg-background">
