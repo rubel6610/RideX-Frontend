@@ -3,6 +3,9 @@
 @plugin "tailwindcss-animate";
 @import "tw-animate-css";
 
+@import "leaflet/dist/leaflet.css";
+
+
 @custom-variant dark (&:is(.dark *));
 
 /* 🌞 Light Mode */

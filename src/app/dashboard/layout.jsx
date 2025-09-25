@@ -14,8 +14,7 @@ export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
-  // TODO: Replace with real user role from context/auth
-  const userRole = "rider"; // Change to "rider" to test rider view
+  const userRole = "user"; 
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -183,10 +182,12 @@ export default function DashboardLayout({ children }) {
             </button>
             <Bell className="w-6 h-6 text-muted-foreground" />
 
-            <Button variant="outline" className="flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              <span className="hidden md:inline text-foreground">Profile</span>
-            </Button>
+            <Link href="/dashboard/my-profile">
+              <Button variant="outline" className="flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
+                <span className="hidden md:inline text-foreground">Profile</span>
+              </Button>
+            </Link>
           </div>
         </header>
 
