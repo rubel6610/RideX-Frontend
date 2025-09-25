@@ -150,7 +150,7 @@ export default function OfferPage() {
         <p className="text-lg md:text-xl mb-6 animate-fadeIn delay-200">
           Exclusive discounts for our loyal riders. Hurry, limited-time offers!
         </p>
-        <button className="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-gray-100 transition transform hover:scale-105 animate-fadeIn delay-400">
+        <button className="bg-white text-primary font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-gray-100 transition transform hover:scale-105 animate-fadeIn delay-400">
           View Offers
         </button>
       </section>
@@ -165,7 +165,7 @@ export default function OfferPage() {
               onClick={() => setSelectedType(type)}
               className={`px-4 py-2 rounded-full border transition ${
                 selectedType === type
-                  ? "bg-blue-600 text-white"
+                  ? "bg-primary text-white"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-gray-200"
               }`}
             >
@@ -196,7 +196,7 @@ export default function OfferPage() {
             <Countdown targetDate={offer.validTill} />
 
             {/* CTA Button */}
-            <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+            <button className="mt-4 w-full bg-primary text-white py-2 rounded-lg font-semibold hover:bg-primary transition flex items-center justify-center gap-2">
               {getTypeIcon(offer.type)} Book Now
             </button>
 
@@ -212,7 +212,7 @@ export default function OfferPage() {
                 />
                 <button
                   onClick={handleApplyCode}
-                  className="bg-green-600 text-white px-4 rounded-r-lg hover:bg-green-700 transition"
+                  className="bg-primary text-white px-4 rounded-r-lg hover:bg-green-700 transition"
                 >
                   Apply
                 </button>
@@ -251,7 +251,7 @@ export default function OfferPage() {
             placeholder="Enter your email"
             className="px-4 py-2 rounded-l-lg border-none w-64 text-gray-800"
           />
-          <button className="bg-white text-indigo-600 font-semibold px-6 py-2 rounded-r-lg hover:bg-gray-100 transition flex items-center gap-1">
+          <button className="bg-white text-primary font-semibold px-6 py-2 rounded-r-lg hover:bg-gray-100 transition flex items-center gap-1">
             <Tag className="w-4 h-4" /> Subscribe
           </button>
         </div>
@@ -261,7 +261,7 @@ export default function OfferPage() {
       <section className="py-10 text-center">
         
         <button
-          className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
+          className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
           onClick={() => (window.location.href = "/")}
         >
           <Tag className="w-5 h-5" /> Grab Your Offer Now
