@@ -11,9 +11,9 @@ const AdminDashboard = () => {
   return (
     <div>
       <Link
-        href="/dashboard/user-management"
+        href="/dashboard/admin/user-management"
         className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-          usePathname === "/dashboard/user-management"
+          usePathname === "/dashboard/admin/user-management"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
@@ -21,9 +21,9 @@ const AdminDashboard = () => {
         <Shield className="w-5 h-5" /> User Management
       </Link>
       <Link
-        href="/dashboard/monitor-live-rides"
+        href="/dashboard/admin/monitor-live-rides"
         className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-          pathname === "/dashboard/monitor-live-rides"
+          pathname === "/dashboard/admin/monitor-live-rides"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
@@ -33,9 +33,9 @@ const AdminDashboard = () => {
 
       {/* Handle Disputes & Complaints */}
       <Link
-        href="/dashboard/disputes-complaints"
+        href="/dashboard/admin/disputes-complaints"
         className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-          pathname === "/dashboard/disputes-complaints"
+          pathname === "/dashboard/admin/disputes-complaints"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
@@ -45,9 +45,9 @@ const AdminDashboard = () => {
 
       {/* Promotions & Discounts */}
       <Link
-        href="/dashboard/promotions-discounts"
+        href="/dashboard/admin/promotions-discounts"
         className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-          pathname === "/dashboard/promotions-discounts"
+          pathname === "/dashboard/admin/promotions-discounts"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
