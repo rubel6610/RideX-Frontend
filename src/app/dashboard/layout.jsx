@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
-  const userRole = "user"; 
+  const userRole = "admin"; 
 
   return (
     <div className="flex min-h-screen bg-background">
