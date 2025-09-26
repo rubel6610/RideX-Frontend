@@ -111,8 +111,6 @@ export default function DashboardLayout({ children }) {
               {userRole === "admin" && <AdminDashboard />}
             </nav>
 
-           
-           
           </div>
            <Button
               onClick={logout}
