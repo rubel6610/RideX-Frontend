@@ -27,7 +27,7 @@ const UserDashboard = () => {
                   >
                     <TrendingUp className="w-5 h-5" /> Ride History
                   </Link>
-                  <Link
+                  {/* <Link
                     href="/dashboard/user/saved-locations"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
                       pathname === "/dashboard/user/saved-locations"
@@ -46,7 +46,7 @@ const UserDashboard = () => {
                     }`}
                   >
                     <DollarSign className="w-5 h-5" /> Payment Options
-                  </Link>
+                  </Link> */}
                   <Link
                     href="/dashboard/user/support"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
