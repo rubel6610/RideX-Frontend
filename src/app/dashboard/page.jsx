@@ -1,8 +1,10 @@
 import React from 'react';
 import AdminDash from './Components/dashboard/AdminDash';
+import PassengerDash from './Components/dashboard/PassengerDash';
+import RiderDash from './Components/dashboard/RiderDash';
 
 export default function DashboardPage() {
-  const role = 'admin';
+  const role = 'rider';
   return (
     <>
       {
@@ -11,11 +13,11 @@ export default function DashboardPage() {
       }
       {
         role === 'user'
-        && <div>hello from User!</div>
+        && <PassengerDash />
       }
       {
         role === 'rider'
-        && <div>hello from Rider!</div>
+        && <RiderDash />
       }
     </>
   );

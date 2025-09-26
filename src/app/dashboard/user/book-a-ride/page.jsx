@@ -127,9 +127,9 @@ const BookARide = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-accent/20 p-10 rounded-2xl">
-      <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-[1.1fr_1fr] gap-8">
+      <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left: Booking Form */}
-        <div className="bg-background rounded-2xl shadow-lg p-8 border border-accent flex flex-col gap-6">
+        <div className="md:col-span-2 bg-background rounded-2xl shadow-lg p-8 border border-accent flex flex-col gap-6">
           <h2 className="text-3xl font-bold mb-2 flex items-center gap-2 text-foreground">
             Book Your Ride Now <Bike className="inline-block text-primary" />
           </h2>
@@ -273,7 +273,7 @@ const BookARide = () => {
         </div>
 
         {/* Right: Top Rated Riders */}
-        <div className="bg-background rounded-2xl border border-accent p-6 flex flex-col gap-4 shadow-md h-max">
+        <div className="md:col-span-1 bg-background rounded-2xl border border-accent p-6 flex flex-col gap-4 shadow-md h-max">
           <h3 className="text-2xl font-bold text-center text-primary mb-2">
             Top Rated - Popular Riders
           </h3>
