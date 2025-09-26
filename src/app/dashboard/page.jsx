@@ -1,14 +1,22 @@
-
+import React from 'react';
+import AdminDash from './Components/dashboard/AdminDash';
 
 export default function DashboardPage() {
+  const role = 'admin';
   return (
-    
-      <div>
-      <h1 className="text-3xl font-bold mb-4">Welcome Back, John!</h1>
-      <p className="text-muted-foreground">Here's what's happening with your rides today</p>
-      {/* Your stat cards, charts, etc */}
-    </div>
-
-    
+    <>
+      {
+        role === 'admin'
+        && <AdminDash />
+      }
+      {
+        role === 'user'
+        && <div>hello from User!</div>
+      }
+      {
+        role === 'rider'
+        && <div>hello from Rider!</div>
+      }
+    </>
   );
 }

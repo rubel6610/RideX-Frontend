@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }) {
 
   // Determine role dynamically from fetched data or fallback
   // const userRole = userData?.role || "user";
-  const userRole = "admin";
+  const userRole = "user";
 
   return (
     <ProtectedRoute>
@@ -111,8 +111,6 @@ export default function DashboardLayout({ children }) {
               {userRole === "admin" && <AdminDashboard />}
             </nav>
 
-           
-           
           </div>
            <Button
               onClick={logout}
