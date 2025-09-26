@@ -1,14 +1,21 @@
-
+import React from 'react';
 
 export default function DashboardPage() {
+  const role = 'user';
   return (
-    
-      <div>
-      <h1 className="text-3xl font-bold mb-4">Welcome Back, John!</h1>
-      <p className="text-muted-foreground">Here's what's happening with your rides today</p>
-      {/* Your stat cards, charts, etc */}
-    </div>
-
-    
+    <>
+      {
+        role === 'admin'
+        && <div>hello from Admin!</div>
+      }
+      {
+        role === 'user'
+        && <div>hello from User!</div>
+      }
+      {
+        role === 'rider'
+        && <div>hello from Rider!</div>
+      }
+    </>
   );
 }
