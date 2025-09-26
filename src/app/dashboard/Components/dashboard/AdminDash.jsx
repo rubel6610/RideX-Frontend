@@ -85,9 +85,9 @@ const lineData = [
 /* ---------- AdminDash ---------- */
 export default function AdminDash() {
   const stats = [
-    { title: "Total Users", icon: Users, value: 3200 },
+    { title: "Total Passengers", icon: User, value: 3200 },
     { title: "Total Riders", icon: Bike, value: 850 },
-    { title: "Total Drivers", icon: User, value: 420 },
+    { title: "Total Users", icon: Users, value: 420 },
     { title: "Earnings", icon: DollarSign, value: 120000 },
   ];
 
