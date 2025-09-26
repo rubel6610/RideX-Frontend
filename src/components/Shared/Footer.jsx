@@ -7,7 +7,8 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-  <footer className="pt-16 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 border-t border-border bg-black/90">
+  <footer className="w-full bg-black/90 text-white pt-16 border-t border-border">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
   <div className="grid grid-cols-1 md:grid-cols-5 gap-8 pb-4">
         {/* Left Section */}
           <div className="md:col-span-2">
@@ -27,7 +28,7 @@ export default function Footer() {
 
           {/* Logo + Social */}
           <div className="mt-3">
-            <strong className="text-white">Reach out at </strong>
+            <strong className="text-background">Reach out at </strong>
             <div className="flex gap-2 mt-1">
               <Facebook className="cursor-pointer text-white hover:text-primary w-5.5 transition" />
               <Linkedin className="cursor-pointer text-white hover:text-primary w-5.5 transition" />
@@ -96,6 +97,7 @@ export default function Footer() {
           <Link href="#" className="hover:underline hover:text-white transition">Terms & Conditions</Link>
           <Link href="/privacy-policy" className="hover:underline hover:text-white transition">Privacy Policy</Link>
         </div>
+      </div>
       </div>
     </footer>
   );

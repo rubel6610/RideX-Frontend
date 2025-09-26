@@ -1,130 +1,232 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Users, User, Star, DollarSign, MapPin, Search, Bell, LucideLogOut, PanelRightOpen, PanelRightClose, TrendingUp, Shield, Moon, Sun } from "lucide-react";
-import useTheme from "@/app/hooks/themeContext";
-
+import {
+  User,
+  MapPin,
+  Search,
+  Bell,
+  LucideLogOut,
+  PanelRightOpen,
+  PanelRightClose,
+  Moon,
+  Sun,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
-import darkLogo from "../../Assets/logo-dark.webp"
+import darkLogo from "../../Assets/logo-dark.webp";
+import ProtectedRoute from "../hooks/ProtectedRoute";
+import useTheme from "../hooks/useTheme";
+import { useAuth } from "../hooks/AuthProvider";
+import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
+import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
+import UserDashboard from "./Components/userDashboard/UserDashboard";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // for mobile-md
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // for lg+
+  const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
-  const userRole = "user"; 
+  const { user, logout } = useAuth();
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch user data");
+        const data = await res.json();
+        setUserData(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUserData();
+  }, [user?.email]);
+
+  const userRole = "user";
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside
-        className={`flex flex-col justify-between transition-all duration-300 ${sidebarOpen ? "bg-accent/30 border-r border-border py-8 px-6 text-foreground w-64" : "hidden transition-all duration-500"}`}
-      >
-        <div>
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
-            <Link href="/" className="dark:hidden text-xl md:text-2xl leading-0 font-bold">
-              <Image src={logo} alt="RideX Logo" width={120} height={50} className="object-contain" />
-            </Link>
-            <Link href="/" className="hidden dark:block text-xl md:text-2xl leading-0 font-bold">
-              <Image src={darkLogo} alt="RideX Logo" width={120} height={50} className="object-contain" />
-            </Link>
-          </div>
+    <ProtectedRoute>
+      <div className="flex h-screen bg-background overflow-hidden">
+        {/* Overlay only for mobile-md */}
+        <div
+          className={`fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          onClick={() => setSidebarOpen(false)}
+        />
 
-          {/* Navigation */}
-          <nav className="flex flex-col gap-1 mb-8">
-            <Link href="/dashboard" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <MapPin className="w-5 h-5" /> Dashboard</Link>
-            {userRole === "user" && (
-              <>
-                <Link href="/dashboard/book-a-ride" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/book-a-ride' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <Users className="w-5 h-5" /> Book A Ride</Link>
-                <Link href="/dashboard/ride-history" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/ride-history' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <TrendingUp className="w-5 h-5" /> Ride History</Link>
-                <Link href="/dashboard/saved-locations" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/saved-locations' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <Star className="w-5 h-5" /> Saved Locations</Link>
-                <Link href="/dashboard/payment-options" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/payment-options' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <DollarSign className="w-5 h-5" /> Payment Options</Link>
-                <Link href="/dashboard/support" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/support' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}> <User className="w-5 h-5" /> Support</Link>
-              </>
-            )}
-            {userRole === "rider" && (
-              <Link href="/dashboard/ride-requests" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/ride-requests' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}>
-                <TrendingUp className="w-5 h-5" /> Ride Requests
-              </Link>
-            )}
-            {userRole === "admin" && (
-              <Link href="/dashboard/user-management" className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === '/dashboard/user-management' ? 'bg-primary/90 text-background' : 'text-foreground hover:bg-primary/10 hover:text-primary'}`}>
-                <Shield className="w-5 h-5" /> User Management
-              </Link>
-            )}
-          </nav>
+        {/* Sidebar */}
+        <aside
+          className={`
+  fixed top-0 left-0 z-50 h-full flex flex-col justify-between 
+  transition-all duration-300 bg-background border-r border-border py-4 px-4 text-foreground
+  ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"}
+  lg:static
+  ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
+`} 
 
-          {/* // TODO: User Card Dynamic Data */}
-          <div className="mt-8 flex items-center gap-3 p-3 rounded-lg bg-accent border border-border">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">JD</div>
-            <div>
-              <div className="font-semibold text-foreground flex items-center gap-2">
-                John Doe
-                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/30">Rider</span>
-              </div>
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                4.9 <Star className="w-3 h-3 text-primary" /> Rating
-              </div>
+
+        >
+          <div>
+            {/* Logo + Close btn */}
+            <div className="flex items-center justify-between gap-3 mb-8">
+              <Link href="/" className="dark:hidden">
+                <Image
+                  src={logo}
+                  alt="RideX Logo"
+                  width={120}
+                  height={50}
+                  className="object-contain"
+                />
+              </Link>
+              <Link href="/" className="hidden dark:block">
+                <Image
+                  src={darkLogo}
+                  alt="RideX Logo"
+                  width={120}
+                  height={50}
+                  className="object-contain"
+                />
+              </Link>
+
+              {/* Mobile Close Btn */}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 rounded hover:bg-foreground/10 lg:hidden"
+              >
+                <X className="w-6 h-6 text-muted-foreground" />
+              </button>
             </div>
+
+            {/* Navigation */}
+            <nav className="flex flex-col gap-1 mb-8">
+              <Link
+                href="/dashboard"
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard"
+                  ? "bg-primary/90 text-background"
+                  : "text-foreground hover:bg-primary/10 hover:text-primary"
+                  }`}
+              >
+                <MapPin className="w-5 h-5" />{" "}
+                {!sidebarCollapsed && "Dashboard"}
+              </Link>
+
+              {userRole === "user" && <UserDashboard collapsed={sidebarCollapsed} />}
+              {userRole === "rider" && <RiderDashboard collapsed={sidebarCollapsed} />}
+              {userRole === "admin" && <AdminDashboard collapsed={sidebarCollapsed} />}
+            </nav>
           </div>
-        </div>
 
-        <Button variant="destructiveOutline" className="flex items-center justify-center gap-2 mt-8">
-          <LucideLogOut className="w-5 h-5" /> Logout
-        </Button>
-      </aside>
+          <Button
+            onClick={logout}
+            variant="destructiveOutline"
+            size="lg"
+            className="w-full m-3 text-md ml-1 flex items-center gap-2 justify-center"
+          >
+            <LucideLogOut className="w-5 h-5" />
+            {!sidebarCollapsed && "Sign Out"}
+          </Button>
+        </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        {/* Topbar */}
-        <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-background/80 sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            {!sidebarOpen ? (
-              <button onClick={() => setSidebarOpen(true)}>
-                <PanelRightClose className="w-6 h-6 text-muted-foreground" />
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col h-full">
+          {/* Topbar */}
+          <header className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border bg-background/80 sticky top-0 z-30">
+            <div className="flex items-center gap-3">
+              {/* Toggle button */}
+              <button
+                onClick={() =>
+                  window.innerWidth < 1024
+                    ? setSidebarOpen(!sidebarOpen)
+                    : setSidebarCollapsed(!sidebarCollapsed)
+                }
+              >
+                {window.innerWidth < 1024 ? (
+                  sidebarOpen ? (
+                    <PanelRightOpen className="w-6 h-6 text-muted-foreground" />
+                  ) : (
+                    <PanelRightClose className="w-6 h-6 text-muted-foreground" />
+                  )
+                ) : sidebarCollapsed ? (
+                  <PanelRightOpen className="w-6 h-6 text-muted-foreground" />
+                ) : (
+                  <PanelRightClose className="w-6 h-6 text-muted-foreground" />
+                )}
               </button>
-            ) : (
-              <button onClick={() => setSidebarOpen(false)}>
-                <PanelRightOpen className="w-6 h-6 text-muted-foreground" />
+
+              {/* Search (desktop) */}
+              <div className="hidden sm:block relative">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none text-sm md:text-base"
+                />
+                <Search className="absolute left-2 top-2 w-5 h-5 text-muted-foreground" />
+              </div>
+
+              {/* Mobile Search */}
+              <button
+                onClick={() => setShowSearch(!showSearch)}
+                className="sm:hidden p-2"
+              >
+                <Search className="w-5 h-5 text-muted-foreground" />
               </button>
-            )}
-            <div className="relative">
+            </div>
+
+            <div className="flex items-center gap-3 md:gap-4">
+              <button
+                type="button"
+                aria-label="Toggle theme"
+                onClick={toggleTheme}
+                className="rounded-full p-2 border border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-5 h-5 text-foreground" />
+                ) : (
+                  <Moon className="w-5 h-5 text-foreground/80" />
+                )}
+              </button>
+              <Bell className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+              <Link href="/dashboard/my-profile">
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 px-2 md:px-3 text-sm md:text-base"
+                >
+                  <User className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                  <span className="hidden md:inline text-foreground">
+                    Profile
+                  </span>
+                </Button>
+              </Link>
+            </div>
+          </header>
+
+          {/* Mobile search input */}
+          {showSearch && (
+            <div className="sm:hidden border-b border-border bg-background px-4 py-2">
               <input
                 type="text"
-                placeholder="Search"
-                className="pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none"
+                placeholder="Search..."
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none text-sm"
               />
-              <Search className="absolute left-2 top-2 w-5 h-5 text-muted-foreground" />
             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              aria-label="Toggle theme"
-              onClick={toggleTheme}
-              className="rounded-full p-2 border border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-5 h-5 text-foreground" />
-              ) : (
-                <Moon className="w-5 h-5 text-foreground/80" />
-              )}
-            </button>
-            <Bell className="w-6 h-6 text-muted-foreground" />
+          )}
 
-            <Button variant="outline" className="flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              <span className="hidden md:inline text-foreground">Profile</span>
-            </Button>
-          </div>
-        </header>
-
-        {/* Dynamic page content */}
-        <main className="flex-1 px-10 py-8">{children}</main>
+          {/* Dynamic Content */}
+          <main className="flex-1 overflow-y-auto scrollbar-hidden px-4 md:px-6 py-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

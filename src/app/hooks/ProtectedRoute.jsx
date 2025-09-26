@@ -15,7 +15,6 @@ export default function ProtectedRoute({ children }) {
   }, [user, loading, router]);
 
   if (loading) {
-
     return (
       <div className="flex items-center justify-center h-screen">
         <Skeleton className="h-[20px] w-[100px] rounded-full" />

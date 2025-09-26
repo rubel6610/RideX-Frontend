@@ -29,7 +29,8 @@ function RegisterPage() {
   const password = watch("password");
 
   // Submit Handler
-  const onSubmit = async (data) => {
+  const onSubmit = async (e, data) => {
+    e.preventDefault();
     try {
       // Handle image upload
       if (data.image && data.image.length > 0) {
@@ -42,9 +43,6 @@ function RegisterPage() {
         const imgData = await res.json();
         data.photoUrl = imgData?.data?.url; // Store uploaded image URL
       }
-
-     
-      
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`, {
         method: "POST",
@@ -93,27 +91,24 @@ function RegisterPage() {
         className="shadow-lg p-8 rounded-xl space-y-4 max-w-2xl mx-auto border border-primary"
       >
         {/* Full Name */}
-      
-          <div>
-            <Label>
-              Full Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="Full name"
-              {...register("fullName", { required: "Full name is required" })}
-            />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm">{errors.firstName.message}</p>
-            )}
-          </div>
 
-        
-        
+        <div>
+          <Label>
+            Full Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            type="text"
+            placeholder="Full name"
+            {...register("fullName", { required: "Full name is required" })}
+          />
+          {errors.fullName && (
+            <p className="text-red-500 text-sm">{errors.firstName.message}</p>
+          )}
+        </div>
 
         {/* Image Upload */}
         <div>
-          <Label>
+          <Label className='mb-1.5'>
             Profile Image <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -141,17 +136,17 @@ function RegisterPage() {
           )}
         </div>
 
-       
-
         {/* Date of Birth & NID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               Date Of Birth <span className="text-red-500">*</span>
             </Label>
             <Input
               type="date"
-              {...register("dateOfBirth", { required: "Date of birth is required" })}
+              {...register("dateOfBirth", {
+                required: "Date of birth is required",
+              })}
             />
             {errors.dob && (
               <p className="text-red-500 text-sm">{errors.dob.message}</p>
@@ -159,7 +154,7 @@ function RegisterPage() {
           </div>
 
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               NID Number <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -173,12 +168,10 @@ function RegisterPage() {
           </div>
         </div>
 
-    
         {/* Email & Gender */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Email */}
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               Email <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -191,9 +184,8 @@ function RegisterPage() {
             )}
           </div>
 
-          {/* Gender */}
           <div>
-            <Label>
+            <Label className='mb-1.5'>
               Gender <span className="text-red-500">*</span>
             </Label>
             <div className="flex gap-6 mt-2">
@@ -232,9 +224,8 @@ function RegisterPage() {
 
         {/* Password & Confirm Password */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Password */}
           <div className="relative">
-            <Label>
+            <Label className='mb-1.5'>
               Password <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -244,7 +235,7 @@ function RegisterPage() {
             />
             <button
               type="button"
-              className="absolute top-6 right-3"
+              className="absolute top-7.5 right-3"
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -254,9 +245,8 @@ function RegisterPage() {
             )}
           </div>
 
-          {/* Confirm Password */}
           <div className="relative">
-            <Label>
+            <Label className='mb-1.5'>
               Confirm Password <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -270,7 +260,7 @@ function RegisterPage() {
             />
             <button
               type="button"
-              className="absolute top-6 right-3"
+              className="absolute  top-7.5 right-3"
               onClick={() => setShowConfirmPassword((prev) => !prev)}
             >
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
