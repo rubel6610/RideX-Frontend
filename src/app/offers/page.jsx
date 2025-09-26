@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Clock, Tag, Car, Truck, Users, Gift } from "lucide-react";
-
+import { Clock, Tag, Car, Users, Gift, Bike, CarFront } from "lucide-react";
+import Image from "next/image";
+import heroRidex from "@/Assets/Terms & Conditions.jpg";
 // Updated offers data with types and categories
 const offersData = [
   {
@@ -20,7 +21,7 @@ const offersData = [
     category: "Promotion",
     discount: "$5",
     validTill: "2025-10-15",
-    featured: false,
+    featured: true,
   },
   {
     id: 3,
@@ -38,7 +39,7 @@ const offersData = [
     category: "Promotion",
     discount: "15%",
     validTill: "2025-10-18",
-    featured: false,
+    featured: true,
   },
   {
     id: 5,
@@ -96,7 +97,7 @@ const Countdown = ({ targetDate }) => {
     return null;
 
   return (
-    <div className="text-sm text-gray-700 mt-2 flex items-center gap-1">
+    <div className="text-sm text-gray-400 dark:text-gray-300 mt-2 flex items-center gap-1">
       <Clock className="w-4 h-4 text-gray-700" />
       {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
       left
@@ -108,17 +109,17 @@ const Countdown = ({ targetDate }) => {
 const getTypeIcon = (type) => {
   switch (type) {
     case "Car":
-      return <Car className="w-5 h-5" />;
+      return <Car className="w-5 h-5 text-primary" />;
     case "Bike":
-      return <Truck className="w-5 h-5" />;
+      return <Bike className="w-5 h-5 text-primary" />;
     case "CNG":
-      return <Tag className="w-5 h-5" />;
+      return <CarFront className="w-5 h-5 text-primary" />;
     case "Shared":
-      return <Users className="w-5 h-5" />;
+      return <Users className="w-5 h-5 text-primary" />;
     case "Referral":
-      return <Gift className="w-5 h-5" />;
+      return <Gift className="w-5 h-5 text-primary" />;
     default:
-      return <Tag className="w-5 h-5" />;
+      return <Tag className="w-5 h-5 text-primary" />;
   }
 };
 
@@ -141,7 +142,7 @@ export default function OfferPage() {
   };
 
   return (
-    <div className="min-h-screen mt-18 bg-white dark:bg-black text-black dark:text-white">
+    <div className="min-h-screen mt-18 bg-white dark:bg-gray-800 text-black dark:text-white">
       {/* Hero Section */}
       <section className="bg-gradient-to-r  text-black dark:text-white py-20 text-center">
         <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fadeIn">
@@ -150,7 +151,7 @@ export default function OfferPage() {
         <p className="text-lg md:text-xl mb-6 animate-fadeIn delay-200">
           Exclusive discounts for our loyal riders. Hurry, limited-time offers!
         </p>
-        <button className="bg-white text-primary font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-gray-100 transition transform hover:scale-105 animate-fadeIn delay-400">
+        <button className="bg-primary cursor-pointer text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-primary transition transform hover:scale-105 animate-fadeIn delay-400">
           View Offers
         </button>
       </section>
@@ -163,7 +164,7 @@ export default function OfferPage() {
             <button
               key={type}
               onClick={() => setSelectedType(type)}
-              className={`px-4 py-2 rounded-full border transition ${
+              className={`px-4 py-2 rounded-full border transition cursor-pointer ${
                 selectedType === type
                   ? "bg-primary text-white"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-gray-200"
@@ -180,23 +181,49 @@ export default function OfferPage() {
         {filteredOffers.map((offer) => (
           <div
             key={offer.id}
-            className={`bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-2xl transition relative transform hover:-translate-y-2 duration-300 ${
-              offer.featured ? "border-2 border-yellow-400" : ""
+            className={`bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-2xl transition relative transform hover:-translate-y-2 duration-300 ${
+              offer.featured ? "" : ""
             }`}
           >
-            <div className="flex items-center mb-4 gap-2 text-blue-600 font-semibold">
+            {/*  Featured Badge */}
+            {offer.featured && (
+              <span className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                ⭐ Featured
+              </span>
+            )}
+
+            <div className="flex items-center mb-4 gap-2  font-semibold">
               {getTypeIcon(offer.type)} {offer.type} Ride
             </div>
             <h3 className="text-xl font-bold mb-2">{offer.title}</h3>
-            <p className="text-gray-600 mb-2">
-              Discount: <span className="font-semibold">{offer.discount}</span>
+
+            {/* Category Label */}
+            <span className="inline-block bg-gray-200 dark:bg-gray-700 text-xs px-2 py-1 rounded-full mb-2">
+              {offer.category}
+            </span>
+
+            <p className="text-gray-400 mb-2">
+              Discount:{" "}
+              <span className="font-semibold text-gray-400">
+                {offer.discount}
+              </span>
             </p>
 
             {/* Countdown */}
             <Countdown targetDate={offer.validTill} />
 
+            {/* Expired Message */}
+            {new Date(offer.validTill) < new Date() && (
+              <p className="text-red-500 font-semibold mt-2">
+                ❌ Offer Expired
+              </p>
+            )}
+
             {/* CTA Button */}
-            <button className="mt-4 w-full bg-primary text-white py-2 rounded-lg font-semibold hover:bg-primary transition flex items-center justify-center gap-2">
+            <button
+              onClick={() => (window.location.href = "/")}
+              className="mt-4 w-full bg-primary text-white py-2 rounded-lg font-semibold hover:bg-primary transition flex items-center justify-center gap-2 cursor-pointer"
+            >
               {getTypeIcon(offer.type)} Book Now
             </button>
 
@@ -212,7 +239,7 @@ export default function OfferPage() {
                 />
                 <button
                   onClick={handleApplyCode}
-                  className="bg-primary text-white px-4 rounded-r-lg hover:bg-green-700 transition"
+                  className="bg-primary text-white px-4 rounded-r-lg hover:bg-green-700 transition cursor-pointer"
                 >
                   Apply
                 </button>
@@ -229,14 +256,26 @@ export default function OfferPage() {
       </section>
 
       {/* Terms & Conditions */}
-      <section className=" py-10 px-6 md:px-20 text-black  dark:text-gray-300">
-        <h2 className="text-2xl font-bold mb-4">Terms & Conditions</h2>
-        <ul className="list-disc ml-6 space-y-2">
-          <li>Offers valid only once per user.</li>
-          <li>Cannot be combined with other discounts.</li>
-          <li>Minimum ride amount may apply.</li>
-          <li>Subject to availability and change without notice.</li>
-        </ul>
+      <section className="py-10 px-6 md:px-20 text-black dark:text-gray-300 flex flex-col md:flex-row items-center gap-8">
+        {/* Left Text */}
+        <div className="md:w-1/2">
+          <h2 className="text-2xl font-bold mb-4">Terms & Conditions</h2>
+          <ul className="list-disc ml-6 space-y-2">
+            <li>Offers valid only once per user.</li>
+            <li>Cannot be combined with other discounts.</li>
+            <li>Minimum ride amount may apply.</li>
+            <li>Subject to availability and change without notice.</li>
+          </ul>
+        </div>
+
+        {/* Right Image */}
+        <div className="md:w-1/2 flex justify-center">
+          <Image
+            src={heroRidex}
+            alt="Terms Illustration"
+            className="w-full max-w-md object-contain"
+          />
+        </div>
       </section>
 
       {/* Newsletter Section */}
@@ -245,23 +284,22 @@ export default function OfferPage() {
         <p className="mb-6">
           Subscribe to get the latest offers directly in your inbox.
         </p>
-        <div className="flex justify-center gap-2 flex-wrap">
+        <div className="flex justify-center  gap-2 flex-wrap">
           <input
             type="email"
             placeholder="Enter your email"
-            className="px-4 py-2 rounded-l-lg border-none w-64 text-gray-800"
+            className="px-4 py-2 rounded-l-lg border-none w-64 bg-gray-300  text-gray-800"
           />
-          <button className="bg-white text-primary font-semibold px-6 py-2 rounded-r-lg hover:bg-gray-100 transition flex items-center gap-1">
+          <button className="bg-white text-primary font-semibold px-6 py-2 rounded-r-lg hover:bg-gray-100 transition flex items-center gap-1 cursor-pointer">
             <Tag className="w-4 h-4" /> Subscribe
           </button>
         </div>
       </section>
 
       {/* Footer CTA */}
-      <section className="py-10 text-center">
-        
+      <section className="fixed bottom-4 right-4 z-50">
         <button
-          className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
+          className="bg-primary cursor-pointer text-white px-8 py-3 rounded-xl font-bold hover:bg-secondary transition shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
           onClick={() => (window.location.href = "/")}
         >
           <Tag className="w-5 h-5" /> Grab Your Offer Now
