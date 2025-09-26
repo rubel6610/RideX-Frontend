@@ -23,11 +23,7 @@ export default function BecomeRiderPage() {
 
   const fetchUser = async () => {
     try {
-      let query = "";
-      if (user.id) query = `id=${user.id}`;
-      else if (user.email) query = `email=${user.email}`;
-
-      const res = await fetch(`/api/rider/become-rider?${query}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?id=${user.id}&email=${user.email}`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -51,18 +47,54 @@ export default function BecomeRiderPage() {
     }
   };
 
-  const onSubmit = (data) => {
-    // Age check
-    const dob = new Date(data.dob);
-    const today = new Date();
-    const age = today.getFullYear() - dob.getFullYear();
-    if (age < 18) {
-      alert("You must be at least 18 years old.");
-      return;
-    }
+  const onSubmit = async (data) => {
+    try {
+      if (!loggedUser) return alert("User not logged in");
 
-    console.log("Form Data:", data);
-    alert("Form submitted successfully!");
+      // Age check
+      const dob = new Date(data.dob);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 18) {
+        alert("You must be at least 18 years old.");
+        return;
+      }
+
+      const baseUrl = "http://localhost:5000";
+
+      // Prepare payload
+      const payload = {
+        userId: loggedUser._id,
+        present_address: {
+          village: data.present_address.village,
+          post: data.present_address.post,
+          upazila: data.present_address.upazila,
+          district: data.present_address.district,
+        },
+        vehicleType: data.vehicle,
+        vehicleModel: data.vehicleModel,
+        vehicleRegisterNumber: data.vehicleReg,
+        drivingLicense: licenseFileName,
+        password: data.password,
+      };
+
+      const res = await fetch(`${baseUrl}/api/rider/become-rider`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Rider request submitted successfully!");
+        console.log(result.rider);
+      } else {
+        alert(result.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
   };
 
   const handleLicenseChange = (e) => {

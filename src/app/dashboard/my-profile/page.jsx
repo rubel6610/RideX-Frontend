@@ -41,7 +41,7 @@ const MyProfile = () => {
 // ProfileSkeleton for loading state
 function ProfileSkeleton() {
     return (
-        <div className="max-w-4xl mx-auto bg-background rounded-2xl shadow-lg p-0 border border-border/20 animate-pulse">
+        <div className="max-w-4xl mx-auto bg-background rounded-2xl shadow-lg p-0 border border-border/20 animate-pulse ">
             <div className="flex flex-col items-center pt-10 pb-6 bg-background rounded-t-2xl">
                 <Skeleton className="w-28 h-28 rounded-full mb-4" />
                 <Skeleton className="h-8 w-48 mb-2 rounded" />
@@ -131,9 +131,7 @@ function ProfileSkeleton() {
                         <Pencil className="w-5 h-5" /> Edit Profile
                     </Button>
                 </Link>
-                <Button variant="destructive" size="lg" className="flex items-center gap-2" onClick={logout}>
-                    <LogOut className="w-5 h-5" /> Logout
-                </Button>
+              
             </div>
         </div>
     );

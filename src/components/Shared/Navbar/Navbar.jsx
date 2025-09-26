@@ -8,8 +8,8 @@ import darkLogo from "../../../Assets/logo-dark.webp";
 import Sidebar from "./Sidebar";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import useTheme from "@/app/hooks/themeContext";
 import { useAuth } from "@/app/hooks/AuthProvider";
+import useTheme from "@/app/hooks/useTheme";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -53,11 +53,11 @@ const Navbar = () => {
 
 
   return (
-    <>
-      <div
-        className={`w-full max-w-[1440px] mx-auto navbar fixed top-0 left-0 right-0 z-[999] bg-background text-foreground border-b border-primary/30 shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8 transition-transform duration-300 ${
+    <div className={`bg-background mx-auto max-w-[2600px] fixed top-0 right-0 left-0 transition-transform duration-300 z-[999] border-b border-primary/30  ${
           showNavbar ? "translate-y-0" : "-translate-y-full"
-        }`}
+        }`}>
+      <div
+        className={`max-w-[1440px] mx-auto bg-background text-foreground  shadow-sm flex items-center justify-between h-19 px-4 sm:px-6 xl:px-8 `}
       >
         <div className="flex items-center gap-10">
           {/* Logo */}
@@ -141,33 +141,23 @@ const Navbar = () => {
             onClick={toggleTheme}
             className="relative w-10 h-10 flex items-center justify-center rounded-full"
           >
-            <Sun
-              className={`absolute text-xl transition-all duration-300 ${
-                theme === "dark" ? "opacity-0 scale-0" : "opacity-100 scale-100"
-              }`}
-            />
-            <Moon
-              className={`absolute text-lg transition-all duration-300 ${
-                theme === "dark" ? "opacity-100 scale-100" : "opacity-0 scale-0"
-              }`}
-            />
+            {theme === "dark" ? <Sun /> : <Moon /> }
+           
+           
           </button>
 
           {!user ? (
             <Link href="/signIn">
               <Button variant="primary" size="lg" className="mr-3 text-md ml-1">
-                Sign In Now
+                Sign In
               </Button>
             </Link>
           ) : (
-            <Button
-              onClick={logout}
-              variant="primary"
-              size="lg"
-              className="mr-3 text-md ml-1"
-            >
-              Sign Out
-            </Button>
+           <Link href="/dashboard">
+              <Button variant="primary" size="lg" className="mr-3 text-md ml-1">
+                Dashboard
+              </Button>
+            </Link>
           )}
 
           <div className="lg:hidden flex items-center">
@@ -184,8 +174,9 @@ const Navbar = () => {
         toggleSidebar={toggleSidebar}
         rideByOpen={rideByOpen}
         toggleRideBy={toggleRideBy}
+        showNavbar={showNavbar}
       />
-    </>
+    </div>
   );
 };
 
