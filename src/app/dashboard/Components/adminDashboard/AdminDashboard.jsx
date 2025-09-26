@@ -16,7 +16,7 @@ const AdminDashboard = () => {
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
       >
-        <Shield className="w-5 h-5" /> User Management
+        <Shield className="w-5 h-5" /> User Requests
       </Link>
        <Link
         href="/dashboard/admin/monitor-live-rides"
