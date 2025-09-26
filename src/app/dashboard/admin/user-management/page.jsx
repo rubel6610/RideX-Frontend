@@ -1,6 +1,6 @@
 import React from 'react';
 
-const userManagement = () => {
+const UserManagement = () => {
     return (
         <div>
             fds
@@ -8,4 +8,4 @@ const userManagement = () => {
     );
 };
 
-export default userManagement;
+export default UserManagement;
