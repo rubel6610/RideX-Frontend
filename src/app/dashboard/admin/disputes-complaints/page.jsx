@@ -99,7 +99,7 @@ export default function DisputesAndComplaints() {
       accessorKey: 'id',
       header: 'Complaint ID',
       cell: ({ row }) => (
-        <span className="font-mono font-medium text-blue-600">{row.getValue('id')}</span>
+        <span className="font-mono font-medium text-primary">{row.getValue('id')}</span>
       ),
     },
     {
@@ -113,7 +113,7 @@ export default function DisputesAndComplaints() {
         if (type.includes('Fare Dispute')) variant = 'default';
         if (type.includes('Lost Item')) variant = 'outline';
         if (type.includes('Vehicle')) variant = 'secondary';
-        if (type.includes('Route')) variant = 'default';
+        if (type.includes('Route')) variant = 'warning';
 
         return <Badge variant={variant}>{type}</Badge>;
       },
@@ -124,7 +124,7 @@ export default function DisputesAndComplaints() {
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.getValue('from')}</div>
-          <div className="text-xs text-gray-500">{row.original.date}</div>
+          <div className="text-xs text-foreground">{row.original.date}</div>
         </div>
       ),
     },
@@ -136,7 +136,7 @@ export default function DisputesAndComplaints() {
       accessorKey: 'rideId',
       header: 'Ride ID',
       cell: ({ row }) => (
-        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{row.getValue('rideId')}</span>
+        <span className="font-mono text-sm bg-accent/20 px-2 py-1 rounded">{row.getValue('rideId')}</span>
       ),
     },
     {
@@ -158,8 +158,8 @@ export default function DisputesAndComplaints() {
         let variant = "secondary";
         
         if (status === 'Pending') variant = 'destructive';
-        if (status === 'In Review') variant = 'default';
-        if (status === 'Resolved') variant = 'success';
+        if (status === 'In Review') variant = 'warning';
+        if (status === 'Resolved') variant = 'default';
 
         return <Badge variant={variant}>{status}</Badge>;
       },
@@ -169,9 +169,9 @@ export default function DisputesAndComplaints() {
       header: 'Priority',
       cell: ({ row }) => {
         const priority = row.getValue('priority');
-        let color = "text-gray-600";
+        let color = "text-foreground";
         
-        if (priority === 'High') color = 'text-red-600';
+        if (priority === 'High') color = 'text-destructive';
         if (priority === 'Medium') color = 'text-yellow-600';
         if (priority === 'Low') color = 'text-green-600';
 
@@ -285,16 +285,16 @@ export default function DisputesAndComplaints() {
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Complaint Management</h1>
-          <p className="text-gray-600 mt-1">Manage and resolve customer complaints efficiently</p>
+          <h1 className="text-3xl font-bold text-primary">Complaint Management</h1>
+          <p className="text-foreground/50 mt-1">Manage and resolve customer complaints efficiently</p>
         </div>
-        <Button onClick={handleAddComplaint} className="bg-blue-600 hover:bg-blue-700">
+        <Button variant="primary" onClick={handleAddComplaint} >
           + Add New Complaint
         </Button>
       </div>
 
       {/* Filters Section */}
-      <div className="bg-white rounded-lg border p-4">
+      <div className="bg-background rounded-lg border border-accent p-4">
         <div className="flex flex-col lg:flex-row gap-4 items-end">
           <div className="flex-1">
             <label className="text-sm font-medium text-gray-700 mb-2 block">Search</label>
@@ -356,36 +356,36 @@ export default function DisputesAndComplaints() {
 
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border p-4">
-          <div className="text-2xl font-bold text-gray-900">{data.length}</div>
-          <div className="text-sm text-gray-600">Total Complaints</div>
+        <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
+          <div className="text-2xl font-bold text-foreground">{data.length}</div>
+          <div className="text-sm text-foreground/50 ">Total Complaints</div>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <div className="text-2xl font-bold text-red-600">
+        <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
+          <div className="text-2xl font-bold text-destructive">
             {data.filter(item => item.status === 'Pending').length}
           </div>
-          <div className="text-sm text-gray-600">Pending</div>
+          <div className="text-sm text-foreground/50">Pending</div>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <div className="text-2xl font-bold text-blue-600">
+        <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
+          <div className="text-2xl font-bold text-primary">
             {data.filter(item => item.status === 'In Review').length}
           </div>
-          <div className="text-sm text-gray-600">In Review</div>
+          <div className="text-sm text-foreground/50">In Review</div>
         </div>
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
           <div className="text-2xl font-bold text-green-600">
             {data.filter(item => item.status === 'Resolved').length}
           </div>
-          <div className="text-sm text-gray-600">Resolved</div>
+          <div className="text-sm text-foreground/50">Resolved</div>
         </div>
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-lg border shadow-sm">
-        <div className="p-4 border-b">
+      <div className="bg-background rounded-lg border border-accent shadow-sm">
+        <div className="p-4 border border-accent">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">All Complaints</h2>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-forground/50">
               Showing {filteredData.length} of {data.length} complaints
             </div>
           </div>
@@ -415,7 +415,7 @@ export default function DisputesAndComplaints() {
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
-                    className="hover:bg-gray-50"
+                    className="hover:bg-accent/20"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
@@ -427,8 +427,8 @@ export default function DisputesAndComplaints() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    <div className="text-gray-500">No complaints found.</div>
-                    <div className="text-sm text-gray-400 mt-1">
+                    <div className="text-forground/50">No complaints found.</div>
+                    <div className="text-sm text-forground/50 mt-1">
                       Try adjusting your search or filters
                     </div>
                   </TableCell>

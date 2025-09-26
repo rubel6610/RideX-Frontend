@@ -40,7 +40,7 @@ const AdminDashboard = () => {
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
       >
-        <AlertTriangle className="w-5 h-5" /> Disputes & Complaints
+        <AlertTriangle className="w-5 h-5" /> Complaints
       </Link>
 
       {/* Promotions & Discounts */}
