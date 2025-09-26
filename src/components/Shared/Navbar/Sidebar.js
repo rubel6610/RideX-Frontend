@@ -21,7 +21,7 @@ const Sidebar = ({
         ${showNavbar ? 'translate-y-0' : `-translate-y-[calc(100vh+76px)]`}
       `}
     >
-      <div className="flex flex-col font-medium">
+      <div className="flex flex-col font-medium bg-background">
         <Link
           href="/"
           className="px-8 py-4 font-semibold hover:text-primary border-b border-accent"
