@@ -29,7 +29,7 @@ export default function AboutPage() {
             trusted drivers for safe, fast, and affordable rides. Whether it’s a
             car, bike, or CNG, booking a ride is simple and instant.
           </p>
-          <button className="bg-primary text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-secondary hover:text-black transition transform hover:scale-105">
+          <button className="bg-primary text-black dark:text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-primary hover:text-black transition transform hover:scale-105">
             Explore Services
           </button>
         </div>
@@ -159,17 +159,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-10 px-6 md:px-20 bg-white dark:bg-gray-900 text-black dark:text-white text-center rounded-t-3xl">
-        <h2 className="text-3xl font-bold mb-4">Ready to Ride?</h2>
-        <p className="mb-6">
-          Book your ride now and experience hassle-free, safe, and affordable
-          travel with RideX.
-        </p>
-        <button className="bg-primary text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-primary transition transform hover:scale-105">
-          Book a Ride
-        </button>
-      </section>
+     
 
       {/* collapes */}
       <div className="min-h-screen bg-white dark:bg-gray-900  flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -179,7 +169,7 @@ export default function AboutPage() {
 
         <div className="w-[90%] mx-auto space-y-4">
           {/* Q1 */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border border-accent rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection("q1")}
               className="w-full flex items-center justify-between p-4 bg-gray-300 dark:bg-gray-700 font-bold text-black dark:text-white"
@@ -201,7 +191,7 @@ export default function AboutPage() {
           </div>
 
           {/* Q2 */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border border-accent rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection("q2")}
               className="w-full flex items-center justify-between p-4 bg-gray-300 dark:bg-gray-700 font-bold text-black dark:text-white"
@@ -222,7 +212,7 @@ export default function AboutPage() {
           </div>
 
           {/* Q3 */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border border-accent rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSection("q3")}
               className="w-full flex items-center justify-between p-4 bg-gray-300 dark:bg-gray-700 font-bold text-black dark:text-white"

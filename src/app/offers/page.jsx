@@ -158,7 +158,7 @@ export default function OfferPage() {
               <button
                 onClick={() => !isExpired && (window.location.href = "/")}
                 disabled={isExpired}
-                className={`mt-4 w-full bg-primary text-white py-2 rounded-lg font-semibold hover:bg-primary transition flex items-center justify-center gap-2 cursor-pointer ${isExpired ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`mt-4 w-full bg-primary text-black dark:text-white py-2 rounded-lg font-semibold hover:bg-primary transition flex items-center justify-center gap-2 cursor-pointer ${isExpired ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {getTypeIcon(offer.type)} Book Now
               </button>
@@ -214,7 +214,7 @@ export default function OfferPage() {
         <p className="mb-6">Subscribe to get the latest offers directly in your inbox.</p>
         <div className="flex justify-center gap-2 flex-wrap">
           <input type="email" placeholder="Enter your email" className="px-4 py-2 rounded-l-lg border-none w-64 bg-gray-300 text-gray-800" />
-          <button className="bg-white text-primary font-semibold px-6 py-2 rounded-r-lg hover:bg-gray-100 transition flex items-center gap-1 cursor-pointer">
+          <button className="bg-primary text-black dark:text-white font-semibold px-6 py-2 rounded-r-lg hover:bg-gray-100 transition flex items-center gap-1 cursor-pointer">
             <Tag className="w-4 h-4" /> Subscribe
           </button>
         </div>
@@ -222,7 +222,7 @@ export default function OfferPage() {
 
       {/* Footer CTA */}
       <section className="fixed bottom-70 right-4 z-50">
-        <button className="bg-primary cursor-pointer text-white px-8 py-3 rounded-xl font-bold hover:bg-secondary transition shadow-lg transform hover:scale-105 flex items-center justify-center gap-2" onClick={() => (window.location.href = "/")}>
+        <button className="bg-destructive  cursor-pointer text-white px-8 py-3 rounded-xl font-bold hover:bg-destructive/80 transition shadow-lg transform hover:scale-105 flex items-center justify-center gap-2" onClick={() => (window.location.href = "/")}>
           <Tag className="w-5 h-5" /> Grab Your Offer Now
         </button>
       </section>
