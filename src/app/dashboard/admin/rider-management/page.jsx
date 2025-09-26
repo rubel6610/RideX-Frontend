@@ -1,7 +1,7 @@
 // app/components/RiderManagementClient.jsx
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import RiderActions from "./RiderActions";
+import { useQuery } from '@tanstack/react-query';
 
 async function fetchRiders() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
