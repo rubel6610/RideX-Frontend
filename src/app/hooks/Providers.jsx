@@ -9,7 +9,7 @@ export default function Providers({ children }) {
     defaultOptions: {
       queries: {
         staleTime: 5 * 1000, // 5 seconds
-        refetchInterval: 5 * 1000, // 10 seconds auto-refetch
+        refetchInterval: 1000, 
       },
     },
   }));

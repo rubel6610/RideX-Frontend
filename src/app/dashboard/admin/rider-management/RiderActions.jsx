@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function UserActions({ user, onAction }) {
+export default function RiderActions({ user, onAction }) {
   const [loading, setLoading] = useState(false);
 
   const handleAction = async (status) => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/approveAndrejectUser/${user._id}`,
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/approveAndreject-rider/${user._id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -33,7 +33,7 @@ export default function UserActions({ user, onAction }) {
   };
 
   return (
-    <>
+    <div className="flex flex-col gap-y-2">
       <Button
         variant="primary"
         size="sm"
@@ -53,6 +53,6 @@ export default function UserActions({ user, onAction }) {
         <X className="h-4 w-4 mr-1" />
         {loading ? "Processing..." : "Reject"}
       </Button>
-    </>
+    </div>
   );
 }

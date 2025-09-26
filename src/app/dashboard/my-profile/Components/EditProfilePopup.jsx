@@ -1,27 +1,34 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  X, 
-  Upload, 
-  Save, 
-  Loader2, 
-  User, 
-  Phone, 
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  X,
+  Upload,
+  Save,
+  Loader2,
+  User,
+  Phone,
   Calendar,
   MapPin,
-  Home
-} from 'lucide-react';
+  Home,
+} from "lucide-react";
 
-const EditProfilePopup = ({ profile, isOpen, onClose, onSave }) => {
-  const [imagePreview, setImagePreview] = useState('');
+const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
+  const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const {
     register,
@@ -29,97 +36,128 @@ const EditProfilePopup = ({ profile, isOpen, onClose, onSave }) => {
     formState: { errors },
     reset,
     setValue,
-    watch
+    watch,
   } = useForm({
     defaultValues: {
-      fullName: '',
-      dateOfBirth: '',
-      gender: '',
-      phoneNumber: '',
+      fullName: "",
+      dateOfBirth: "",
+      gender: "",
+      phoneNumber: "",
       present_address: {
-        village: '',
-        district: '',
-        division: '',
-        postalCode: ''
+        village: "",
+        district: "",
+        division: "",
+        postalCode: "",
       },
       permanent_address: {
-        village: '',
-        district: '',
-        division: '',
-        postalCode: ''
+        village: "",
+        district: "",
+        division: "",
+        postalCode: "",
       },
-      bio: '',
-      photoUrl: ''
-    }
+      bio: "",
+      photoUrl: "",
+    },
   });
 
-  // Watch for address changes to enable/disable same as present address
-  const presentAddress = watch('present_address');
-  const permanentAddress = watch('permanent_address');
+  const presentAddress = watch("present_address");
 
-
+  // Load profile data when modal opens
   useEffect(() => {
     if (profile && isOpen) {
       reset({
-        fullName: profile.fullName || '',
-        dateOfBirth: profile.dateOfBirth || '',
-        gender: profile.gender || '',
-        phoneNumber: profile.phoneNumber || '',
+        fullName: profile.fullName || "",
+        dateOfBirth: profile.dateOfBirth || "",
+        gender: profile.gender || "",
+        phoneNumber: profile.phoneNumber || "",
         present_address: {
-          village: profile.present_address?.village || '',
-          district: profile.present_address?.district || '',
-          division: profile.present_address?.division || '',
-          postalCode: profile.present_address?.postalCode || ''
+          village: profile.present_address?.village || "",
+          district: profile.present_address?.district || "",
+          division: profile.present_address?.division || "",
+          postalCode: profile.present_address?.postalCode || "",
         },
         permanent_address: {
-          village: profile.permanent_address?.village || '',
-          district: profile.permanent_address?.district || '',
-          division: profile.permanent_address?.division || '',
-          postalCode: profile.permanent_address?.postalCode || ''
+          village: profile.permanent_address?.village || "",
+          district: profile.permanent_address?.district || "",
+          division: profile.permanent_address?.division || "",
+          postalCode: profile.permanent_address?.postalCode || "",
         },
-        bio: profile.bio || '',
-        photoUrl: profile.photoUrl || ''
+        bio: profile.bio || "",
+        photoUrl: profile.photoUrl || "",
       });
-      setImagePreview(profile.photoUrl || '');
+      setImagePreview(profile.photoUrl || "");
     }
   }, [profile, isOpen, reset]);
 
+  // Handle image file selection
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Basic validation for image files
-      if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file');
-        return;
-      }
-      
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should be less than 5MB');
-        return;
-      }
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-        setValue('photoUrl', e.target.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size should be less than 5MB");
+      return;
+    }
+
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  // Copy present address to permanent address
+  const useSameAsPresentAddress = () => {
+    setValue("permanent_address", presentAddress);
+  };
+
+  // Upload image to imgbb
+  const uploadImageToImgbb = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_IMGBB_KEY,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+    const result = await res.json();
+    if (result.success) {
+      return result.data.url;
+    } else {
+      throw new Error("Image upload failed");
     }
   };
 
-  const useSameAsPresentAddress = () => {
-    setValue('permanent_address', presentAddress);
-  };
-
+  // Submit form
   const onSubmit = async (data) => {
-
     setLoading(true);
     try {
-      await onSave(data);
+      let photoUrl = data.photoUrl;
+
+      if (selectedImage) {
+        photoUrl = await uploadImageToImgbb(selectedImage);
+      }
+
+      const updatedData = { ...data, photoUrl };
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/${profile._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!res.ok) throw new Error("Failed to update profile");
+
       onClose();
     } catch (error) {
-      console.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      console.error("Error saving profile:", error);
+      alert("Failed to save profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -147,16 +185,19 @@ const EditProfilePopup = ({ profile, isOpen, onClose, onSave }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto max-h-[calc(90vh-140px)]">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="overflow-y-auto max-h-[calc(90vh-140px)]"
+        >
           <div className="p-6 space-y-6">
-            {/* Profile Photo Section */}
+            {/* Profile Photo */}
             <div className="flex items-center gap-6">
               <div className="relative">
                 <div className="w-20 h-20 rounded-full bg-accent/20 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
                   {imagePreview ? (
-                    <img 
-                      src={imagePreview} 
-                      alt="Profile preview" 
+                    <img
+                      src={imagePreview}
+                      alt="Profile preview"
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -165,7 +206,10 @@ const EditProfilePopup = ({ profile, isOpen, onClose, onSave }) => {
                 </div>
               </div>
               <div className="flex-1">
-                <Label htmlFor="photoUrl" className="text-sm font-medium text-foreground mb-2 block">
+                <Label
+                  htmlFor="photoUrl"
+                  className="text-sm font-medium text-foreground mb-2 block"
+                >
                   Profile Photo
                 </Label>
                 <div className="flex gap-3">
@@ -180,7 +224,7 @@ const EditProfilePopup = ({ profile, isOpen, onClose, onSave }) => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => document.getElementById('photoUrl').click()}
+                    onClick={() => document.getElementById("photoUrl").click()}
                     className="flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
@@ -193,71 +237,55 @@ const EditProfilePopup = ({ profile, isOpen, onClose, onSave }) => {
               </div>
             </div>
 
-            {/* Personal Information */}
+            {/* Personal Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="fullName" className="flex items-center gap-2 mb-2">
-                  <User className="w-4 h-4" />
-                  Full Name *
-                </Label>
+                <Label htmlFor="fullName">Full Name *</Label>
                 <Input
                   id="fullName"
-                  {...register('fullName', { required: 'Full name is required' })}
-                  className={errors.fullName ? 'border-destructive' : ''}
+                  {...register("fullName", { required: "Full name is required" })}
+                  className={errors.fullName ? "border-destructive" : ""}
                 />
                 {errors.fullName && (
-                  <p className="text-destructive text-sm mt-1">{errors.fullName.message}</p>
+                  <p className="text-destructive text-sm">{errors.fullName.message}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="phoneNumber" className="flex items-center gap-2 mb-2">
-                  <Phone className="w-4 h-4" />
-                  Phone Number *
-                </Label>
+                <Label htmlFor="phoneNumber">Phone Number *</Label>
                 <Input
                   id="phoneNumber"
-                  {...register('phoneNumber', { 
-                    required: 'Phone number is required',
+                  {...register("phoneNumber", {
+                    required: "Phone number is required",
                     pattern: {
                       value: /^\+?[\d\s-()]{10,}$/,
-                      message: 'Please enter a valid phone number'
-                    }
+                      message: "Please enter a valid phone number",
+                    },
                   })}
-                  className={errors.phoneNumber ? 'border-destructive' : ''}
+                  className={errors.phoneNumber ? "border-destructive" : ""}
                 />
                 {errors.phoneNumber && (
-                  <p className="text-destructive text-sm mt-1">{errors.phoneNumber.message}</p>
+                  <p className="text-destructive text-sm">{errors.phoneNumber.message}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="dateOfBirth" className="flex items-center gap-2 mb-2">
-                  <Calendar className="w-4 h-4" />
-                  Date of Birth
-                </Label>
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
-                  {...register('dateOfBirth', {
-                    validate: (value) => {
-                      if (!value) return true;
-                      const birthDate = new Date(value);
-                      const today = new Date();
-                      return birthDate <= today || 'Date of birth cannot be in the future';
-                    }
-                  })}
-                  className={errors.dateOfBirth ? 'border-destructive' : ''}
+                  {...register("dateOfBirth")}
+                  className={errors.dateOfBirth ? "border-destructive" : ""}
                 />
-                {errors.dateOfBirth && (
-                  <p className="text-destructive text-sm mt-1">{errors.dateOfBirth.message}</p>
-                )}
               </div>
 
               <div>
-                <Label htmlFor="gender" className="mb-2 block">Gender</Label>
-                <Select onValueChange={(value) => setValue('gender', value)} defaultValue={watch('gender')}>
-                  <SelectTrigger className={errors.gender ? 'border-destructive' : ''}>
+                <Label htmlFor="gender">Gender</Label>
+                <Select
+                  onValueChange={(value) => setValue("gender", value)}
+                  defaultValue={watch("gender")}
+                >
+                  <SelectTrigger className={errors.gender ? "border-destructive" : ""}>
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
@@ -267,133 +295,58 @@ const EditProfilePopup = ({ profile, isOpen, onClose, onSave }) => {
                     <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
                   </SelectContent>
                 </Select>
-                <input type="hidden" {...register('gender')} />
+                <input type="hidden" {...register("gender")} />
               </div>
             </div>
 
             {/* Present Address */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Present Address</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="present_village">Village/Area</Label>
-                  <Input
-                    id="present_village"
-                    {...register('present_address.village')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="present_district">District</Label>
-                  <Input
-                    id="present_district"
-                    {...register('present_address.district')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="present_division">Division</Label>
-                  <Input
-                    id="present_division"
-                    {...register('present_address.division')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="present_postalCode">Postal Code</Label>
-                  <Input
-                    id="present_postalCode"
-                    {...register('present_address.postalCode')}
-                  />
-                </div>
+            <div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                Present Address
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <Input placeholder="Village" {...register("present_address.village")} />
+                <Input placeholder="District" {...register("present_address.district")} />
+                <Input placeholder="Division" {...register("present_address.division")} />
+                <Input placeholder="Postal Code" {...register("present_address.postalCode")} />
               </div>
             </div>
 
             {/* Permanent Address */}
-            <div className="space-y-4">
+            <div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Home className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Permanent Address</h3>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={useSameAsPresentAddress}
-                  className="text-xs"
-                >
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Home className="w-5 h-5" />
+                  Permanent Address
+                </h3>
+                <Button type="button" size="sm" variant="outline" onClick={useSameAsPresentAddress}>
                   Same as Present Address
                 </Button>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="permanent_village">Village/Area</Label>
-                  <Input
-                    id="permanent_village"
-                    {...register('permanent_address.village')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="permanent_district">District</Label>
-                  <Input
-                    id="permanent_district"
-                    {...register('permanent_address.district')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="permanent_division">Division</Label>
-                  <Input
-                    id="permanent_division"
-                    {...register('permanent_address.division')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="permanent_postalCode">Postal Code</Label>
-                  <Input
-                    id="permanent_postalCode"
-                    {...register('permanent_address.postalCode')}
-                  />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <Input placeholder="Village" {...register("permanent_address.village")} />
+                <Input placeholder="District" {...register("permanent_address.district")} />
+                <Input placeholder="Division" {...register("permanent_address.division")} />
+                <Input placeholder="Postal Code" {...register("permanent_address.postalCode")} />
               </div>
             </div>
 
             {/* Bio */}
             <div>
-              <Label htmlFor="bio" className="mb-2 block">Bio</Label>
-              <Textarea
-                id="bio"
-                rows={3}
-                placeholder="Tell us a little about yourself..."
-                {...register('bio')}
-              />
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea id="bio" rows={3} placeholder="Tell us about yourself..." {...register("bio")} />
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="flex justify-end gap-3 p-6 border-t border-border/20 bg-accent/5">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-            >
+          {/* Footer */}
+          <div className="flex justify-end gap-3 p-6 border-t bg-accent/5">
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={loading}
-              className="flex items-center gap-2"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {loading ? 'Saving...' : 'Save Changes'}
+            <Button type="submit" variant="primary" disabled={loading} className="flex items-center gap-2">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
