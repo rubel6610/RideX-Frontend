@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Settings } from "lucide-react";
+import { Settings, CaptionsOff, Clock, Bike, DollarSign } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -14,7 +14,6 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { Users, User, Bike, DollarSign } from "lucide-react";
 import CountUp from "react-countup";
 
 /* ---------- utils ---------- */
@@ -57,38 +56,39 @@ const CardContent = ({ className, ...props }) => (
 
 /* ---------- Dummy chart data ---------- */
 const areaData = [
-  { month: "Jan", revenue: 200 },
-  { month: "Feb", revenue: 400 },
-  { month: "Mar", revenue: 300 },
-  { month: "Apr", revenue: 600 },
-  { month: "May", revenue: 500 },
-  { month: "Jun", revenue: 800 },
+  { month: "Jan", earnings: 590 },
+  { month: "Feb", earnings: 770 },
+  { month: "Mar", earnings: 660 },
+  { month: "Apr", earnings: 900 },
+  { month: "May", earnings: 8950 },
+  { month: "Jun", earnings: 9200 },
 ];
 
 const barData = [
-  { day: "Mon", bookings: 20 },
-  { day: "Tue", bookings: 40 },
-  { day: "Wed", bookings: 25 },
-  { day: "Thu", bookings: 50 },
-  { day: "Fri", bookings: 35 },
-  { day: "Sat", bookings: 60 },
-  { day: "Sun", bookings: 45 },
+  { day: "Mon", rides: 5 },
+  { day: "Tue", rides: 7 },
+  { day: "Wed", rides: 6 },
+  { day: "Thu", rides: 8 },
+  { day: "Fri", rides: 5 },
+  { day: "Sat", rides: 9 },
+  { day: "Sun", rides: 6 },
 ];
 
 const lineData = [
-  { week: "W1", growth: 200 },
-  { week: "W2", growth: 300 },
-  { week: "W3", growth: 250 },
-  { week: "W4", growth: 400 },
-  { week: "W5", growth: 350 },
+  { week: "W1", rating: 4.1 },
+  { week: "W2", rating: 4.3 },
+  { week: "W3", rating: 4.0 },
+  { week: "W4", rating: 4.5 },
+  { week: "W5", rating: 4.4 },
 ];
-/* ---------- AdminDash ---------- */
-export default function AdminDash() {
+
+/* ---------- RiderDash ---------- */
+export default function RiderDash() {
   const stats = [
-    { title: "Total Passengers", icon: User, value: 420 },
-    { title: "Total Riders", icon: Bike, value: 850 },
-    { title: "Total Users", icon: Users, value: 3200 },
-    { title: "Earnings", icon: DollarSign, value: 120000 },
+    { title: "Completed Rides", icon: Bike, value: 120 },
+    { title: "Active Rides", icon: Clock, value: 2 },
+    { title: "Canceled Rides", icon: CaptionsOff, value: 30 },
+    { title: "Total Earnings", icon: DollarSign, value: 45000 },
   ];
 
   return (
@@ -96,10 +96,10 @@ export default function AdminDash() {
       {/* Heading + Spinner */}
       <div className="flex items-center space-x-3">
         <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
-          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />  SEE ANALYSIS
+          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />
+          RIDER ANALYSIS
         </h1>
       </div>
-
 
       {/* Top Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -116,6 +116,7 @@ export default function AdminDash() {
                   duration={2.2}
                   delay={0.4}
                   separator=","
+                  decimals={item.title === "Avg. Rating" ? 1 : 0}
                 />
               </p>
             </CardContent>
@@ -125,16 +126,16 @@ export default function AdminDash() {
 
       {/* Bottom Row (3 charts same size) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Revenue Area Chart */}
+        {/* Earnings Area Chart */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
-            <CardTitle>Revenue</CardTitle>
+            <CardTitle>Monthly Earnings</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={areaData}>
                 <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorEarn" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" className="[stop-color:#87e64b]" stopOpacity={0.7} />
                     <stop offset="95%" className="[stop-color:#87e64b]" stopOpacity={0.1} />
                   </linearGradient>
@@ -144,19 +145,19 @@ export default function AdminDash() {
                 <Tooltip />
                 <Area
                   type="monotone"
-                  dataKey="revenue"
+                  dataKey="earnings"
                   stroke="#6bcf32"
-                  fill="url(#colorRev)"
+                  fill="url(#colorEarn)"
                 />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Bookings Bar Chart */}
+        {/* Rides Bar Chart */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
-            <CardTitle>Bookings</CardTitle>
+            <CardTitle>Weekly Rides</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -164,27 +165,26 @@ export default function AdminDash() {
                 <XAxis dataKey="day" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="bookings" className="fill-[#ef4444]" />
-                <Bar dataKey="bookings" className="fill-[#ef4444]" opacity={0.6} />
+                <Bar dataKey="rides" className="fill-[#ef4444]" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Growth Line Chart */}
+        {/* Ratings Line Chart */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
-            <CardTitle>Growth</CardTitle>
+            <CardTitle>Ratings Over Time</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineData}>
                 <XAxis dataKey="week" />
-                <YAxis />
+                <YAxis domain={[3, 5]} />
                 <Tooltip />
                 <Line
                   type="monotone"
-                  dataKey="growth"
+                  dataKey="rating"
                   stroke="#87e64b"
                   strokeWidth={3}
                   dot={{ r: 5 }}
