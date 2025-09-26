@@ -2,8 +2,8 @@
 import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 
-const HIDE_PATHS = ["/login", "/register",];
-const HIDE_PREFIXES = ["/reset-password", "/dashboard"];
+const HIDE_PATHS = ["/signIn", "/register",];
+const HIDE_PREFIXES = ["/reset-password", "/dashboard",];
 
 export default function useHideLayout() {
   const pathname = usePathname();
