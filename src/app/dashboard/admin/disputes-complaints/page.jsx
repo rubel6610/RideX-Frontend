@@ -31,7 +31,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Search, ArrowUpDown, Filter } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { MoreHorizontal, Search, ArrowUpDown, Eye, Edit, Phone, CheckCircle } from 'lucide-react';
 
 export default function DisputesAndComplaints() {
   // Sample complaint data
@@ -92,6 +98,172 @@ export default function DisputesAndComplaints() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sorting, setSorting] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('');
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+
+  // Modal content renderer using for loops instead of switch
+  const renderModalContent = () => {
+    if (!selectedComplaint) return null;
+
+    // For view modal
+    if (modalType === 'view') {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Complaint Details</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium">Complaint ID</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.id}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Status</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.status}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-sm font-medium">Type</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.type}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">From</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.from}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Against</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.against}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-sm font-medium">Ride ID</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.rideId}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Date</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.date}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Priority</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.priority}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // For edit modal
+    if (modalType === 'edit') {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Edit Complaint Status</h3>
+          <div className="space-y-2">
+            <p className="text-sm">Current Status: <strong>{selectedComplaint.status}</strong></p>
+            <Select onValueChange={(value) => {
+              const updatedData = [];
+              for (let i = 0; i < data.length; i++) {
+                if (data[i].id === selectedComplaint.id) {
+                  updatedData.push({ ...data[i], status: value });
+                } else {
+                  updatedData.push(data[i]);
+                }
+              }
+              setData(updatedData);
+              setIsModalOpen(false);
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select new status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="In Review">In Review</SelectItem>
+                <SelectItem value="Resolved">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      );
+    }
+
+    // For contact modal
+    if (modalType === 'contact') {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Contact Parties</h3>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium">Complainant</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.from}</p>
+              <Button variant="outline" size="sm" className="mt-2">
+                <Phone className="h-4 w-4 mr-2" />
+                Contact {selectedComplaint.from.includes('Rider') ? 'Rider' : 'Driver'}
+              </Button>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Accused Party</p>
+              <p className="text-sm text-gray-600">{selectedComplaint.against}</p>
+              <Button variant="outline" size="sm" className="mt-2">
+                <Phone className="h-4 w-4 mr-2" />
+                Contact {selectedComplaint.against.includes('Rider') ? 'Rider' : 'Driver'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // For resolve modal
+    if (modalType === 'resolve') {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Mark as Resolved</h3>
+          <p>Are you sure you want to mark complaint {selectedComplaint.id} as resolved?</p>
+          <Button 
+            onClick={() => {
+              const updatedData = [];
+              for (let i = 0; i < data.length; i++) {
+                if (data[i].id === selectedComplaint.id) {
+                  updatedData.push({ ...data[i], status: 'Resolved' });
+                } else {
+                  updatedData.push(data[i]);
+                }
+              }
+              setData(updatedData);
+              setIsModalOpen(false);
+            }}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Confirm Resolution
+          </Button>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // Action handlers
+  const handleViewDetails = (complaint) => {
+    setSelectedComplaint(complaint);
+    setModalType('view');
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (complaint) => {
+    setSelectedComplaint(complaint);
+    setModalType('edit');
+    setIsModalOpen(true);
+  };
+
+  const handleContact = (complaint) => {
+    setSelectedComplaint(complaint);
+    setModalType('contact');
+    setIsModalOpen(true);
+  };
+
+  const handleResolve = (complaint) => {
+    setSelectedComplaint(complaint);
+    setModalType('resolve');
+    setIsModalOpen(true);
+  };
 
   // Define table columns
   const columns = [
@@ -109,6 +281,7 @@ export default function DisputesAndComplaints() {
         const type = row.getValue('type');
         let variant = "secondary";
         
+        // Using if conditions instead of switch
         if (type.includes('Misbehavior')) variant = 'destructive';
         if (type.includes('Fare Dispute')) variant = 'default';
         if (type.includes('Lost Item')) variant = 'outline';
@@ -157,6 +330,7 @@ export default function DisputesAndComplaints() {
         const status = row.getValue('status');
         let variant = "secondary";
         
+        // Using if conditions instead of switch
         if (status === 'Pending') variant = 'destructive';
         if (status === 'In Review') variant = 'warning';
         if (status === 'Resolved') variant = 'default';
@@ -165,21 +339,8 @@ export default function DisputesAndComplaints() {
       },
     },
     {
-      accessorKey: 'priority',
-      header: 'Priority',
-      cell: ({ row }) => {
-        const priority = row.getValue('priority');
-        let color = "text-foreground";
-        
-        if (priority === 'High') color = 'text-destructive';
-        if (priority === 'Medium') color = 'text-yellow-600';
-        if (priority === 'Low') color = 'text-green-600';
-
-        return <span className={`font-medium ${color}`}>{priority}</span>;
-      },
-    },
-    {
       id: 'actions',
+      header: 'Actions',
       cell: ({ row }) => {
         const complaint = row.original;
 
@@ -193,16 +354,23 @@ export default function DisputesAndComplaints() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleViewDetails(complaint)}>
-                📋 View Details
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleEdit(complaint)}>
-                ✏️ Edit Status
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Status
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleContact(complaint)}>
-                📞 Contact Parties
+                <Phone className="mr-2 h-4 w-4" />
+                Contact Parties
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleResolve(complaint)}>
-                ✅ Mark Resolved
+              <DropdownMenuItem 
+                onClick={() => handleResolve(complaint)}
+                className="text-green-600"
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Mark Resolved
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -211,20 +379,47 @@ export default function DisputesAndComplaints() {
     },
   ];
 
-  // Filter data based on search and filters
-  const filteredData = data.filter((complaint) => {
-    const matchesSearch = 
-      complaint.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.against.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.rideId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.type.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter data based on search and filters using for loops
+  const filteredData = [];
+  for (let i = 0; i < data.length; i++) {
+    const complaint = data[i];
+    
+    let matchesSearch = false;
+    const searchFields = [
+      complaint.id.toLowerCase(),
+      complaint.from.toLowerCase(),
+      complaint.against.toLowerCase(),
+      complaint.rideId.toLowerCase(),
+      complaint.type.toLowerCase()
+    ];
+    
+    for (let j = 0; j < searchFields.length; j++) {
+      if (searchFields[j].includes(searchTerm.toLowerCase())) {
+        matchesSearch = true;
+        break;
+      }
+    }
     
     const matchesStatus = statusFilter === 'all' || complaint.status === statusFilter;
     const matchesType = typeFilter === 'all' || complaint.type === typeFilter;
 
-    return matchesSearch && matchesStatus && matchesType;
-  });
+    if (matchesSearch && matchesStatus && matchesType) {
+      filteredData.push(complaint);
+    }
+  }
+
+  // Calculate stats using for loops
+  let totalComplaints = 0;
+  let pendingCount = 0;
+  let inReviewCount = 0;
+  let resolvedCount = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    totalComplaints++;
+    if (data[i].status === 'Pending') pendingCount++;
+    if (data[i].status === 'In Review') inReviewCount++;
+    if (data[i].status === 'Resolved') resolvedCount++;
+  }
 
   const table = useReactTable({
     data: filteredData,
@@ -236,33 +431,6 @@ export default function DisputesAndComplaints() {
       sorting,
     },
   });
-
-  const handleViewDetails = (complaint) => {
-    alert(`Viewing details for: ${complaint.id}\nType: ${complaint.type}\nStatus: ${complaint.status}\nPriority: ${complaint.priority}`);
-  };
-
-  const handleEdit = (complaint) => {
-    const newStatus = prompt(`Edit status for ${complaint.id}:`, complaint.status);
-    if (newStatus && ['Pending', 'In Review', 'Resolved'].includes(newStatus)) {
-      setData(data.map(item => 
-        item.id === complaint.id ? { ...item, status: newStatus } : item
-      ));
-      alert(`Status updated to: ${newStatus}`);
-    }
-  };
-
-  const handleContact = (complaint) => {
-    alert(`Contacting parties for: ${complaint.id}\nComplainant: ${complaint.from}\nAccused: ${complaint.against}`);
-  };
-
-  const handleResolve = (complaint) => {
-    if (confirm(`Mark complaint ${complaint.id} as resolved?`)) {
-      setData(data.map(item => 
-        item.id === complaint.id ? { ...item, status: 'Resolved' } : item
-      ));
-      alert('Complaint marked as resolved!');
-    }
-  };
 
   const handleAddComplaint = () => {
     const newComplaint = {
@@ -277,7 +445,6 @@ export default function DisputesAndComplaints() {
     };
     
     setData([newComplaint, ...data]);
-    alert('New complaint added!');
   };
 
   return (
@@ -288,7 +455,7 @@ export default function DisputesAndComplaints() {
           <h1 className="text-3xl font-bold text-primary">Complaint Management</h1>
           <p className="text-foreground/50 mt-1">Manage and resolve customer complaints efficiently</p>
         </div>
-        <Button variant="primary" onClick={handleAddComplaint} >
+        <Button variant="primary" onClick={handleAddComplaint}>
           + Add New Complaint
         </Button>
       </div>
@@ -357,25 +524,19 @@ export default function DisputesAndComplaints() {
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
-          <div className="text-2xl font-bold text-foreground">{data.length}</div>
-          <div className="text-sm text-foreground/50 ">Total Complaints</div>
+          <div className="text-2xl font-bold text-foreground">{totalComplaints}</div>
+          <div className="text-sm text-foreground/50">Total Complaints</div>
         </div>
         <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
-          <div className="text-2xl font-bold text-destructive">
-            {data.filter(item => item.status === 'Pending').length}
-          </div>
+          <div className="text-2xl font-bold text-destructive">{pendingCount}</div>
           <div className="text-sm text-foreground/50">Pending</div>
         </div>
         <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
-          <div className="text-2xl font-bold text-primary">
-            {data.filter(item => item.status === 'In Review').length}
-          </div>
+          <div className="text-2xl font-bold text-primary">{inReviewCount}</div>
           <div className="text-sm text-foreground/50">In Review</div>
         </div>
         <div className="bg-accent/20 hover:bg-accent/30 rounded-lg border border-accent p-4">
-          <div className="text-2xl font-bold text-green-600">
-            {data.filter(item => item.status === 'Resolved').length}
-          </div>
+          <div className="text-2xl font-bold text-chart-3">{resolvedCount}</div>
           <div className="text-sm text-foreground/50">Resolved</div>
         </div>
       </div>
@@ -438,6 +599,21 @@ export default function DisputesAndComplaints() {
           </Table>
         </div>
       </div>
+
+      {/* Modal Dialog */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {modalType === 'view' && 'Complaint Details'}
+              {modalType === 'edit' && 'Edit Complaint'}
+              {modalType === 'contact' && 'Contact Information'}
+              {modalType === 'resolve' && 'Resolve Complaint'}
+            </DialogTitle>
+          </DialogHeader>
+          {renderModalContent()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

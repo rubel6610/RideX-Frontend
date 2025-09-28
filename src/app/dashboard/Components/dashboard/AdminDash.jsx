@@ -3,26 +3,105 @@
 import * as React from "react";
 import { Settings } from "lucide-react";
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-} from "recharts";
+  Chart,
+  ChartHeader,
+  ChartBody,
+  ChartLegend,
+  ChartLegendItem,
+  ChartContent,
+} from "@/components/ui/charts/areaChart";
 import { Users, User, Bike, DollarSign } from "lucide-react";
 import CountUp from "react-countup";
+import {
+  AreaChart as ReAreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+/* ---------- Chart Data ---------- */
+const chartData = [
+  { date: "2024-06-01", desktop: 120, mobile: 80 },
+  { date: "2024-06-02", desktop: 85, mobile: 150 },
+  { date: "2024-06-03", desktop: 180, mobile: 95 },
+  { date: "2024-06-04", desktop: 110, mobile: 220 },
+  { date: "2024-06-05", desktop: 250, mobile: 130 },
+  { date: "2024-06-06", desktop: 140, mobile: 280 },
+  { date: "2024-06-07", desktop: 300, mobile: 160 },
+  { date: "2024-06-08", desktop: 170, mobile: 340 },
+  { date: "2024-06-09", desktop: 380, mobile: 190 },
+  { date: "2024-06-10", desktop: 210, mobile: 420 },
+  { date: "2024-06-11", desktop: 450, mobile: 230 },
+  { date: "2024-06-12", desktop: 190, mobile: 380 },
+  { date: "2024-06-13", desktop: 420, mobile: 210 },
+  { date: "2024-06-14", desktop: 160, mobile: 320 },
+  { date: "2024-06-15", desktop: 350, mobile: 180 },
+  { date: "2024-06-16", desktop: 200, mobile: 400 },
+  { date: "2024-06-17", desktop: 440, mobile: 220 },
+  { date: "2024-06-18", desktop: 180, mobile: 360 },
+  { date: "2024-06-19", desktop: 390, mobile: 195 },
+  { date: "2024-06-20", desktop: 220, mobile: 440 },
+  { date: "2024-06-21", desktop: 470, mobile: 235 },
+  { date: "2024-06-22", desktop: 195, mobile: 390 },
+  { date: "2024-06-23", desktop: 430, mobile: 215 },
+  { date: "2024-06-24", desktop: 170, mobile: 340 },
+  { date: "2024-06-25", desktop: 370, mobile: 185 },
+  { date: "2024-06-26", desktop: 205, mobile: 410 },
+  { date: "2024-06-27", desktop: 450, mobile: 225 },
+  { date: "2024-06-28", desktop: 185, mobile: 370 },
+  { date: "2024-06-29", desktop: 410, mobile: 205 },
+  { date: "2024-06-30", desktop: 220, mobile: 440 },
+  { date: "2024-07-01", desktop: 480, mobile: 240 },
+  { date: "2024-07-02", desktop: 160, mobile: 320 },
+  { date: "2024-07-03", desktop: 350, mobile: 175 },
+  { date: "2024-07-04", desktop: 195, mobile: 390 },
+  { date: "2024-07-05", desktop: 430, mobile: 215 },
+  { date: "2024-07-06", desktop: 180, mobile: 360 },
+  { date: "2024-07-07", desktop: 400, mobile: 200 },
+  { date: "2024-07-08", desktop: 210, mobile: 420 },
+  { date: "2024-07-09", desktop: 460, mobile: 230 },
+  { date: "2024-07-10", desktop: 170, mobile: 340 },
+  { date: "2024-07-11", desktop: 380, mobile: 190 },
+  { date: "2024-07-12", desktop: 200, mobile: 400 },
+  { date: "2024-07-13", desktop: 440, mobile: 220 },
+  { date: "2024-07-14", desktop: 185, mobile: 370 },
+  { date: "2024-07-15", desktop: 410, mobile: 205 },
+  { date: "2024-07-16", desktop: 175, mobile: 350 },
+  { date: "2024-07-17", desktop: 390, mobile: 195 },
+  { date: "2024-07-18", desktop: 215, mobile: 430 },
+  { date: "2024-07-19", desktop: 470, mobile: 235 },
+  { date: "2024-07-20", desktop: 165, mobile: 330 },
+  { date: "2024-07-21", desktop: 360, mobile: 180 },
+  { date: "2024-07-22", desktop: 190, mobile: 380 },
+  { date: "2024-07-23", desktop: 420, mobile: 210 },
+  { date: "2024-07-24", desktop: 155, mobile: 310 },
+  { date: "2024-07-25", desktop: 340, mobile: 170 },
+  { date: "2024-07-26", desktop: 180, mobile: 360 },
+  { date: "2024-07-27", desktop: 400, mobile: 200 },
+  { date: "2024-07-28", desktop: 145, mobile: 290 },
+  { date: "2024-07-29", desktop: 320, mobile: 160 },
+  { date: "2024-07-30", desktop: 170, mobile: 340 },
+  { date: "2024-07-31", desktop: 380, mobile: 190 },
+  { date: "2024-08-01", desktop: 135, mobile: 270 },
+  { date: "2024-08-02", desktop: 300, mobile: 150 },
+  { date: "2024-08-03", desktop: 160, mobile: 320 },
+  { date: "2024-08-04", desktop: 360, mobile: 180 },
+  { date: "2024-08-05", desktop: 125, mobile: 250 },
+  { date: "2024-08-06", desktop: 280, mobile: 140 },
+];
+const chartConfig = {
+  desktop: { label: "Desktop", color: "#4F46E5" },
+  mobile: { label: "Mobile", color: "#10B981" },
+};
 
 /* ---------- utils ---------- */
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-/* ---------- shadcn/ui inline card ---------- */
+/* ---------- Card Components ---------- */
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
@@ -55,33 +134,6 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- Dummy chart data ---------- */
-const areaData = [
-  { month: "Jan", revenue: 200 },
-  { month: "Feb", revenue: 400 },
-  { month: "Mar", revenue: 300 },
-  { month: "Apr", revenue: 600 },
-  { month: "May", revenue: 500 },
-  { month: "Jun", revenue: 800 },
-];
-
-const barData = [
-  { day: "Mon", bookings: 20 },
-  { day: "Tue", bookings: 40 },
-  { day: "Wed", bookings: 25 },
-  { day: "Thu", bookings: 50 },
-  { day: "Fri", bookings: 35 },
-  { day: "Sat", bookings: 60 },
-  { day: "Sun", bookings: 45 },
-];
-
-const lineData = [
-  { week: "W1", growth: 200 },
-  { week: "W2", growth: 300 },
-  { week: "W3", growth: 250 },
-  { week: "W4", growth: 400 },
-  { week: "W5", growth: 350 },
-];
 /* ---------- AdminDash ---------- */
 export default function AdminDash() {
   const stats = [
@@ -93,15 +145,15 @@ export default function AdminDash() {
 
   return (
     <div className="space-y-4">
-      {/* Heading + Spinner */}
+      {/* Heading */}
       <div className="flex items-center space-x-3">
         <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
-          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />  SEE ANALYSIS
+          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />{" "}
+          SEE ANALYSIS
         </h1>
       </div>
 
-
-      {/* Top Stats */}
+      {/* Top Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((item, idx) => (
           <Card key={idx} className="flex flex-col justify-center p-2">
@@ -123,77 +175,97 @@ export default function AdminDash() {
         ))}
       </div>
 
-      {/* Bottom Row (3 charts same size) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Revenue Area Chart */}
-        <Card className="h-[280px] md:h-[300px]">
-          <CardHeader className="mt-5">
-            <CardTitle>Revenue</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" className="[stop-color:#87e64b]" stopOpacity={0.7} />
-                    <stop offset="95%" className="[stop-color:#87e64b]" stopOpacity={0.1} />
+      {/* Area Chart */}
+      <Chart className="p-4 bg-background rounded-xl shadow">
+        <ChartHeader>
+          <h2 className="text-lg font-semibold">Website Traffic</h2>
+          <span className="text-muted-foreground text-sm">Last 30 Days</span>
+        </ChartHeader>
+
+        <ChartBody>
+          <ResponsiveContainer width="100%" height="100%">
+            <ReAreaChart
+              data={chartData}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                {Object.keys(chartConfig).map((key) => (
+                  <linearGradient
+                    key={key}
+                    id={`fill-${key}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={chartConfig[key].color}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={chartConfig[key].color}
+                      stopOpacity={0.1}
+                    />
                   </linearGradient>
-                </defs>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+                ))}
+              </defs>
+
+              <CartesianGrid
+                vertical={false}
+                stroke="var(--muted)"
+                strokeDasharray="4 4"
+              />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  });
+                }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--background)",
+                  border: "1px solid var(--muted)",
+                  borderRadius: 8,
+                  color: "var(--popove)",
+                  padding: "14px 12px",
+                  fontSize: "12px",
+                }}
+              />
+
+              {Object.keys(chartConfig).map((key) => (
                 <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#6bcf32"
-                  fill="url(#colorRev)"
+                  key={key}
+                  dataKey={key}
+                  type="natural"
+                  fill={`url(#fill-${key})`}
+                  stroke={chartConfig[key].color}
+                  stackId="a"
                 />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+              ))}
+            </ReAreaChart>
+          </ResponsiveContainer>
+        </ChartBody>
 
-        {/* Bookings Bar Chart */}
-        <Card className="h-[280px] md:h-[300px]">
-          <CardHeader className="mt-5">
-            <CardTitle>Bookings</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="bookings" className="fill-[#ef4444]" />
-                <Bar dataKey="bookings" className="fill-[#ef4444]" opacity={0.6} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Growth Line Chart */}
-        <Card className="h-[280px] md:h-[300px]">
-          <CardHeader className="mt-5">
-            <CardTitle>Growth</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="growth"
-                  stroke="#87e64b"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+        <ChartLegend>
+          {Object.keys(chartConfig).map((key) => (
+            <ChartLegendItem
+              key={key}
+              color={chartConfig[key].color}
+              label={chartConfig[key].label}
+            />
+          ))}
+        </ChartLegend>
+      </Chart>
     </div>
   );
 }
