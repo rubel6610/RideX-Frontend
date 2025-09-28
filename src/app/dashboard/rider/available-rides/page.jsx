@@ -1,105 +1,116 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Info, User, DollarSign } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { User } from "lucide-react";
 
-export default function AvailableRides() {
-  // Dummy ride requests
-  const [rides, setRides] = useState([
-    {
-      id: "RIDE-101",
-      passenger: { name: "Jahid", rating: 4.8, phone: "+8801712345678" },
-      fare: 170,
-      status: "pending",
-    },
-    {
-      id: "RIDE-102",
-      passenger: { name: "Rahima", rating: 4.9, phone: "+8801711111111" },
-      fare: 120,
-      status: "pending",
-    },
-  ]);
+const PassengerDummyData = [
+  {
+    "_id": 1,
+    "passengerName": "John Doe",
+    "from": "Banani, Dhaka",
+    "to": "Gulshan, Dhaka",
+    "distance": "8 km",
+    "fare": "$5"
+  },
+  {
+    "_id": 2,
+    "passengerName": "Sara Khan",
+    "from": "Dhanmondi, Dhaka",
+    "to": "Motijheel, Dhaka",
+    "distance": "12 km",
+    "fare": "$8"
+  },
+  {
+    "_id": 3,
+    "passengerName": "Alex Smith",
+    "from": "Uttara, Dhaka",
+    "to": "Mirpur, Dhaka",
+    "distance": "10 km",
+    "fare": "$6"
+  },
+  {
+    "_id": 4,
+    "passengerName": "Nadia Rahman",
+    "from": "Tejgaon, Dhaka",
+    "to": "Jatrabari, Dhaka",
+    "distance": "15 km",
+    "fare": "$10"
+  }
+]
 
-  const [selectedRide, setSelectedRide] = useState(null);
+export default function AvailableRidesPage() {
 
-  // Update ride status
-  const handleStatus = (id, newStatus) =>
-    setRides(rides.map(r => (r.id === id ? { ...r, status: newStatus } : r)));
+  const [rides, setRides] = useState(PassengerDummyData || []);
 
-  // Status color helper
-  const statusColor = (status) => {
-    if (status === "accepted") return "bg-green-100 text-green-700";
-    if (status === "rejected") return "bg-red-100 text-red-700";
-    return "bg-yellow-100 text-yellow-700";
+  // Placeholder functions for buttons
+  const handleConfirm = (rideId) => {
+    console.log(`Confirm clicked for ride ${rideId}`);
+    // এখানে তুমি API call বা state update করতে পারবে
+  };
+
+  const handleCancel = (rideId) => {
+    console.log(`Cancel clicked for ride ${rideId}`);
+    // এখানে তুমি API call বা state update করতে পারবে
   };
 
   return (
-    <div className="p-4 space-y-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold">Available Rides</h1>
+    <div className="space-y-4">
+      {/* Heading + Spinner */}
+      <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100 uppercase">
+        Available Rides
+      </h1>
 
-      {/* Ride Requests Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border border-accent rounded-xl">
-          <thead className="bg-accent">
-            <tr>
-              <th className="px-4 py-2 text-left">Passenger</th>
-              <th className="px-4 py-2 text-left">Fare ($)</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rides.map((ride) => (
-              <tr key={ride.id} className="border-t border-accent">
-                <td className="px-4 py-2 gap-2">
-                  {ride.passenger.name}
-                </td>
-                <td className="px-4 py-2 gap-1">
-                   {ride.fare}
-                </td>
-                <td className="px-4 py-2">
-                  <Badge className={statusColor(ride.status)}>{ride.status}</Badge>
-                </td>
-                <td className="px-4 py-2 flex gap-2 flex-wrap">
-                  {ride.status === "pending" && (
-                    <>
-                      <Button size="sm" variant="ghost" onClick={() => handleStatus(ride.id, "accepted")}>
-                        <CheckCircle className="w-4 h-4 mr-1" /> Accept
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleStatus(ride.id, "rejected")}>
-                        <XCircle className="w-4 h-4 mr-1" /> Cancel
-                      </Button>
-                      <Button size="sm" variant="secondary" onClick={() => setSelectedRide(ride)}>
-                        <Info className="w-4 h-4 mr-1" /> Details
-                      </Button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ">
+        {rides.map((ride) => (
+          <div
+            key={ride._id}
+            className="shadow-md rounded-2xl hover:border-primary border border-border bg-accent/50"
+          >
+            {/* passenger info  */}
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" /> {ride.passengerName}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <p>
+                <strong>From:</strong> {ride.from}
+              </p>
+              <p>
+                <strong>To:</strong> {ride.to}
+              </p>
+              <p>
+                <strong>Distance:</strong> {ride.distance}
+              </p>
+              <p>
+                <strong>Fare:</strong> {ride.fare}
+              </p>
+            </CardContent>
+
+            {/* action button  */}
+            <CardFooter className="flex gap-2">
+              <Button
+                variant="default"
+                className="flex-1 cursor-pointer"
+                onClick={() => handleConfirm(ride._id)}
+              >
+                Confirm
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 cursor-pointer"
+                onClick={() => handleCancel(ride._id)}
+              >
+                Cancel
+              </Button>
+            </CardFooter>
+          </div>
+        ))}
       </div>
 
-      {/* Passenger Details Modal */}
-      {selectedRide && (
-        <Dialog open={!!selectedRide} onOpenChange={() => setSelectedRide(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Passenger Info</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-2">
-              <p><User className="w-4 h-4 inline-block mr-1" /> {selectedRide.passenger.name}</p>
-              <p>Rating: {selectedRide.passenger.rating} ⭐</p>
-              <p>Phone: {selectedRide.passenger.phone}</p>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
-  );
+  )
 }
+

@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }) {
     fetchUserData();
   }, [user?.email]);
 
-  const userRole = "user";
+  const userRole = "rider";
 
   return (
     <ProtectedRoute>
