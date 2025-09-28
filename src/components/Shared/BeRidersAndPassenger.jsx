@@ -11,145 +11,129 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 const BeRidersAndPassenger = () => {
   return (
-    <div>
-      <section className="py-16">
-        <div className=" px-6 grid md:grid-cols-2 ">
-          {/* Rider Section */}
-
-          <div className="border card border-[#90fc47]/20 rounded-2xl  px-10">
-            <div className="flex gap-4 bg-[#90fc47]/16 :bg-gray-800 w-40 p-1 rounded-xl text-primary">
-              <span className="text-[#90fc47] ml-1">
-                <Users />
-              </span>
-              <h1 className="text-primary dark:text-primary">For Passengers</h1>
+    <section className="pb-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-8">
+          {/* Left Section */}
+          <div className="rounded-2xl p-10 shadow-lg bg-amber-200/5 backdrop-blur-md border border-accent flex flex-col justify-center">
+            <div className="flex items-center gap-2 bg-accent/30 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-border mb-4 max-w-max">
+              <Users className="h-5 w-5" />
+              <span>For RideX Passenger</span>
             </div>
-            <h3 className="text-2xl mt-2 font-semibold text-black dark:text-white mb-4">
-              Become a
-              <span className="ml-2 bg-gradient-to-r from-[#a8ff70] via-[#90fc47] to-[#6dbd2f] bg-clip-text text-transparent">
-                RideX Passenger
-              </span>
+            <h3 className="text-3xl font-bold text-foreground mb-4">
+              Become a <span className="text-primary">RideX Passenger</span>
             </h3>
-            <p className=" text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-muted-foreground mb-6 text-lg">
               Join millions of Riders who choose RideX for safe, reliable, and
               affordable transportation.
             </p>
-            <ul className="space-y-3  text-gray-700">
-              <div className="flex gap-2">
-                <h1 className="text-primary   bg-[#90fc47]/20 dark:bg-[#90fc47]/4 rounded p-1">
-                  <span className="text-[#90fc47]">
+            <ul className="space-y-6">
+              <li>
+                <div className="flex gap-4 items-center">
+                  <span className="text-primary bg-primary/30 rounded p-2">
                     <ShieldCheck />
                   </span>
-                </h1>
-                <h1 className="font-bold text-black dark:text-white">
-                  Safe & Verified
-                </h1>
-              </div>
-              <li className="ml-10 -mt-4 text-gray-600 dark:text-gray-300 text">
-                Safe & Secure Rides anytime, anywhere
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground text-lg">Safe & Verified</span>
+                    <span className="mt-1 text-muted-foreground text-sm">Safe & Secure Rides anytime, anywhere</span>
+                  </div>
+                </div>
               </li>
-              <div className="flex gap-2">
-                <h1 className="text-primary   bg-[#90fc47]/20 dark:bg-[#90fc47]/4 rounded p-1">
-                  <span className="text-[#90fc47]">
+              <li>
+                <div className="flex gap-4 items-center">
+                  <span className="text-primary bg-accent rounded p-2">
                     <DollarSign />
                   </span>
-                </h1>
-                <h1 className="font-bold text-black dark:text-white">
-                  Affordable Rates
-                </h1>
-              </div>
-              <li className="ml-10 -mt-4 text-gray-600 dark:text-gray-300">
-                Affordable pricing with no hidden costs
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground text-lg">Affordable Rates</span>
+                    <span className="mt-1 text-muted-foreground text-sm">Affordable pricing with no hidden costs</span>
+                  </div>
+                </div>
               </li>
-              <div className="flex gap-2 ">
-                <h1 className="  bg-[#90fc47]/20 dark:bg-[#90fc47]/4 p-1 rounded">
-                  <span className="text-[#90fc47]">
+              <li>
+                <div className="flex gap-4 items-center">
+                  <span className="bg-primary/20 rounded p-2 text-primary">
                     <AlarmClockCheck />
                   </span>
-                </h1>
-                <h1 className="font-bold text-black dark:text-white">24/7 Availability</h1>
-              </div>
-              <li className="ml-10 -mt-4 text-gray-600 dark:text-gray-300">
-                24/7 Availability with dedicated support
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground text-lg">24/7 Availability</span>
+                    <span className="mt-1 text-muted-foreground text-sm">24/7 Availability with dedicated support</span>
+                  </div>
+                </div>
               </li>
             </ul>
-            <Link href={`/register`} className="mt-7 w-full flex items-center justify-center gap-2 btn-primary p-2 rounded">
-              <Users />
-              Sign Up as Passenger
-            </Link>
-            <h1 className="text-gray-600 dark:text-gray-300 mt-6 text-center">Already have an account? <Link href={`/SignIn`} className="text-[#90fc47]">Sign in here</Link></h1>
+            <Button asChild variant="primary" size="lg" className="mt-7 w-full flex items-center justify-center gap-2">
+              <Link href="/register">
+                <Users className="h-5 w-5" />
+                Sign Up as a Passenger
+              </Link>
+            </Button>
+            <span className="text-muted-foreground mt-6 text-center">Already have an account? <Link href="/signin" className="text-primary font-semibold">Sign in here</Link></span>
           </div>
 
-          {/* Driver Section */}
-          <div className="border card border-[#90fc47]/20 rounded-2xl  p-8">
-            <div className="flex gap-2  bg-[#90fc47]/16 :bg-gray-800 w-40 p-1 rounded-xl text-primary">
-              <span className="text-[#90fc47] ml-2">
-                <Car />
-              </span>
-              <h1 className="text-primary dark:text-primary">For Drivers</h1>
+          {/* Right / Driver Section */}
+          <div className="rounded-2xl p-10 shadow-lg bg-accent/20 backdrop-blur-md border border-accent flex flex-col justify-center">
+            <div className="flex items-center gap-2 bg-accent/30 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-border mb-4 max-w-max">
+              <Car className="h-5 w-5" />
+              <span>For RideX Rider</span>
             </div>
             
               
-             <h3 className="text-2xl mt-2 font-semibold text-black dark:text-white mb-4">
-              Become a
-              <span className="ml-2 bg-gradient-to-r from-[#a8ff70] via-[#90fc47] to-[#6dbd2f] bg-clip-text text-transparent">
-                RideX Rider
-              </span>
+            <h3 className="text-3xl font-bold text-foreground mb-4">
+              Become a <span className="text-primary">RideX Rider</span>
             </h3>
 
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-muted-foreground mb-6 text-lg">
               Turn your car into a money-making opportunity. Drive on your own
               schedule with extra earnings.
             </p>
-            <ul className="space-y-3 text-gray-700">
-              <div className="flex gap-2">
-                <h1 className="text-primary p-1  bg-[#90fc47]/20 dark:bg-[#90fc47]/4 rounded">
-                  <span className="text-[#90fc47]">
+            <ul className="space-y-6">
+              <li>
+                <div className="flex gap-4 items-center">
+                  <span className="text-primary bg-primary/30 rounded p-2">
                     <DollarSign />
                   </span>
-                </h1>
-                <span className="font-bold text-black dark:text-white">
-                  Earn More
-                </span>
-              </div>
-
-              <li className="ml-10 -mt-4 text-gray-600 dark:text-gray-300"> Earn More with flexible hours</li>
-              <div className="flex ga-2">
-                <h1 className="text-primary p-1  bg-[#90fc47]/20 dark:bg-[#90fc47]/4 rounded">
-                  <span className="text-[#90fc47]">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground text-lg">Earn More</span>
+                    <span className="mt-1 text-muted-foreground text-sm">Earn more with flexible hours</span>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div className="flex gap-4 items-center">
+                  <span className="bg-primary/20 rounded p-2 text-primary">
                     <AlarmClockCheck />
                   </span>
-                </h1>
-                <span className="font-bold ml-2 text-black dark:text-white">
-                  Flexible Schedule
-                </span>
-              </div>
-              <li className="ml-10 -mt-4 text-gray-600 dark:text-gray-300"> Freedom to drive when you want</li>
-              <div className="flex gap-2 items-center">
-                <h1 className="p-1 rounded bg-[#90fc47]/20 dark:bg-[#90fc47]/4 ">
-                  <span className="text-[#90fc47]">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground text-lg">Flexible Schedule</span>
+                    <span className="mt-1 text-muted-foreground text-sm">Freedom to drive when you want</span>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div className="flex gap-4 items-center">
+                  <span className="bg-accent rounded p-2 text-primary">
                     <Star />
                   </span>
-                </h1>
-                <span className="font-bold text-black dark:text-white">
-                  Driver Support
-                </span>
-              </div>
-
-              <li className="ml-10 -mt-4 text-gray-600 dark:text-gray-300">
-                Partner support whenever you need help
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground text-lg">Driver Support</span>
+                    <span className="mt-1 text-muted-foreground text-sm">Partner support whenever you need help</span>
+                  </div>
+                </div>
               </li>
             </ul>
 
-            <button className="mt-6 w-full flex items-center justify-center btn-primary">
-              Apply to Driver
-            </button>
-              <h1 className="text-gray-600 dark:text-gray-300 mt-6 text-center">Requirements: Valid license,insurance, and vehicle inspection</h1>
+            <Button asChild variant="primary" size="lg" className="mt-7 w-full flex items-center justify-center gap-2">
+              <Link href="/register">
+                <Car className="h-5 w-5" />
+                Apply to Driver
+              </Link>
+            </Button>
+            <span className="text-muted-foreground mt-6 text-center">Requirements: Valid license, insurance, and vehicle inspection</span>
 
           </div>
           
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 };
 

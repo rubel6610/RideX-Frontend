@@ -1,4 +1,5 @@
 import { Star, Award, Clock, Car } from 'lucide-react';
+import SectionHeader from '../../components/ui/sectionHeader';
 import driverImage from "../../Assets/driver-featured.jpg"
 import Image from 'next/image';
 import { Button } from '../ui/button';
@@ -17,7 +18,7 @@ const FeaturedDrivers = () => {
       name: "Sarah Chen",
       rating: 4.8,
       rides: 1956,
-      experience: "3 years", 
+      experience: "3 years",
       car: "Honda Accord",
       specialties: ["City tours", "Long distance"]
     },
@@ -32,29 +33,22 @@ const FeaturedDrivers = () => {
   ];
 
   return (
-    <section className="py-16 section-feature">
-      <div className="max-w-11/12 mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center space-y-4 mb-12">
-          <div className="inline-flex items-center px-4 py-2 bg-accent-foreground/10 dark:bg-accent  text-primary rounded-full text-sm font-medium">
-            <Award className="h-4 w-4 mr-2" />
-            Top Rated Drivers
-          </div>
-          <h2 className="text-3xl md:text-display font-bold">
-            Meet Our <span className="text-gradient-accent">Featured Drivers</span>
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Experience excellence with our carefully selected, highly-rated drivers who go above and beyond for every ride.
-          </p>
-        </div>
-
+        <SectionHeader
+          icon={Award}
+          title="Top Rated Riders"
+          subtitle="Meet Our "
+          highlight="Featured Drivers"
+          description="Experience excellence with our carefully selected, highly-rated drivers who go above and beyond for every ride."
+        />
         {/* Drivers Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {drivers.map((driver, index) => (
-            <div key={index} className="card p-6 space-y-4 hover-lift shadow-md bg-accent/15 rounded-2xl ">
+            <div key={index} className="card p-6 space-y-4 shadow-md bg-accent/15 rounded-2xl border border-accent transition-all hover:-translate-y-1 duration-300 hover:border-primary hover:bg-accent/50">
               <div className="flex items-start space-x-4">
-                <Image 
-                  src={driverImage} 
+                <Image
+                  src={driverImage}
                   alt={driver.name}
                   className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
                 />
@@ -83,7 +77,7 @@ const FeaturedDrivers = () => {
                 <p className="text-sm font-medium text-muted-foreground">Specialties:</p>
                 <div className="flex flex-wrap gap-2">
                   {driver.specialties.map((specialty) => (
-                    <span 
+                    <span
                       key={specialty}
                       className="px-2 py-1 bg-accent/50 text-primary text-xs rounded-full"
                     >
@@ -93,7 +87,7 @@ const FeaturedDrivers = () => {
                 </div>
               </div>
 
-              <Button variant="outline" className="w-full btn-outline">
+              <Button variant="primary" className="w-full">
                 Request {driver.name.split(' ')[0]}
               </Button>
             </div>
@@ -102,12 +96,11 @@ const FeaturedDrivers = () => {
 
         {/* CTA */}
         <div className="text-center mt-12 w-4/12 mx-auto">
-          <Button variant="primaryBtn" className="px-8 w-full btn-primary">
-            <Award className="mr-2 h-4 w-10  hover:text-accent-foreground" />
+          <Button variant="primary" size="lg">
+            <Award className="h-4 w-10 " />
             Become a Featured Driver
           </Button>
         </div>
-      </div>
     </section>
   );
 };

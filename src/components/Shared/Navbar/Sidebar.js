@@ -16,15 +16,15 @@ const Sidebar = ({
 }) => {
   return (
     <div
-      className={`fixed top-[76px] right-0 h-full w-full bg-white text-[var(--secondary)] dark:bg-gray-900 dark:text-white shadow-lg z-[997] transform transition-all duration-300 
+      className={`fixed top-[76px] right-0 h-full w-full bg-background shadow-lg z-[997] transform transition-all duration-300 
         ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}
         ${showNavbar ? 'translate-y-0' : `-translate-y-[calc(100vh+76px)]`}
       `}
     >
-      <div className="flex flex-col font-medium">
+      <div className="flex flex-col font-medium bg-background">
         <Link
           href="/"
-          className="px-8 py-4 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+          className="px-8 py-4 font-semibold hover:text-primary border-b border-accent"
           onClick={toggleSidebar}
         >
           Home
@@ -34,7 +34,7 @@ const Sidebar = ({
         <div>
           <button
             onClick={toggleRideBy}
-            className="flex justify-between items-center w-full px-8 py-4 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+            className="flex justify-between items-center w-full px-8 py-4 font-semibold hover:text-primary border-b border-accent"
           >
             <span>Ride By</span>
             <ChevronDown
@@ -47,26 +47,26 @@ const Sidebar = ({
             <div className="flex flex-col divide-y divide-border">
               <Link
                 href="/ride-bike"
-                className="flex items-center gap-2 px-12 py-3 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+                className="flex items-center gap-2 px-12 py-3 font-semibold hover:text-primary border-b border-accent"
                 onClick={toggleSidebar}
               >
-                <Bike className="text-blue-500 text-xl border p-0.5 rounded" />
+                <Bike className="text-primary text-xl border p-0.5 rounded" />
                 Bike
               </Link>
               <Link
                 href="/ride-cng"
-                className="flex items-center gap-2 px-12 py-3 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+                className="flex items-center gap-2 px-12 py-3 font-semibold hover:text-primary border-b border-accent"
                 onClick={toggleSidebar}
               >
-                <BusFront className="text-green-600 text-xl border p-0.5 rounded" />
+                <BusFront className="text-primary text-xl border p-0.5 rounded" />
                 <span>CNG</span>
               </Link>
               <Link
                 href="/ride-car"
-                className="flex items-center gap-2 px-12 py-3 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+                className="flex items-center gap-2 px-12 py-3 font-semibold hover:text-primary border-b border-accent"
                 onClick={toggleSidebar}
               >
-                <Car className="text-red-500 text-xl border p-0.5 rounded" />
+                <Car className="text-primary text-xl border p-0.5 rounded" />
                 <span>Car</span>
               </Link>
             </div>
@@ -75,28 +75,28 @@ const Sidebar = ({
 
         <Link
           href="/offers"
-          className="px-8 py-4 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+          className="px-8 py-4 font-semibold hover:text-primary border-b border-accent"
           onClick={toggleSidebar}
         >
           Offers
         </Link>
         <Link
           href="/contact"
-          className="px-8 py-4 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+          className="px-8 py-4 font-semibold hover:text-primary border-b border-accent"
           onClick={toggleSidebar}
         >
           Contact
         </Link>
         <Link
           href="/about"
-          className="px-8 py-4 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+          className="px-8 py-4 font-semibold hover:text-primary border-b border-accent"
           onClick={toggleSidebar}
         >
           About
         </Link>
         <Link
           href="/become-rider"
-          className="px-8 py-4 font-semibold hover:text-[var(--primary)] border-b border-[#6CC832]/20"
+          className="px-8 py-4 font-semibold hover:text-primary border-b border-accent"
           onClick={toggleSidebar}
         >
           Become a Rider

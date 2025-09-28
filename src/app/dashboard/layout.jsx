@@ -1,0 +1,224 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  User,
+  MapPin,
+  Search,
+  Bell,
+  LucideLogOut,
+  PanelRightOpen,
+  PanelRightClose,
+  Moon,
+  Sun,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import logo from "../../Assets/ridex-logo.webp";
+import darkLogo from "../../Assets/logo-dark.webp";
+import ProtectedRoute from "../hooks/ProtectedRoute";
+import useTheme from "../hooks/useTheme";
+import { useAuth } from "../hooks/AuthProvider";
+import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
+import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
+import UserDashboard from "./Components/userDashboard/UserDashboard";
+
+export default function DashboardLayout({ children }) {
+  const { theme, toggleTheme } = useTheme();
+  const [sidebarOpen, setSidebarOpen] = useState(false); // for mobile-md
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // for lg+
+  const [showSearch, setShowSearch] = useState(false);
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch user data");
+        const data = await res.json();
+        setUserData(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUserData();
+  }, [user?.email]);
+
+  const userRole = "user";
+
+  return (
+    <ProtectedRoute>
+      <div className="flex h-screen bg-background overflow-hidden">
+        {/* Overlay only for mobile-md */}
+        <div
+          className={`fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          onClick={() => setSidebarOpen(false)}
+        />
+
+        {/* Sidebar */}
+        <aside
+          className={`fixed top-0 left-0 z-50 h-full flex flex-col justify-between transition-all duration-300 bg-background border-r border-border py-4 px-4 text-foreground ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} lg:static ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
+`}>
+          <div>
+            {/* Logo + Close btn */}
+            <div className="flex items-center justify-between gap-3 mb-8">
+              <Link href="/" className="dark:hidden">
+                <Image
+                  src={logo}
+                  alt="RideX Logo"
+                  width={120}
+                  height={50}
+                  className="object-contain"
+                />
+              </Link>
+              <Link href="/" className="hidden dark:block">
+                <Image
+                  src={darkLogo}
+                  alt="RideX Logo"
+                  width={120}
+                  height={50}
+                  className="object-contain"
+                />
+              </Link>
+
+              {/* Mobile Close Btn */}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 rounded hover:bg-foreground/10 lg:hidden"
+              >
+                <X className="w-6 h-6 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex flex-col gap-1 mb-8">
+              <Link
+                href="/dashboard"
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard"
+                  ? "bg-primary/90 text-background"
+                  : "text-foreground hover:bg-primary/10 hover:text-primary"
+                  }`}
+              >
+                <MapPin className="w-5 h-5" />{" "}
+                {!sidebarCollapsed && "Dashboard"}
+              </Link>
+
+              {userRole === "user" && <UserDashboard collapsed={sidebarCollapsed} />}
+              {userRole === "rider" && <RiderDashboard collapsed={sidebarCollapsed} />}
+              {userRole === "admin" && <AdminDashboard collapsed={sidebarCollapsed} />}
+            </nav>
+          </div>
+
+          <Button
+            onClick={logout}
+            variant="destructiveOutline"
+            size="lg"
+            className="w-full m-3 text-md ml-1 flex items-center gap-2 justify-center"
+          >
+            <LucideLogOut className="w-5 h-5" />
+            {!sidebarCollapsed && "Sign Out"}
+          </Button>
+        </aside>
+
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col h-full">
+          {/* Topbar */}
+          <header className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border bg-background/80 sticky top-0 z-30">
+            <div className="flex items-center gap-3">
+              {/* Toggle button */}
+              <button
+                onClick={() =>
+                  window.innerWidth < 1024
+                    ? setSidebarOpen(!sidebarOpen)
+                    : setSidebarCollapsed(!sidebarCollapsed)
+                }
+              >
+                {window.innerWidth < 1024 ? (
+                  sidebarOpen ? (
+                    <PanelRightOpen className="w-6 h-6 text-muted-foreground" />
+                  ) : (
+                    <PanelRightClose className="w-6 h-6 text-muted-foreground" />
+                  )
+                ) : sidebarCollapsed ? (
+                  <PanelRightOpen className="w-6 h-6 text-muted-foreground" />
+                ) : (
+                  <PanelRightClose className="w-6 h-6 text-muted-foreground" />
+                )}
+              </button>
+
+              {/* Search (desktop) */}
+              <div className="hidden sm:block relative">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none text-sm md:text-base"
+                />
+                <Search className="absolute left-2 top-2 w-5 h-5 text-muted-foreground" />
+              </div>
+
+              {/* Mobile Search */}
+              <button
+                onClick={() => setShowSearch(!showSearch)}
+                className="sm:hidden p-2"
+              >
+                <Search className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 md:gap-4">
+              <button
+                type="button"
+                aria-label="Toggle theme"
+                onClick={toggleTheme}
+                className="rounded-full p-2 border border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-5 h-5 text-foreground" />
+                ) : (
+                  <Moon className="w-5 h-5 text-foreground/80" />
+                )}
+              </button>
+              <Bell className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+              <Link href="/dashboard/my-profile">
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 px-2 md:px-3 text-sm md:text-base"
+                >
+                  <User className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                  <span className="hidden md:inline text-foreground">
+                    Profile
+                  </span>
+                </Button>
+              </Link>
+            </div>
+          </header>
+
+          {/* Mobile search input */}
+          {showSearch && (
+            <div className="sm:hidden border-b border-border bg-background px-4 py-2">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none text-sm"
+              />
+            </div>
+          )}
+
+          {/* Dynamic Content */}
+          <main className="flex-1 overflow-y-auto scrollbar-hidden px-4 md:px-6 py-6">
+            {children}
+          </main>
+        </div>
+      </div>
+    </ProtectedRoute>
+  );
+}
