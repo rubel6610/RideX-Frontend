@@ -91,23 +91,20 @@ function RegisterPage() {
         className="shadow-lg p-8 rounded-xl space-y-4 max-w-2xl mx-auto border border-primary"
       >
         {/* Full Name */}
-      
-          <div>
-            <Label>
-              Full Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              placeholder="Full name"
-              {...register("fullName", { required: "Full name is required" })}
-            />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm">{errors.firstName.message}</p>
-            )}
-          </div>
 
-        
-        
+        <div>
+          <Label>
+            Full Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            type="text"
+            placeholder="Full name"
+            {...register("fullName", { required: "Full name is required" })}
+          />
+          {errors.fullName && (
+            <p className="text-red-500 text-sm">{errors.firstName.message}</p>
+          )}
+        </div>
 
         {/* Image Upload */}
         <div>
@@ -139,8 +136,6 @@ function RegisterPage() {
           )}
         </div>
 
-       
-
         {/* Date of Birth & NID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -149,7 +144,9 @@ function RegisterPage() {
             </Label>
             <Input
               type="date"
-              {...register("dateOfBirth", { required: "Date of birth is required" })}
+              {...register("dateOfBirth", {
+                required: "Date of birth is required",
+              })}
             />
             {errors.dob && (
               <p className="text-red-500 text-sm">{errors.dob.message}</p>
@@ -171,7 +168,6 @@ function RegisterPage() {
           </div>
         </div>
 
-    
         {/* Email & Gender */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

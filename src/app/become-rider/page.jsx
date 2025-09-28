@@ -23,7 +23,7 @@ export default function BecomeRiderPage() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?id=${user.id}&email=${user.email}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`);
       const data = await res.json();
 
       if (!res.ok) {
