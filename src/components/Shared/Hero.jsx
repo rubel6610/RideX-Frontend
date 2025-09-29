@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Star, ArrowRight, MapPin, Navigation, Bike } from "lucide-react";
 import { Input } from "../ui/input";
@@ -8,7 +8,6 @@ import heroImage from "@/Assets/hero-img.svg";
 import heroImageDark from "@/Assets/hero-img-dark.svg";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 
 const MapPopup = dynamic(() => import("./MapPopup"), { ssr: false });
 
@@ -18,6 +17,29 @@ const Hero = () => {
     const [drop, setDrop] = useState("");
     const [showPickupMap, setShowPickupMap] = useState(false);
     const [showDropMap, setShowDropMap] = useState(false);
+
+    // page load এ current location fetch
+    useEffect(() => {
+        if (!pickup && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    // reverse geocode to get address
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                            const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                            setPickup(locName);
+                        })
+                        .catch(() => {
+                            setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                        });
+                },
+                (err) => console.error("Error getting location:", err),
+                { enableHighAccuracy: true }
+            );
+        }
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -109,7 +131,6 @@ const Hero = () => {
 
                 {/* Right Content */}
                 <div className="relative flex justify-center items-center">
-                    {/* Light mode image */}
                     <Image
                         src={heroImage}
                         alt="RideX Hero"
@@ -118,7 +139,6 @@ const Hero = () => {
                         className="w-full max-w-xl h-auto rounded-2xl block dark:hidden"
                         priority
                     />
-                    {/* Dark mode image */}
                     <Image
                         src={heroImageDark}
                         alt="RideX Hero Dark"

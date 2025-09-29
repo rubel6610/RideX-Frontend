@@ -28,41 +28,63 @@ function RegisterPage() {
 
   const password = watch("password");
 
-  // Submit Handler
-  const onSubmit = async (e, data) => {
-    e.preventDefault();
-    try {
-      // Handle image upload
-      if (data.image && data.image.length > 0) {
-        const imgForm = new FormData();
-        imgForm.append("image", data.image[0]);
-        const res = await fetch(process.env.NEXT_PUBLIC_IMGBB_KEY, {
+// Submit Handler
+const onSubmit = async (data) => {
+  try {
+    let photoUrl = null;
+
+    // ✅ Handle image upload
+    if (data.image && data.image.length > 0) {
+      const imgForm = new FormData();
+      imgForm.append("image", data.image[0]);
+
+      const res = await fetch(
+        `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`,
+        {
           method: "POST",
           body: imgForm,
-        });
-        const imgData = await res.json();
-        data.photoUrl = imgData?.data?.url; // Store uploaded image URL
-      }
+        }
+      );
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`, {
+      const imgData = await res.json();
+      photoUrl = imgData?.data?.url || null;
+    }
+
+    // ✅ Create safe user object (remove FileList)
+    const userPayload = {
+      fullName: data.fullName,
+      email: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+      dateOfBirth: data.dateOfBirth,
+      NIDno: data.NIDno,
+      gender: data.gender,
+      terms: data.terms,
+      photoUrl, // uploaded image url
+    };
+
+    // ✅ Send to backend
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-        }),
-      });
-
-      const userdata = await res.json();
-      if (res.ok) {
-        alert("Registered successfully!");
-      } else {
-        alert(userdata.message);
+        body: JSON.stringify(userPayload),
       }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
-  };
+    );
 
+    const userdata = await res.json();
+
+    if (res.ok) {
+      alert("Registered successfully!");
+      router.push("/signIn");
+    } else {
+      alert(userdata.message || "Something went wrong");
+    }
+  } catch (error) {
+    console.error("Error submitting form:", error);
+  }
+};
   // Handle image preview
   const handleImageChange = (e) => {
     const file = e.target.files[0];
