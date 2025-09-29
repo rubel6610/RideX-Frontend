@@ -19,7 +19,7 @@
 :root {
   --background: #ffffff;
   --foreground: #09090b;
-  --card: #dbf7c9;
+  --card: rgb(43, 127, 255, 0.05);
   --card-foreground: #09090b;
   --popover: #ffffff;
   --popover-foreground: #09090b;
@@ -33,7 +33,7 @@
   --accent-foreground: #09090b;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #e4e4e7;
+  --border: #2b80ff86;
   --input: #e4e4e7;
   --ring: #2B7FFF;
   --chart-1: #2b80ffc2;
@@ -68,7 +68,7 @@
 .dark {
   --background: #02131C;
   --foreground: #f5f6f7;
-  --card: #1e1e24;
+  --card: rgb(0, 182, 166, 0.05);
   --card-foreground: #fafafa;
   --popover: #09090b;
   --popover-foreground: #fafafa;
