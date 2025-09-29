@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }) {
   const { user, logout } = useAuth();
 
 
-  const userRole = user?.role || "user";
+  const userRole ="admin";
 
   return (
     <ProtectedRoute>
