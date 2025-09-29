@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { Button } from "../ui/button";
 
 // Red icon for marker
 const redIcon = new L.Icon({
@@ -112,7 +113,7 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 dark:bg-background/90">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80">
       <div className="bg-background rounded-lg shadow-lg w-[90%] md:w-[600px] h-[550px] flex flex-col relative border border-border">
         {/* Header */}
         <div className="p-3 border-b border-border flex justify-between items-center">
@@ -121,7 +122,7 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
             className="px-3 py-1 rounded bg-destructive text-destructive-foreground text-sm"
             onClick={onClose}
           >
-            Close
+            Ok
           </button>
         </div>
 
@@ -137,12 +138,12 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
             onChange={(e) => setSearchInput(e.target.value)}
             className="flex-1 border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          <button
+          <Button
             type="submit"
-            className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm rounded transition-colors duration-200"
+            variant="primary"
           >
             Search
-          </button>
+          </Button>
         </form>
 
         {/* Selected name */}

@@ -177,6 +177,7 @@ const BookARide = () => {
   const [promo, setPromo] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("");
   const [mode, setMode] = useState("auto");
+  const [promoError, setPromoError] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -201,6 +202,9 @@ const BookARide = () => {
     };
     fetchDistance();
   }, [pickup, drop, selectedType, appliedPromo]);
+
+  // Helper to check promo validity
+  const isPromoValid = (code) => availablePromos.some((p) => p.code === code);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-accent/20 lg:p-10 rounded-2xl">
@@ -274,7 +278,7 @@ const BookARide = () => {
               <Input
                 type="text"
                 value={promo}
-                onChange={(e) => setPromo(e.target.value)}
+                onChange={(e) => { setPromo(e.target.value); setPromoError(""); }}
                 placeholder="Promo code"
                 className="pr-12 text-sm w-full"
               />
@@ -283,7 +287,7 @@ const BookARide = () => {
                   type="button"
                   variant="outline"
                   className="absolute right-19 top-1/2 -translate-y-1/2 z-20 rounded-full px-2"
-                  onClick={() => { setPromo(""); setAppliedPromo(""); }}
+                  onClick={() => { setPromo(""); setAppliedPromo(""); setPromoError(""); }}
                   tabIndex={-1}
                   aria-label="Clear promo code"
                   style={{ lineHeight: 0 }}
@@ -295,13 +299,24 @@ const BookARide = () => {
                 type="button"
                 variant="primary"
                 className="px-3 py-1 text-xs sm:text-sm absolute right-0 top-1/2 -translate-y-1/2 z-10"
-                onClick={() => setAppliedPromo(promo)}
+                onClick={() => {
+                  if (!isPromoValid(promo)) {
+                    setPromoError("Promo not valid");
+                  } else {
+                    setAppliedPromo(promo);
+                    setPromoError("");
+                  }
+                }}
                 disabled={!promo}
                 style={{ minWidth: 60 }}
               >
-                {promo === appliedPromo ? "Applied" : "Apply"}
+                {promo && promo === appliedPromo ? "Applied" : "Apply"}
               </Button>
             </div>
+            {/* Error message for invalid promo */}
+            {promoError && (
+              <div className="text-xs text-red-600 font-semibold mt-1 mb-2">{promoError}</div>
+            )}
             {/* Available Promo Codes */}
             <div className="flex gap-2 mb-2">
               {availablePromos.map((p) => (
@@ -310,7 +325,7 @@ const BookARide = () => {
                   type="button"
                   variant="outline"
                   className="px-2 py-1 text-xs border-primary text-primary hover:bg-primary/10"
-                  onClick={() => { setPromo(p.code); setAppliedPromo(p.code); }}
+                  onClick={() => { setPromo(p.code); setAppliedPromo(p.code); setPromoError(""); }}
                 >
                   {p.code}
                 </Button>
