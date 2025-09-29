@@ -82,7 +82,7 @@
   --accent-foreground: #fafafa;
   --destructive: #7f1d1d;
   --destructive-foreground: #f8fafc;
-  --border: #27272a;
+  --border: rgb(0, 182, 166, 0.08);
   --input: #27272a;
   --ring: #00B6A6;
   --chart-1: #12d3c3;
