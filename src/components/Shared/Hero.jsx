@@ -5,6 +5,7 @@ import { Star, ArrowRight, MapPin, Navigation, Bike } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import heroImage from "@/Assets/hero-img.svg";
+import heroImageDark from "@/Assets/hero-img-dark.svg";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -41,7 +42,8 @@ const Hero = () => {
                         #1 Rated Ride-Sharing Platform
                     </div>
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight text-foreground">
-                        Your Ride, Your Way with <span className="text-primary">RideX</span>
+                        Your Ride, Your Way with{" "}
+                        <span className="text-primary">RideX</span>
                     </h1>
                     <p className="text-xl text-muted-foreground leading-relaxed mb-6">
                         Experience seamless transportation with trusted drivers, affordable
@@ -107,12 +109,22 @@ const Hero = () => {
 
                 {/* Right Content */}
                 <div className="relative flex justify-center items-center">
+                    {/* Light mode image */}
                     <Image
                         src={heroImage}
                         alt="RideX Hero"
                         width={600}
                         height={400}
-                        className="w-full max-w-xl h-auto rounded-2xl"
+                        className="w-full max-w-xl h-auto rounded-2xl block dark:hidden"
+                        priority
+                    />
+                    {/* Dark mode image */}
+                    <Image
+                        src={heroImageDark}
+                        alt="RideX Hero Dark"
+                        width={600}
+                        height={400}
+                        className="w-full max-w-xl h-auto rounded-2xl hidden dark:block"
                         priority
                     />
                     {/* Floating Stats */}
