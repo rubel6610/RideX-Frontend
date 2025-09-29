@@ -1,57 +1,16 @@
 "use client";
 
 import * as React from "react";
-import {
-  Settings,
-  Users,
-  User,
-  Bike,
-  DollarSign,
-  TrendingUp,
-} from "lucide-react";
+import { Settings, Users, User, Bike, DollarSign } from "lucide-react";
 import CountUp from "react-countup";
-import {
-  BarChart,
-  Bar,
-  CartesianGrid,
-  XAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-
-/* ---------- Chart Data ---------- */
-const chartData = [
-  { month: "January", desktop: 120, mobile: 60 },
-  { month: "February", desktop: 250, mobile: 140 },
-  { month: "March", desktop: 320, mobile: 180 },
-  { month: "April", desktop: 210, mobile: 90 },
-  { month: "May", desktop: 400, mobile: 230 },
-  { month: "June", desktop: 380, mobile: 200 },
-  { month: "July", desktop: 450, mobile: 260 },
-  { month: "August", desktop: 300, mobile: 150 },
-  { month: "September", desktop: 500, mobile: 280 },
-  { month: "October", desktop: 470, mobile: 250 },
-  { month: "November", desktop: 420, mobile: 230 },
-  { month: "December", desktop: 600, mobile: 320 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "#4F46E5",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "#10B981",
-  },
-};
+import Charts from "./Charts/page";
+import DataTableDemo from "./DataTableDemo/page";
 
 /* ---------- utils ---------- */
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-/* ---------- Card Components ---------- */
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
@@ -84,7 +43,7 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- AdminDash Component ---------- */
+/* ---------- AdminDash ---------- */
 export default function AdminDash() {
   const stats = [
     { title: "Total Passengers", icon: User, value: 420 },
@@ -94,16 +53,16 @@ export default function AdminDash() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {/* Heading */}
       <div className="flex items-center space-x-3">
         <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
-          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />{" "}
+          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />
           SEE ANALYSIS
         </h1>
       </div>
 
-      {/* Top Stats Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((item, idx) => (
           <Card key={idx} className="flex flex-col justify-center p-2">
@@ -113,70 +72,18 @@ export default function AdminDash() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-extrabold ml-8 pb-2">
-                <CountUp
-                  end={item.value}
-                  duration={2.2}
-                  delay={0.4}
-                  separator=","
-                />
+                <CountUp end={item.value} duration={2.2} delay={0.4} separator="," />
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Bar Chart */}
-      <div className="bg-background rounded-xl shadow p-4">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold">Website Earnings</h2>
-          <span className="text-muted-foreground text-sm">
-            January - June 2024
-          </span>
-        </div>
+      {/* Chart Section */}
+      <Charts />
 
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid
-              vertical={false}
-              stroke="var(--muted)"
-              strokeDasharray="4 4"
-            />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <Tooltip
-              cursor={{ fill: "rgba(0,0,0,0.05)" }}
-              contentStyle={{
-                backgroundColor: "var(--background)",
-                border: "var(--background)",
-                borderRadius: "8px",
-                padding: "10px",
-                fontSize: "12px",
-              }}
-            />
-            <Bar
-              dataKey="desktop"
-              fill={chartConfig.desktop.color}
-              radius={4}
-            />
-            <Bar dataKey="mobile" fill={chartConfig.mobile.color} radius={4} />
-          </BarChart>
-        </ResponsiveContainer>
-
-        {/* Footer Section */}
-        <div className="flex flex-col items-start gap-2 text-sm mt-4">
-          <div className="flex gap-2 leading-none font-medium">
-            Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="text-muted-foreground leading-none">
-            Showing total visitors for the last 6 months
-          </div>
-        </div>
-      </div>
+      {/* Table Section */}
+      <DataTableDemo />
     </div>
   );
 }
