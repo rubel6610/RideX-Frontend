@@ -402,7 +402,7 @@ const BookARide = () => {
                         <span>{opt.eta}</span>
                       </div>
                       <Button variant="primary" className="w-full sm:w-auto py-2 text-base font-semibold rounded-lg mt-2 sm:mt-0">
-                        Request Now
+                        Find Trip
                       </Button>
                     </div>
                   </div>
