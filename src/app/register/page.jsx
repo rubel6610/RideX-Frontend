@@ -37,7 +37,7 @@ function RegisterPage() {
       if (data.image && data.image.length > 0) {
         const imgForm = new FormData();
         imgForm.append("image", data.image[0]);
-        const res = await fetch(process.env.NEXT_PUBLIC_IMGBB_KEY, {
+        const res = await fetch(process.env.IMGBB_KEY, {
           method: "POST",
           body: imgForm,
         });
