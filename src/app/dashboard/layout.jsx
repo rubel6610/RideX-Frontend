@@ -25,6 +25,7 @@ import { useAuth } from "../hooks/AuthProvider";
 import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
+import RiderStatus from "@/components/Shared/Riders/RiderStatus";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
@@ -53,6 +54,8 @@ export default function DashboardLayout({ children }) {
   }, [user?.email]);
 
   const userRole = "user";
+
+  const riderId = "123";
 
   return (
     <ProtectedRoute>
@@ -188,6 +191,10 @@ export default function DashboardLayout({ children }) {
                 )}
               </button>
               <Bell className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+
+              {/* go online - offline */}
+              <RiderStatus riderId={riderId}/>
+
               <Link href="/dashboard/my-profile">
                 <Button
                   variant="outline"

@@ -401,8 +401,20 @@ const BookARide = () => {
                         <span className="mx-1">•</span>
                         <span>{opt.eta}</span>
                       </div>
-                      <Button variant="primary" className="w-full sm:w-auto py-2 text-base font-semibold rounded-lg mt-2 sm:mt-0">
-                        Find Trip
+                      <Button variant="primary" className="w-full sm:w-auto py-2 text-base font-semibold rounded-lg mt-2 sm:mt-0"
+                        onClick={() => {
+                          const params = new URLSearchParams({
+                            pickup,
+                            drop,
+                            type: selectedType,
+                            promo: appliedPromo,
+                            fare: rideData?.cost?.toString() || '',
+                            distance: rideData?.distanceKm?.toString() || '',
+                          }).toString();
+                          window.location.href = `/dashboard/user/book-a-ride/searching?${params}`;
+                        }}
+                      >
+                        Request Now
                       </Button>
                     </div>
                   </div>

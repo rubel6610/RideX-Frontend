@@ -6,37 +6,44 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/AuthProvider"; 
 import GuestOnlyRoute from "../hooks/GuestOnlyRoute";
 
 function LoginPage() {
-  const router = useRouter();
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const { login } = useAuth(); 
+const router = useRouter();
+const { register, handleSubmit, formState: { errors } } = useForm();
+const [loading, setLoading] = useState(false);
+const [errorMsg, setErrorMsg] = useState("");
+const { login } = useAuth(); 
 
-  // Login submit function
-  const onSubmit = async (data) => {
-    setLoading(true);
-    setErrorMsg("");
-    try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/signIn`, 
-        data, 
-        { withCredentials: true }
-      );
 
-      login(res.data.token);
-      router.push("/");
-    } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
+const onSubmit = async (data) => {
+  setLoading(true);
+  setErrorMsg("");
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/signIn`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data), 
+    });
+
+    if (!res.ok) {
+      throw new Error("Login failed"); 
     }
-  };
+
+    const responseData = await res.json(); 
+    login(responseData.token);
+    router.push("/"); 
+  } catch (err) {
+    setErrorMsg(err.message || "Login failed"); 
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <GuestOnlyRoute>
