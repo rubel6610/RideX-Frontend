@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }) {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
         );
-        if (!res.ok) throw new Error("Failed to fetch user data");
+        // if (!res.ok) throw new Error("Failed to fetch user data");
         const data = await res.json();
         setUserData(data);
       } catch (err) {
@@ -54,8 +54,6 @@ export default function DashboardLayout({ children }) {
   }, [user?.email]);
 
   const userRole = "user";
-
-  const riderId = "123";
 
   return (
     <ProtectedRoute>
@@ -193,7 +191,7 @@ export default function DashboardLayout({ children }) {
               <Bell className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
 
               {/* go online - offline */}
-              <RiderStatus riderId={riderId}/>
+              <RiderStatus userId={user.id}/>
 
               <Link href="/dashboard/my-profile">
                 <Button
