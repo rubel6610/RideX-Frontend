@@ -54,6 +54,17 @@ const AdminDashboard = () => {
       >
         <Gift className="w-5 h-5" /> Promotions & Discounts
       </Link>
+      {/* Promotions & Discounts */}
+      <Link
+        href="/dashboard/admin/support-inbox"
+        className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
+          pathname === "/dashboard/admin/support-inbox"
+            ? "bg-primary/90 text-background"
+            : "text-foreground hover:bg-primary/10 hover:text-primary"
+        }`}
+      >
+        <Gift className="w-5 h-5" /> support-inbox
+      </Link>
     </div>
   );
 };

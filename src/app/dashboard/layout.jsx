@@ -28,14 +28,14 @@ import UserDashboard from "./Components/userDashboard/UserDashboard";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // for mobile-md
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // for lg+
+  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); 
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
 
-  const userRole = user?.role || "user";
+  const userRole =user?.role || "user";
 
   return (
     <ProtectedRoute>

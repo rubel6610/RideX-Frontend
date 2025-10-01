@@ -1,106 +1,119 @@
-"use client";
-import { useEffect, useState } from "react";
-
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+"use client"
+import React, { useEffect, useState } from "react";
 import socket from "@/app/hooks/socket/socket";
 import { useAuth } from "@/app/hooks/AuthProvider";
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { SendHorizonal } from "lucide-react";
 
-export default function LiveChat() {
-  const [message, setMessage] = useState("");
-  const [chat, setChat] = useState([]);
-    const {user}=useAuth();
-    
-  // Fetch previous messages
+export default function UserChat() {
+  const {user}=useAuth();
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const adminRole = "admin";
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/chat/messages");
-        const data = await res.json();
-        setChat(data);
-      } catch (err) {
-        console.error("Failed to fetch messages:", err);
-      }
-    };
-    fetchMessages();
+    socket.emit("joinRoom", user.id);
 
-    // Socket.IO listener
-    socket.on("sendMessage", (data) => {
-      setChat((prev) => [...prev, data]);
+    socket.on("receiveMessage", (msg) => {
+      if (msg.senderId === user.id || msg.receiverRole === adminRole) {
+        setMessages((prev) => [...prev, msg]);
+      }
     });
 
-    return () => {
-      socket.off("sendMessage");
-    };
-  }, []);
+    // return () => socket.off("receiveMessage");
+  }, [user?.id]);
 
-  // Send message
-  const sendMessage = async () => {
-    if (message.trim() === "") return;
+useEffect(() => {
+  if (!user?.id) return;
 
-    
-    const msgData = { message, userId:user.id };
+  fetch(`http://localhost:5000/api/messages?userId=${user.id}`)
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to fetch messages");
+      return res.json();
+    })
+    .then((data) => setMessages(data))
+    .catch((err) => console.error(err));
+}, [user?.id]);
 
-    try {
-      // Send via API (MongoDB save + socket broadcast)
-      await fetch("http://localhost:5000/api/chat/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(msgData),
-      });
-      setMessage("");
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    }
-  };
+const sendMessage = async () => {
+  if (!text) return;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: text,
+        senderId: user.id,
+      }),
+    });
+
+    if (!res.ok) throw new Error("Failed to send message");
+
+    setText("");
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-xl font-bold">
-            💬 Live Chat
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col">
-          {/* Chat messages */}
-          <ScrollArea className="h-64 border rounded-md p-2 mb-3">
-            {chat.map((c, i) => (
-              <div
-                key={i}
-                className={`p-2 my-1 rounded-md ${
-                  c.senderId === user.id
-                    ? "bg-blue-500 text-white ml-auto w-fit"
-                    : "bg-gray-200 text-black mr-auto w-fit"
-                }`}
-              >
-                <p className="text-sm ">
-                  <b className="">{c.senderId === user.id ? "You" : c.userName}:</b>{" "}
-                  {c.message}
-                </p>
-              </div>
-            ))}
-          </ScrollArea>
+   <Card className="w-full max-w-md mx-auto mt-6 shadow-lg rounded-2xl border border-border">
+  <CardContent className="p-4">
+    <h3 className="text-xl font-semibold mb-3 text-center text-primary">
+      💬 Live Chat
+    </h3>
 
-          {/* Input + Send button */}
-          <div className="flex gap-2">
-            <Input
-              placeholder="Type your message..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            />
-            <Button onClick={sendMessage}>Send</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    {/* Messages Area */}
+    <ScrollArea className="h-64 mb-3 pr-2">
+      {messages.length === 0 && (
+        <p className="text-gray-400 text-center mt-20">No messages yet...</p>
+      )}
+
+      {messages.map((msg, i) => (
+        <div
+          key={i}
+          className={`max-w-[60%] p-2 my-1 rounded-lg text-sm shadow-sm ${
+            msg.senderId === user.id
+              ? "bg-blue-500 text-white ml-auto text-right rounded-br-none"
+              : "bg-gray-100 text-gray-800 mr-auto text-left rounded-bl-none"
+          }`}
+        >
+          {msg.message}
+        </div>
+      ))}
+    </ScrollArea>
+
+    {/* Input + Button */}
+    <form
+      className="flex gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        sendMessage();
+      }}
+    >
+      <Input
+        placeholder="Type your message..."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        }}
+        className="flex-1"
+      />
+      <Button type="submit" className="px-3">
+        <SendHorizonal size={18} />
+      </Button>
+    </form>
+  </CardContent>
+</Card>
   );
 }
