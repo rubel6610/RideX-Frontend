@@ -106,27 +106,48 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) =
     zoom
   });
 
+  // Calculate distance between two coordinates
+  const calculateDistance = (coord1, coord2) => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (coord2[0] - coord1[0]) * Math.PI / 180;
+    const dLng = (coord2[1] - coord1[1]) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(coord1[0] * Math.PI / 180) * Math.cos(coord2[0] * Math.PI / 180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   useEffect(() => {
-    // Update map center based on parsed coordinates from pickup/drop strings
+    // Update map center and zoom based on coordinates
     if (parsedPickupCoords && parsedDropCoords) {
       const lat = (parsedPickupCoords[0] + parsedDropCoords[0]) / 2;
       const lng = (parsedPickupCoords[1] + parsedDropCoords[1]) / 2;
       const newCenter = [lat, lng];
-      const newZoom = 13;
+      
+      // Calculate distance and adjust zoom accordingly
+      const distance = calculateDistance(parsedPickupCoords, parsedDropCoords);
+      let newZoom;
+      if (distance > 50) newZoom = 8;      // Very far - zoom out more
+      else if (distance > 20) newZoom = 10; // Far - zoom out
+      else if (distance > 10) newZoom = 12; // Medium distance
+      else if (distance > 5) newZoom = 14;  // Close
+      else newZoom = 16;                    // Very close
+      
       if (center[0] !== newCenter[0] || center[1] !== newCenter[1] || zoom !== newZoom) {
         setCenter(newCenter);
         setZoom(newZoom);
       }
     } else if (parsedPickupCoords) {
       const newCenter = [parsedPickupCoords[0], parsedPickupCoords[1]];
-      const newZoom = 15;
+      const newZoom = 16;
       if (center[0] !== newCenter[0] || center[1] !== newCenter[1] || zoom !== newZoom) {
         setCenter(newCenter);
         setZoom(newZoom);
       }
     } else if (parsedDropCoords) {
       const newCenter = [parsedDropCoords[0], parsedDropCoords[1]];
-      const newZoom = 15;
+      const newZoom = 16;
       if (center[0] !== newCenter[0] || center[1] !== newCenter[1] || zoom !== newZoom) {
         setCenter(newCenter);
         setZoom(newZoom);
@@ -172,12 +193,12 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) =
   }
 
   return (
-    <div className="w-full h-screen relative">
+    <div className="w-full h-full relative">
       <MapContainer
         center={center}
         zoom={zoom}
-        style={{ width: "100%", height: "100vh", zIndex: 1 }}
-        className="z-10"
+        style={{ width: "100%", height: "100%", zIndex: 1 }}
+        className="z-10 rounded-xl"
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -225,15 +246,32 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) =
         {parsedPickupCoords && parsedDropCoords && 
          !isNaN(parsedPickupCoords[0]) && !isNaN(parsedPickupCoords[1]) &&
          !isNaN(parsedDropCoords[0]) && !isNaN(parsedDropCoords[1]) && (
-          <Polyline
-            positions={[
-              [parsedPickupCoords[0], parsedPickupCoords[1]],
-              [parsedDropCoords[0], parsedDropCoords[1]]
-            ]}
-            color="#3b82f6"
-            weight={4}
-            opacity={0.7}
-          />
+          <>
+            {/* Main route line */}
+            <Polyline
+              positions={[
+                [parsedPickupCoords[0], parsedPickupCoords[1]],
+                [parsedDropCoords[0], parsedDropCoords[1]]
+              ]}
+              color="#3b82f6"
+              weight={6}
+              opacity={0.8}
+              lineCap="round"
+              lineJoin="round"
+            />
+            {/* Glow effect */}
+            <Polyline
+              positions={[
+                [parsedPickupCoords[0], parsedPickupCoords[1]],
+                [parsedDropCoords[0], parsedDropCoords[1]]
+              ]}
+              color="#60a5fa"
+              weight={12}
+              opacity={0.3}
+              lineCap="round"
+              lineJoin="round"
+            />
+          </>
         )}
       </MapContainer>
 

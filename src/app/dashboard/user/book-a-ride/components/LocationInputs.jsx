@@ -9,7 +9,8 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
   const [dropSuggestions, setDropSuggestions] = useState([]);
   const [showPickupSuggestions, setShowPickupSuggestions] = useState(false);
   const [showDropSuggestions, setShowDropSuggestions] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
+  const [isPickupSearching, setIsPickupSearching] = useState(false);
+  const [isDropSearching, setIsDropSearching] = useState(false);
   const [pickupDisplayName, setPickupDisplayName] = useState("");
   const [dropDisplayName, setDropDisplayName] = useState("");
 
@@ -45,14 +46,22 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
       if (type === 'pickup') {
         setPickupSuggestions([]);
         setShowPickupSuggestions(false);
+        setIsPickupSearching(false);
       } else {
         setDropSuggestions([]);
         setShowDropSuggestions(false);
+        setIsDropSearching(false);
       }
       return;
     }
 
-    setIsSearching(true);
+    // Set appropriate loading state
+    if (type === 'pickup') {
+      setIsPickupSearching(true);
+    } else {
+      setIsDropSearching(true);
+    }
+
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=bd`
@@ -77,7 +86,12 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
       console.error('Search error:', error);
       toast.error('Location search failed');
     } finally {
-      setIsSearching(false);
+      // Clear appropriate loading state
+      if (type === 'pickup') {
+        setIsPickupSearching(false);
+      } else {
+        setIsDropSearching(false);
+      }
     }
   };
 
@@ -142,13 +156,13 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
             className="pl-10 pr-3 py-3 bg-accent/10 border border-primary/20 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
             placeholder="Pickup location"
           />
-          {isSearching && (
+          {isPickupSearching && (
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 animate-spin" />
           )}
           
           {/* Pickup Suggestions Dropdown */}
           {showPickupSuggestions && pickupSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border/20 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border/20 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto custom-scrollbar">
               {pickupSuggestions.map((suggestion, index) => (
                 <div
                   key={index}
@@ -190,13 +204,13 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
             className="pl-10 pr-3 py-3 bg-accent/10 border border-primary/20 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
             placeholder="Where to go?"
           />
-          {isSearching && (
+          {isDropSearching && (
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 animate-spin" />
           )}
           
           {/* Drop Suggestions Dropdown */}
           {showDropSuggestions && dropSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border/20 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border/20 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto custom-scrollbar">
               {dropSuggestions.map((suggestion, index) => (
                 <div
                   key={index}

@@ -203,10 +203,19 @@ const BookARide = () => {
 
   return (
     <div className="min-h-screen bg-accent/20 p-4">
-      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <style jsx>{`
+        .hidden-scrollbar {
+          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none; /* Internet Explorer 10+ */
+        }
+        .hidden-scrollbar::-webkit-scrollbar {
+          display: none; /* WebKit */
+        }
+      `}</style>
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 h-screen">
         
         {/* Left Column - Main Booking Form */}
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto pr-2 hidden-scrollbar">
 
           {/* Mode Selector */}
           <ModeSelector mode={mode} setMode={setMode} />
@@ -256,7 +265,7 @@ const BookARide = () => {
           </div>
 
         {/* Right Column - Interactive Map */}
-        <div className="h-screen">
+        <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
           <RideMap 
             pickup={pickup}
             drop={drop}
@@ -265,7 +274,7 @@ const BookARide = () => {
             onLocationSelect={(location, type) => {
               if (type === 'pickup') {
                 setPickup(location);
-                  } else {
+              } else {
                 setDrop(location);
               }
             }}
