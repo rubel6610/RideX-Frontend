@@ -4,6 +4,9 @@ import React, { useState } from "react";
 import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import axios from "axios";
+import { useAuth } from "@/app/hooks/AuthProvider";
+import { useQuery } from "@tanstack/react-query";
 
 const PassengerDummyData = [
   {
@@ -42,7 +45,27 @@ const PassengerDummyData = [
 
 export default function AvailableRidesPage() {
 
+  const { user } = useAuth();
   const [rides, setRides] = useState(PassengerDummyData || []);
+  console.log(user);
+
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+
+
+  // Fetch profile with React Query
+  // const { data: ridersData, isLoading, isError, error } = useQuery({
+  //   queryKey: ['riders-data', user?.email],
+  //   queryFn: async () => {
+  //     const res = await axios(`${baseUrl}/api/riders`);
+  //     const data = await res.json();
+  //     return Array.isArray(data)
+  //       ? data.find((u) => u.email === user?.email)
+  //       : data.email === user?.email
+  //         ? data
+  //         : null;
+  //   },
+  //   enabled: !!user?.email,
+  // });
 
   // Placeholder functions for buttons
   const handleConfirm = (rideId) => {
@@ -54,6 +77,9 @@ export default function AvailableRidesPage() {
     console.log(`Cancel clicked for ride ${rideId}`);
     // এখানে তুমি API call বা state update করতে পারবে
   };
+
+  // if (isError) return <div className="text-red-500">Error: {error.message}</div>;
+  // if (!ridersData) return <div>No profile data found.</div>;
 
   return (
     <div className="space-y-4">

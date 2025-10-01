@@ -1,13 +1,15 @@
 "use client"
 
 import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, ArrowUp, ArrowDown, Play, StopCircle, XCircle, DollarSign, Repeat, Clock, Info, CheckCircle } from "lucide-react";
+import { useAuth } from "@/app/hooks/AuthProvider";
+import { useQuery } from "@tanstack/react-query";
 
 export default function OngoingRidePage() {
+    const { user } = useAuth();
 
-    // Dummy ride data (later API দিয়ে আনবেন)
+    // Dummy ride data 
     const [ride, setRide] = useState({
         id: "RIDE-2025",
         pickup: "Uttara, Sector 10",
@@ -19,8 +21,18 @@ export default function OngoingRidePage() {
         status: "assigned",
     });
 
-    // Passenger Modal state
-    const [showPassenger, setShowPassenger] = useState(false);
+    const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+
+    // Fetch profile with React Query
+    const { data: UpcomingData, isLoading, isError, error } = useQuery({
+        queryKey: ['upcoming-data', user?.email],
+        queryFn: async () => {
+            const res = await fetch(`${baseUrl}/api/users`);
+            const data = await res.json();
+            return data
+        }
+    });
+    console.log(UpcomingData);
 
     // Control button handlers
     const handleStart = () => setRide({ ...ride, status: "on_the_way" });
