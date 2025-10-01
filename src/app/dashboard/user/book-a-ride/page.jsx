@@ -12,6 +12,7 @@ import PromoCodeSection from "./components/PromoCodeSection";
 import VehicleTypeSelector from "./components/VehicleTypeSelector";
 import ConsolidatedRideCard from "./components/ConsolidatedRideCard";
 import RideMap from "./components/RideMap";
+import { useAuth } from "@/app/hooks/AuthProvider";
 
 
 const BookARide = () => {
@@ -29,6 +30,7 @@ const BookARide = () => {
   const [promoError, setPromoError] = useState("");
   const [rideData, setRideData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const {user}=useAuth();
 
   const router = useRouter();
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
@@ -202,23 +204,51 @@ const BookARide = () => {
     });
 
     try {
-      // Prepare coordinates
-      const pickupCoords = pickup.includes(',') ? 
-        { type: 'Point', coordinates: pickup.split(',').map(Number).reverse() } : 
-        { type: 'Point', coordinates: [90.4125, 23.8103] }; // Default Dhaka coordinates
+      // Prepare coordinates from map data
+      let pickupCoords, dropCoords;
       
-      const dropCoords = drop.includes(',') ? 
-        { type: 'Point', coordinates: drop.split(',').map(Number).reverse() } : 
-        { type: 'Point', coordinates: [90.4125, 23.8103] }; // Default Dhaka coordinates
+      // Parse pickup coordinates
+      if (pickup.includes(',')) {
+        const [lat, lng] = pickup.split(',').map(Number);
+        pickupCoords = { 
+          type: 'Point', 
+          coordinates: [lng, lat] // GeoJSON format: [longitude, latitude]
+        };
+      } else {
+        // Fallback to current location if no coordinates
+        pickupCoords = currentLocation ? {
+          type: 'Point',
+          coordinates: [currentLocation.lng, currentLocation.lat]
+        } : { 
+          type: 'Point', 
+          coordinates: [90.4125, 23.8103] // Default Dhaka
+        };
+      }
+      
+      // Parse dropoff coordinates
+      if (drop.includes(',')) {
+        const [lat, lng] = drop.split(',').map(Number);
+        dropCoords = { 
+          type: 'Point', 
+          coordinates: [lng, lat] // GeoJSON format: [longitude, latitude]
+        };
+      } else {
+        dropCoords = { 
+          type: 'Point', 
+          coordinates: [90.4125, 23.8103] // Default Dhaka
+        };
+      }
 
       const requestData = {
-        userId: "user123", // Replace with actual user ID from auth context
+        userId: user?.id || "demo-user-id", // Use actual user ID from auth context
         pickup: pickupCoords,
         drop: dropCoords,
         vehicleType: selectedType,
         fare: rideData.cost,
         promoCode: appliedPromo || null,
         distance: rideData.distanceKm || null,
+        pickupName: pickupName || pickup,
+        dropName: dropName || drop,
       };
 
       console.log("Sending ride request:", requestData);
@@ -232,6 +262,7 @@ const BookARide = () => {
         body: JSON.stringify(requestData),
       });
 
+
       // Check if response is JSON
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
@@ -239,7 +270,7 @@ const BookARide = () => {
       }
 
       const result = await response.json();
-
+      console.log("Ride request result:", result);
       if (response.ok) {
         // Dismiss loading toast and show success
         toast.dismiss(loadingToastId);

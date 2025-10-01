@@ -107,14 +107,14 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, currentLocation, isCu
   const parsedDropCoords = parseCoordinates(drop);
 
   // Debug logging
-  console.log('Map Debug:', {
-    pickup,
-    drop,
-    parsedPickupCoords,
-    parsedDropCoords,
-    center,
-    zoom
-  });
+  // console.log('Map Debug:', {
+  //   pickup,
+  //   drop,
+  //   parsedPickupCoords,
+  //   parsedDropCoords,
+  //   center,
+  //   zoom
+  // });
 
   // Calculate distance between two coordinates
   const calculateDistance = (coord1, coord2) => {

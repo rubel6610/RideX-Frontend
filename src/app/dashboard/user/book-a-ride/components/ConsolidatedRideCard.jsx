@@ -103,7 +103,7 @@ const ConsolidatedRideCard = ({
             Requesting...
           </>
         ) : (
-          "Request Ride"
+          "Request Now"
         )}
       </Button>
     </div>
