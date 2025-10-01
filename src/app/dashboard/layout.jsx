@@ -9,7 +9,6 @@ import {
   MapPin,
   Search,
   Bell,
-  LucideLogOut,
   PanelRightOpen,
   PanelRightClose,
   Moon,
@@ -26,17 +25,17 @@ import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
 import RiderStatus from "@/components/Shared/Riders/RiderStatus";
+import SignOutButton from "@/components/Shared/SignOutButton";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false); 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
-
-  const userRole =user?.role || "user";
+  const userRole = user?.role;
 
   return (
     <ProtectedRoute>
@@ -102,15 +101,8 @@ export default function DashboardLayout({ children }) {
             </nav>
           </div>
 
-          <Button
-            onClick={logout}
-            variant="destructiveOutline"
-            size="lg"
-            className="w-full m-3 text-md ml-1 flex items-center gap-2 justify-center"
-          >
-            <LucideLogOut className="w-5 h-5" />
-            {!sidebarCollapsed && "Sign Out"}
-          </Button>
+          {/* Logout Button */}
+          <SignOutButton />
         </aside>
 
         {/* Main Content */}
@@ -174,7 +166,9 @@ export default function DashboardLayout({ children }) {
               <Bell className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
 
               {/* go online - offline */}
-              <RiderStatus userId={user.id}/>
+              {
+                userRole === 'rider' && <RiderStatus />
+              }
 
               <Link href="/dashboard/my-profile">
                 <Button

@@ -37,13 +37,13 @@ export default function RootLayout({ children }) {
     <html lang="en" data-theme="light">
       <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
         <Providers>
-        <ThemeProvider>
-        <AuthProvider>
-          <LayoutContent>{children}</LayoutContent>
-        </AuthProvider>
-        </ThemeProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <LayoutContent>{children}</LayoutContent>
+            </AuthProvider>
+          </ThemeProvider>
         </Providers>
-        <Toaster/>
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );
