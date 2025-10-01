@@ -178,6 +178,10 @@ const BookARide = () => {
   const [appliedPromo, setAppliedPromo] = useState("");
   const [mode, setMode] = useState("auto");
   const [promoError, setPromoError] = useState("");
+  
+  // API call related states
+  const [isLoading, setIsLoading] = useState(false);
+  const [rideRequestData, setRideRequestData] = useState(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -205,6 +209,74 @@ const BookARide = () => {
 
   // Helper to check promo validity
   const isPromoValid = (code) => availablePromos.some((p) => p.code === code);
+
+  // API call function for ride request
+  const handleRideRequest = async () => {
+    if (!pickup || !drop || !selectedType || !rideData?.cost) {
+      console.log("Please fill all required fields");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Prepare pickup and drop coordinates (assuming they are in format "lat,lng" or address)
+      // You might need to convert address to coordinates using geocoding service
+      const pickupCoords = pickup.includes(',') ? 
+        { type: 'Point', coordinates: pickup.split(',').map(Number).reverse() } : 
+        { type: 'Point', coordinates: [90.4125, 23.8103] }; // Default Dhaka coordinates
+      
+      const dropCoords = drop.includes(',') ? 
+        { type: 'Point', coordinates: drop.split(',').map(Number).reverse() } : 
+        { type: 'Point', coordinates: [90.4125, 23.8103] }; // Default Dhaka coordinates
+
+      const requestData = {
+        userId: "user123", // Replace with actual user ID from auth context
+        pickup: pickupCoords,
+        drop: dropCoords,
+        vehicleType: selectedType,
+        fare: rideData.cost
+      };
+
+      const response = await fetch( `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log("Ride request sent successfully!");
+        setRideRequestData(result);
+        // Optionally redirect to searching page with ride data
+        setTimeout(() => {
+          const params = new URLSearchParams({
+            pickup,
+            drop,
+            type: selectedType,
+            promo: appliedPromo,
+            fare: rideData?.cost?.toString() || '',
+            distance: rideData?.distanceKm?.toString() || '',
+            rideId: result.rideId,
+            riderId: result.rider._id,
+            riderName: result.rider.fullName,
+            riderDistance: result.rider.distance
+          }).toString();
+          window.location.href = `/dashboard/user/book-a-ride/searching?${params}`;
+        }, 2000);
+      } else {
+        console.log(result.message);
+      }
+    } catch (error) {
+      console.error('Ride request error:', error);
+      // console.log("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-accent/20 lg:p-10 rounded-2xl">
@@ -401,20 +473,13 @@ const BookARide = () => {
                         <span className="mx-1">•</span>
                         <span>{opt.eta}</span>
                       </div>
-                      <Button variant="primary" className="w-full sm:w-auto py-2 text-base font-semibold rounded-lg mt-2 sm:mt-0"
-                        onClick={() => {
-                          const params = new URLSearchParams({
-                            pickup,
-                            drop,
-                            type: selectedType,
-                            promo: appliedPromo,
-                            fare: rideData?.cost?.toString() || '',
-                            distance: rideData?.distanceKm?.toString() || '',
-                          }).toString();
-                          window.location.href = `/dashboard/user/book-a-ride/searching?${params}`;
-                        }}
+                      <Button 
+                        variant="primary" 
+                        className="w-full sm:w-auto py-2 text-base font-semibold rounded-lg mt-2 sm:mt-0"
+                        onClick={handleRideRequest}
+                        disabled={isLoading}
                       >
-                        Request Now
+                        {isLoading ? "Requesting..." : "Request Now"}
                       </Button>
                     </div>
                   </div>
@@ -481,8 +546,13 @@ const BookARide = () => {
                         <span className="mx-1 text-primary">•</span>
                         <span className="text-xs text-muted-foreground">{opt.vehicle}</span>
                       </div>
-                      <Button variant="primary" className="w-full py-2 text-base font-semibold rounded-lg mt-2">
-                        Book Now
+                      <Button 
+                        variant="primary" 
+                        className="w-full py-2 text-base font-semibold rounded-lg mt-2"
+                        onClick={handleRideRequest}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Booking..." : "Book Now"}
                       </Button>
                     </div>
                   </div>
@@ -523,8 +593,13 @@ const BookARide = () => {
                 </div>
               </div>
               {/* Button */}
-              <Button variant="primary" className="mt-2 px-3 py-1 text-xs sm:text-sm w-full max-w-[120px] mx-auto">
-                Book Now
+              <Button 
+                variant="primary" 
+                className="mt-2 px-3 py-1 text-xs sm:text-sm w-full max-w-[120px] mx-auto"
+                onClick={handleRideRequest}
+                disabled={isLoading}
+              >
+                {isLoading ? "Booking..." : "Book Now"}
               </Button>
             </div>
           ))}
