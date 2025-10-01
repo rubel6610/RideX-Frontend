@@ -29,31 +29,14 @@ import RiderStatus from "@/components/Shared/Riders/RiderStatus";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // for mobile-md
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // for lg+
+  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); 
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [userData, setUserData] = useState(null);
 
-  useEffect(() => {
-    if (!user?.email) return;
-    const fetchUserData = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
-        );
-        // if (!res.ok) throw new Error("Failed to fetch user data");
-        const data = await res.json();
-        setUserData(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchUserData();
-  }, [user?.email]);
 
-  const userRole = "user";
+  const userRole =user?.role || "user";
 
   return (
     <ProtectedRoute>

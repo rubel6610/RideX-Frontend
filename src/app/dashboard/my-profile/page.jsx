@@ -178,7 +178,7 @@ const MyProfile = () => {
               <DetailRow
                 label="Account Verification"
                 value={
-                  profile.isVerified === 'approved' ? (
+                  profile.isVerified === "verified" ? (
                     <span className="px-2 py-0.5 rounded bg-success/10 text-success text-xs font-semibold border border-success/30">
                       Verified
                     </span>

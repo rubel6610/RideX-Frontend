@@ -41,6 +41,29 @@ const Hero = () => {
         }
     }, []);
 
+    // page load এ current location fetch
+    useEffect(() => {
+        if (!pickup && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    // reverse geocode to get address
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                            const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                            setPickup(locName);
+                        })
+                        .catch(() => {
+                            setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                        });
+                },
+                (err) => console.error("Error getting location:", err),
+                { enableHighAccuracy: true }
+            );
+        }
+    }, []);
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!pickup || !drop) {
@@ -64,6 +87,8 @@ const Hero = () => {
                         #1 Rated Ride-Sharing Platform
                     </div>
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight text-foreground">
+                        Your Ride, Your Way with{" "}
+                        <span className="text-primary">RideX</span>
                         Your Ride, Your Way with{" "}
                         <span className="text-primary">RideX</span>
                     </h1>
@@ -147,6 +172,14 @@ const Hero = () => {
                         className="w-full max-w-xl h-auto rounded-2xl hidden dark:block"
                         priority
                     />
+                    {/* <Image
+                        src={heroImageDark}
+                        alt="RideX Hero Dark"
+                        width={600}
+                        height={400}
+                        className="w-full max-w-xl h-auto rounded-2xl hidden dark:block"
+                        priority
+                    /> */}
                     {/* Floating Stats */}
                     <div className="absolute -bottom-8 left-0 bg-accent border border-primary rounded-xl p-4 shadow-lg flex items-center space-x-3">
                         <Star className="h-5 w-5 text-primary" />

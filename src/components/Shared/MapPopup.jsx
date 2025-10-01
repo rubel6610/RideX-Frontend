@@ -12,12 +12,16 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+import CustomTooltip from "@/components/ui/custom-tooltip";
 import {
   MapPin,
   Save,
   XCircle,
   Search as SearchIcon,
-  LocateFixed, Mouse, MouseOff
+  LocateFixed,
+  Mouse,
+  MouseOff,
+  X,
 } from "lucide-react";
 
 // Custom marker icon
@@ -68,6 +72,7 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   const [currentLocationName, setCurrentLocationName] = useState("");
   const [lastSavedLocation, setLastSavedLocation] = useState("");
   const [wheelZoomEnabled, setWheelZoomEnabled] = useState(false);
+  const [currentCoords, setCurrentCoords] = useState(null); // For current location check
 
   const resolveLocationName = async (lat, lng) => {
     try {
@@ -94,6 +99,7 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
         (pos) => {
           const { latitude, longitude } = pos.coords;
           setMarkerPos({ lat: latitude, lng: longitude });
+          setCurrentCoords({ lat: latitude, lng: longitude });
           resolveLocationName(latitude, longitude);
         },
         () => {
@@ -147,6 +153,7 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
         (pos) => {
           const { latitude, longitude } = pos.coords;
           setMarkerPos({ lat: latitude, lng: longitude });
+          setCurrentCoords({ lat: latitude, lng: longitude });
         },
         () => alert("Cannot get current location"),
         { enableHighAccuracy: true }
@@ -154,9 +161,15 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
     }
   };
 
+  // Check if marker is at current location
+  const isAtCurrentLocation =
+    currentCoords &&
+    Math.abs(markerPos.lat - currentCoords.lat) < 0.0001 &&
+    Math.abs(markerPos.lng - currentCoords.lng) < 0.0001;
+
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-white/40 backdrop-blur-xs">
-      <div className="bg-primary rounded-lg shadow-lg w-[85%] sm:w-[70%] md:w-[60%] lg:w-[50%] xl:w-[40%] h-[460px] sm:h-[500px] flex flex-col relative border border-border p-2">
+      <div className="bg-background rounded-lg shadow-lg w-[85%] sm:w-[70%] md:w-[60%] lg:w-[50%] xl:w-[40%] h-[460px] sm:h-[500px] flex flex-col relative border border-border p-2">
         <div className="flex-1 relative">
           <MapContainer
             center={[markerPos.lat, markerPos.lng]}
@@ -192,17 +205,24 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
           </MapContainer>
 
           {/* Search bar */}
-          <div className="absolute top-2.5 left-3 right-3 h-12 p-1 flex justify-between gap-2 z-[1000] bg-white rounded-full shadow-md w-[calc(100%-24px)] md:w-[60%] border border-border">
+          <div className="absolute top-2.5 left-3 right-3 h-12 pl-4 pr-1 py-1 flex justify-between gap-2 z-[1000] bg-white rounded-full shadow-md w-[calc(100%-24px)] md:w-[60%] items-center">
+            {searchInput && (
+              <X
+                className="w-4 h-4 cursor-pointer text-gray-400"
+                onClick={() => setSearchInput("")}
+              />
+            )}
             <input
               type="text"
               placeholder="Search location..."
-              className="w-[80%] text-black ml-3 focus:outline-none"
+              className="flex-1 text-black focus:outline-none"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
             />
             <button
               type="button"
-              className="bg-primary h-10 w-10 rounded-full flex flex-col items-center justify-center text-background"
+              className="bg-primary h-10 w-10 rounded-full flex items-center justify-center text-background"
               onClick={handleSearch}
             >
               <SearchIcon className="w-4 h-4" />
@@ -211,33 +231,56 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
 
           {/* Save + Cancel Buttons */}
           <div className="absolute top-17 md:top-3 right-3 flex flex-col md:flex-row gap-[1px] md:gap-1 z-[1000]">
-            <button type="button"
-              className="bg-primary h-10 w-10 sm:h-11 sm:w-11 rounded-full flex flex-col items-center justify-center text-background" onClick={handleSave}>
-              <Save className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-            </button>
+            <CustomTooltip
+              content="save"
+              position="top"
+              bgColor="bg-background"
+              textColor="text-primary"
+              width="46px"
+            >
+              <button
+                type="button"
+                className="bg-primary h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center text-background"
+                onClick={handleSave}
+              >
+                <Save className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </button>
+            </CustomTooltip>
 
-            <button type="button"
-              className="bg-primary h-10 w-10 sm:h-11 sm:w-11 rounded-full flex flex-col items-center justify-center text-background" onClick={handleCancel}>
-              <XCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-            </button>
+            <CustomTooltip
+              content="cancel"
+              position="top"
+              bgColor="bg-background"
+              textColor="text-primary"
+              width="56px"
+            >
+              <button
+                type="button"
+                className="bg-primary h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center text-background"
+                onClick={handleCancel}
+              >
+                <XCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </button>
+            </CustomTooltip>
           </div>
 
+          {/* Current location and Mouse wheel control button */}
           <div className="absolute bottom-3 left-3 flex flex-col z-[1000]">
             <button
-              className="w-8.5 h-8.5 bg-white hover:bg-gray-50 text-black flex justify-center items-center cursor-pointer border-2 border-[#c2bfba] border-b-0 rounded-t-[5px]"
+              className={`w-8.5 h-8.5 flex justify-center items-center cursor-pointer border-2 border-[#c2bfba] border-b-0 rounded-t-[5px] ${isAtCurrentLocation
+                ? "text-primary"
+                : "text-black"
+                } bg-white hover:bg-gray-50`}
               onClick={goToCurrentLocation}
             >
               <LocateFixed className="w-4 h-4" />
             </button>
+
             <button
               className="w-8.5 h-8.5 bg-white hover:bg-gray-50 text-black flex justify-center items-center cursor-pointer border-2 border-[#c2bfba] border-t-1 rounded-b-[5px]"
-              onClick={() => setWheelZoomEnabled(prev => !prev)}
+              onClick={() => setWheelZoomEnabled((prev) => !prev)}
             >
-              {wheelZoomEnabled ? (
-                <Mouse className="w-4 h-4" />
-              ) : (
-                <MouseOff className="w-4 h-4" />
-              )}
+              {wheelZoomEnabled ? <Mouse className="w-4 h-4" /> : <MouseOff className="w-4 h-4" />}
             </button>
           </div>
 
