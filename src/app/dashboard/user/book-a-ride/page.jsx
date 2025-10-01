@@ -20,6 +20,8 @@ const BookARide = () => {
   const [drop, setDrop] = useState("");
   const [pickupName, setPickupName] = useState("");
   const [dropName, setDropName] = useState("");
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [isCurrentLocationActive, setIsCurrentLocationActive] = useState(false);
   const [selectedType, setSelectedType] = useState("Bike");
   const [mode, setMode] = useState("auto");
   const [promo, setPromo] = useState("");
@@ -31,36 +33,129 @@ const BookARide = () => {
   const router = useRouter();
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
+  // Get current location and set as default pickup
+  useEffect(() => {
+    const getCurrentLocation = async () => {
+      try {
+        // Check if current location is saved in localStorage
+        const savedCurrentLocation = localStorage.getItem('currentLocation');
+        if (savedCurrentLocation) {
+          const location = JSON.parse(savedCurrentLocation);
+          setCurrentLocation(location);
+          setPickup(location.coordinates);
+          setPickupName(location.name);
+          setIsCurrentLocationActive(true);
+          return;
+        }
+
+        // Get current location from browser
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+              try {
+                // Reverse geocode to get location name
+                const response = await fetch(
+                  `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+                );
+                const data = await response.json();
+                const locationName = data.display_name || `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+                
+                const locationData = {
+                  coordinates: `${latitude},${longitude}`,
+                  name: locationName,
+                  lat: latitude,
+                  lng: longitude
+                };
+                
+                setCurrentLocation(locationData);
+                setPickup(locationData.coordinates);
+                setPickupName(locationData.name);
+                setIsCurrentLocationActive(true);
+                
+                // Save to localStorage
+                localStorage.setItem('currentLocation', JSON.stringify(locationData));
+              } catch (error) {
+                console.error('Error getting location name:', error);
+                // Fallback location
+                const fallbackLocation = {
+                  coordinates: `${latitude},${longitude}`,
+                  name: `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+                  lat: latitude,
+                  lng: longitude
+                };
+                setCurrentLocation(fallbackLocation);
+                setPickup(fallbackLocation.coordinates);
+                setPickupName(fallbackLocation.name);
+                setIsCurrentLocationActive(true);
+                localStorage.setItem('currentLocation', JSON.stringify(fallbackLocation));
+              }
+            },
+            (error) => {
+              console.error('Error getting current location:', error);
+              // Set default Dhaka location
+              const defaultLocation = {
+                coordinates: "23.8103,90.4125",
+                name: "Dhaka, Bangladesh",
+                lat: 23.8103,
+                lng: 90.4125
+              };
+              setCurrentLocation(defaultLocation);
+              setPickup(defaultLocation.coordinates);
+              setPickupName(defaultLocation.name);
+              setIsCurrentLocationActive(true);
+              localStorage.setItem('currentLocation', JSON.stringify(defaultLocation));
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Error in getCurrentLocation:', error);
+      }
+    };
+
+    getCurrentLocation();
+  }, []);
+
   // URL Parameters Handling
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      
-      // Auto-fill from URL parameters
-      if (params.get("pickup")) {
-        setPickup(params.get("pickup"));
-      }
-      if (params.get("drop")) {
-        setDrop(params.get("drop"));
-      }
-      if (params.get("promo")) {
-        const urlPromo = params.get("promo");
-        setPromo(urlPromo);
-        setAppliedPromo(urlPromo);
-      }
-      if (params.get("type")) {
-        setSelectedType(params.get("type"));
-      }
-      if (params.get("mode")) {
-        setMode(params.get("mode"));
-      }
+      try {
+        // Create a new URLSearchParams instance to avoid read-only issues
+        const searchParams = new URLSearchParams(window.location.search);
+        
+        // Auto-fill from URL parameters
+        const pickupParam = searchParams.get("pickup");
+        const dropParam = searchParams.get("drop");
+        const promoParam = searchParams.get("promo");
+        const typeParam = searchParams.get("type");
+        const modeParam = searchParams.get("mode");
 
-      // Show success message if coming from URL
-      if (params.get("pickup") || params.get("drop")) {
-        toast.success("Route loaded from URL", {
-          description: "Your route has been automatically filled from the link.",
-          duration: 3000,
-        });
+        if (pickupParam) {
+          setPickup(pickupParam);
+        }
+        if (dropParam) {
+          setDrop(dropParam);
+        }
+        if (promoParam) {
+          setPromo(promoParam);
+          setAppliedPromo(promoParam);
+        }
+        if (typeParam) {
+          setSelectedType(typeParam);
+        }
+        if (modeParam) {
+          setMode(modeParam);
+        }
+
+        // Show success message if coming from URL
+        if (pickupParam || dropParam) {
+          toast.success("Route loaded from URL", {
+            description: "Your route has been automatically filled from the link.",
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing URL parameters:", error);
       }
     }
   }, []);
@@ -231,27 +326,37 @@ const BookARide = () => {
               // Store location name separately for display
               if (type === 'pickup') {
                 setPickupName(location.name);
-              } else {
+                // Check if pickup is different from current location
+                setIsCurrentLocationActive(
+                  currentLocation && 
+                  location.coordinates === currentLocation.coordinates
+                );
+                  } else {
                 setDropName(location.name);
               }
             }}
           />
 
-          {/* Promo Code Section */}
-          <PromoCodeSection 
-            promo={promo}
-            setPromo={setPromo}
-            appliedPromo={appliedPromo}
-            setAppliedPromo={setAppliedPromo}
-            promoError={promoError}
-            setPromoError={setPromoError}
-          />
 
-          {/* Vehicle Type Selector */}
-          <VehicleTypeSelector 
-            selectedType={selectedType}
-            setSelectedType={setSelectedType}
-          />
+          {/* Vehicle Type and Promo Code Row */}
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <VehicleTypeSelector 
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
+              />
+            </div>
+            <div className="flex-1">
+              <PromoCodeSection 
+                promo={promo}
+                setPromo={setPromo}
+                appliedPromo={appliedPromo}
+                setAppliedPromo={setAppliedPromo}
+                promoError={promoError}
+                setPromoError={setPromoError}
+              />
+            </div>
+          </div>
 
           {/* Consolidated Ride Card */}
           <ConsolidatedRideCard 
@@ -271,11 +376,28 @@ const BookARide = () => {
             drop={drop}
             pickupCoords={null}
             dropCoords={null}
+            currentLocation={currentLocation}
+            isCurrentLocationActive={isCurrentLocationActive}
             onLocationSelect={(location, type) => {
               if (type === 'pickup') {
-                setPickup(location);
+                setPickup(location.coordinates);
+                setPickupName(location.name);
+                // Check if pickup is different from current location
+                setIsCurrentLocationActive(
+                  currentLocation && 
+                  location.coordinates === currentLocation.coordinates
+                );
               } else {
-                setDrop(location);
+                setDrop(location.coordinates);
+                setDropName(location.name);
+              }
+            }}
+            onCurrentLocationClick={() => {
+              if (currentLocation) {
+                setPickup(currentLocation.coordinates);
+                setPickupName(currentLocation.name);
+                setIsCurrentLocationActive(true);
+                toast.success("Current location set as pickup point");
               }
             }}
           />

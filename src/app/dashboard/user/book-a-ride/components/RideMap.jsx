@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation, MapPinIcon } from "lucide-react";
 import L from "leaflet";
 import { useMapEvents, useMap } from "react-leaflet";
 
@@ -41,6 +41,16 @@ const dropoffIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
+// Current location icon
+const currentLocationIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
 // Map click handler component
 const MapClickHandler = ({ onMapClick }) => {
   useMapEvents({
@@ -65,7 +75,7 @@ const ChangeView = ({ center, zoom }) => {
   return null;
 };
 
-const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) => {
+const RideMap = ({ pickup, drop, pickupCoords, dropCoords, currentLocation, isCurrentLocationActive, onLocationSelect, onCurrentLocationClick }) => {
   const [isClient, setIsClient] = useState(false);
   const [center, setCenter] = useState([23.8103, 90.4125]); // Default Dhaka
   const [zoom, setZoom] = useState(12);
@@ -164,20 +174,35 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) =
 
 
   const handleMapClick = async (latlng) => {
-    const { lat, lng } = latlng;
-    const locationString = `${lat},${lng}`;
-    
-    // Get location name using reverse geocoding
     try {
+      const { lat, lng } = latlng;
+      const locationString = `${lat},${lng}`;
+      
+      // Get location name using reverse geocoding
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
       );
       const data = await response.json();
       const locationName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       
-      onLocationSelect(locationName, selectedType);
+      // Create a safe location object
+      const locationData = {
+        name: locationName,
+        coordinates: locationString,
+        lat: lat,
+        lng: lng
+      };
+      
+      onLocationSelect(locationData, selectedType);
     } catch (error) {
-      onLocationSelect(`${lat.toFixed(4)}, ${lng.toFixed(4)}`, selectedType);
+      console.error("Map click error:", error);
+      const fallbackLocation = {
+        name: `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`,
+        coordinates: `${latlng.lat},${latlng.lng}`,
+        lat: latlng.lat,
+        lng: latlng.lng
+      };
+      onLocationSelect(fallbackLocation, selectedType);
     }
   };
 
@@ -207,6 +232,23 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) =
         
         <ChangeView center={center} zoom={zoom} />
         <MapClickHandler onMapClick={handleMapClick} />
+        
+        {/* Current Location Marker */}
+        {currentLocation && (
+          <Marker
+            position={[currentLocation.lat, currentLocation.lng]}
+            icon={currentLocationIcon}
+          >
+            <Popup>
+              <div className="text-center">
+                <div className="w-4 h-4 rounded-full mx-auto mb-1 bg-green-500"></div>
+                <p className="font-semibold text-sm">Current Location</p>
+                <p className="text-xs text-gray-600">{currentLocation.name}</p>
+                <p className="text-xs text-gray-500 mt-1">Always visible on map</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
         
         {/* Pickup Marker */}
         {parsedPickupCoords && parsedPickupCoords[0] && parsedPickupCoords[1] && 
@@ -310,6 +352,24 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) =
         </p>
       </div>
 
+      {/* Current Location Button */}
+      {currentLocation && (
+        <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
+          <button
+            onClick={onCurrentLocationClick}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold transition-all duration-200 ${
+              isCurrentLocationActive
+                ? 'bg-green-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+            }`}
+            title="Click to set current location as pickup"
+          >
+            <MapPinIcon className="w-4 h-4" />
+            <span>Current</span>
+          </button>
+        </div>
+      )}
+
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
         <div className="flex items-center gap-4 text-xs font-medium">
@@ -321,6 +381,12 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, onLocationSelect }) =
             <div className="w-4 h-4 bg-blue-500 rounded-full shadow-sm"></div>
             <span className="text-gray-700">Drop</span>
           </div>
+          {currentLocation && (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-500 rounded-full shadow-sm"></div>
+              <span className="text-gray-700">Current</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

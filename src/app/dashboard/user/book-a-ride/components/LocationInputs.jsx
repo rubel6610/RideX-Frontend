@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { MapPin, Navigation, MoveVertical, Search } from "lucide-react";
-import { toast } from "sonner";
+import { MapPin, Navigation, MoveVertical, Search, CircleDot } from "lucide-react";
 
 const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) => {
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
@@ -84,7 +83,6 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
       }
     } catch (error) {
       console.error('Search error:', error);
-      toast.error('Location search failed');
     } finally {
       // Clear appropriate loading state
       if (type === 'pickup') {
@@ -145,93 +143,103 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
       </div>
 
       <div className="space-y-3">
-        {/* Pickup Location */}
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary h-5 w-5 z-10" />
-          <Input
-            type="text"
-            value={pickupDisplayName}
-            onChange={(e) => handleInputChange(e.target.value, 'pickup')}
-            onFocus={() => pickupSuggestions.length > 0 && setShowPickupSuggestions(true)}
-            className="pl-10 pr-3 py-3 bg-accent/10 border border-primary/20 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
-            placeholder="Pickup location"
-          />
-          {isPickupSearching && (
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 animate-spin" />
-          )}
+        {/* Location Inputs Row */}
+        <div className="flex gap-4">
+          {/* Pickup Location */}
+          <div className="relative flex-1">
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-l-lg">
+                <CircleDot className="w-5 h-5 text-green-500" />
+              </div>
+              <Input
+                type="text"
+                value={pickupDisplayName}
+                onChange={(e) => handleInputChange(e.target.value, 'pickup')}
+                className="flex-1 border-0 rounded-none text-base font-normal focus:ring-0 focus:border-0 placeholder:text-gray-500 bg-transparent"
+                placeholder="Pickup location"
+              />
+              <div className="flex items-center justify-center w-12 h-12">
+                {isPickupSearching && (
+                  <Search className="text-gray-400 h-5 w-5 animate-spin" />
+                )}
+              </div>
+            </div>
           
-          {/* Pickup Suggestions Dropdown */}
-          {showPickupSuggestions && pickupSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border/20 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto custom-scrollbar">
-              {pickupSuggestions.map((suggestion, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleLocationSelect(suggestion, 'pickup')}
-                  className="px-4 py-3 hover:bg-accent/10 cursor-pointer border-b border-border/10 last:border-b-0"
-                >
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {suggestion.name.split(',')[0]}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {suggestion.name}
-                      </p>
+            {/* Pickup Suggestions Dropdown */}
+            {showPickupSuggestions && pickupSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto custom-scrollbar">
+                {pickupSuggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleLocationSelect(suggestion, 'pickup')}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full flex-shrink-0">
+                        <MapPin className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {suggestion.name.split(',')[0]}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {suggestion.name}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Vertical Connector */}
-        <div className="flex justify-center">
-          <div className="flex flex-col items-center">
-            <MoveVertical className="h-6 w-6 text-muted-foreground/40" />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Drop Location */}
-        <div className="relative">
-          <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 text-primary h-5 w-5 z-10" />
-          <Input
-            type="text"
-            value={dropDisplayName}
-            onChange={(e) => handleInputChange(e.target.value, 'drop')}
-            onFocus={() => dropSuggestions.length > 0 && setShowDropSuggestions(true)}
-            className="pl-10 pr-3 py-3 bg-accent/10 border border-primary/20 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
-            placeholder="Where to go?"
-          />
-          {isDropSearching && (
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 animate-spin" />
-          )}
+          {/* Drop Location */}
+          <div className="relative flex-1">
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-l-lg">
+                <MapPin className="w-5 h-5 text-red-500" />
+              </div>
+              <Input
+                type="text"
+                value={dropDisplayName}
+                onChange={(e) => handleInputChange(e.target.value, 'drop')}
+                className="flex-1 border-0 rounded-none text-base font-normal focus:ring-0 focus:border-0 placeholder:text-gray-500 bg-transparent"
+                placeholder="Where to go?"
+              />
+              <div className="flex items-center justify-center w-12 h-12">
+                {isDropSearching && (
+                  <Search className="text-gray-400 h-5 w-5 animate-spin" />
+                )}
+              </div>
+            </div>
           
-          {/* Drop Suggestions Dropdown */}
-          {showDropSuggestions && dropSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border/20 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto custom-scrollbar">
-              {dropSuggestions.map((suggestion, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleLocationSelect(suggestion, 'drop')}
-                  className="px-4 py-3 hover:bg-accent/10 cursor-pointer border-b border-border/10 last:border-b-0"
-                >
-                  <div className="flex items-start gap-3">
-                    <Navigation className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {suggestion.name.split(',')[0]}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {suggestion.name}
-                      </p>
+            {/* Drop Suggestions Dropdown */}
+            {showDropSuggestions && dropSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto custom-scrollbar">
+                {dropSuggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleLocationSelect(suggestion, 'drop')}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full flex-shrink-0">
+                        <Navigation className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {suggestion.name.split(',')[0]}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {suggestion.name}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
