@@ -4,7 +4,7 @@ import PassengerDash from './Components/dashboard/PassengerDash';
 import RiderDash from './Components/dashboard/RiderDash';
 
 export default function DashboardPage() {
-  const role = 'rider';
+  const role = 'user';
   return (
     <>
       {
