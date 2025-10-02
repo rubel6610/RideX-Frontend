@@ -29,39 +29,45 @@ function RegisterPage() {
   const password = watch("password");
 
   // Submit Handler
-  const onSubmit = async (e, data) => {
-    e.preventDefault();
-    try {
-      // Handle image upload
-      if (data.image && data.image.length > 0) {
-        const imgForm = new FormData();
-        imgForm.append("image", data.image[0]);
-        const res = await fetch(process.env.NEXT_PUBLIC_IMGBB_KEY, {
-          method: "POST",
-          body: imgForm,
-        });
-        const imgData = await res.json();
-        data.photoUrl = imgData?.data?.url; // Store uploaded image URL
-      }
+  const onSubmit = async (data) => {
+  try {
+    // Handle image upload
+    if (data.image && data.image.length > 0) {
+      const imgForm = new FormData();
+      imgForm.append("image", data.image[0]);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`, {
+      const res = await fetch(process.env.NEXT_PUBLIC_IMGBB_KEY, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-        }),
+        body: imgForm,
       });
 
-      const userdata = await res.json();
-      if (res.ok) {
-        alert("Registered successfully!");
-      } else {
-        alert(userdata.message);
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
+      const imgData = await res.json();
+      data.photoUrl = imgData?.data?.url; // save uploaded image url
     }
-  };
+
+    // নতুন অবজেক্ট বানাও image বাদ দিয়ে
+    const { image, ...rest } = data;
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rest), // ✅ এখানে আর circular হবে না
+      }
+    );
+
+    const userdata = await res.json();
+    if (res.ok) {
+      alert("Registered successfully!");
+    } else {
+      alert(userdata.message);
+    }
+  } catch (error) {
+    console.error("Error submitting form:", error);
+  }
+};
+
 
   // Handle image preview
   const handleImageChange = (e) => {
