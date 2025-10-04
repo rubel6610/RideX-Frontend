@@ -147,7 +147,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
         <div className="flex gap-4">
           {/* Pickup Location */}
           <div className="relative flex-1">
-            <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-black">
               <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-l-lg">
                 <CircleDot className="w-5 h-5 text-green-500" />
               </div>
@@ -155,7 +155,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
                 type="text"
                 value={pickupDisplayName}
                 onChange={(e) => handleInputChange(e.target.value, 'pickup')}
-                className="flex-1 border-0 rounded-none text-base font-normal focus:ring-0 focus:border-0 placeholder:text-gray-500 bg-transparent"
+                className="flex-1  rounded-none text-base font-normal placeholder:text-gray-500 dark:placeholder:text-gray-500 bg-transparent"
                 placeholder="Pickup location"
               />
               <div className="flex items-center justify-center w-12 h-12">
@@ -167,7 +167,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
           
             {/* Pickup Suggestions Dropdown */}
             {showPickupSuggestions && pickupSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto custom-scrollbar">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white  border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto custom-scrollbar">
                 {pickupSuggestions.map((suggestion, index) => (
                   <div
                     key={index}
@@ -195,7 +195,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
 
           {/* Drop Location */}
           <div className="relative flex-1">
-            <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center bg-white text-black border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-l-lg">
                 <MapPin className="w-5 h-5 text-red-500" />
               </div>
