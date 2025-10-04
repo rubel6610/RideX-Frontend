@@ -5,7 +5,7 @@ import { Star, ArrowRight, MapPin, Navigation, Bike } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import heroImage from "@/Assets/hero-img.svg";
-// import heroImageDark from "@/Assets/hero-img-dark.svg";
+import heroImageDark from "@/Assets/hero-img-dark.svg";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -17,6 +17,29 @@ const Hero = () => {
     const [drop, setDrop] = useState("");
     const [showPickupMap, setShowPickupMap] = useState(false);
     const [showDropMap, setShowDropMap] = useState(false);
+
+    // page load এ current location fetch
+    useEffect(() => {
+        if (!pickup && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    // reverse geocode to get address
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                            const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                            setPickup(locName);
+                        })
+                        .catch(() => {
+                            setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                        });
+                },
+                (err) => console.error("Error getting location:", err),
+                { enableHighAccuracy: true }
+            );
+        }
+    }, []);
 
     // page load এ current location fetch
     useEffect(() => {
@@ -64,6 +87,8 @@ const Hero = () => {
                         #1 Rated Ride-Sharing Platform
                     </div>
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight text-foreground">
+                        Your Ride, Your Way with{" "}
+                        <span className="text-primary">RideX</span>
                         Your Ride, Your Way with{" "}
                         <span className="text-primary">RideX</span>
                     </h1>
@@ -137,6 +162,14 @@ const Hero = () => {
                         width={600}
                         height={400}
                         className="w-full max-w-xl h-auto rounded-2xl block dark:hidden"
+                        priority
+                    />
+                    <Image
+                        src={heroImageDark}
+                        alt="RideX Hero Dark"
+                        width={600}
+                        height={400}
+                        className="w-full max-w-xl h-auto rounded-2xl hidden dark:block"
                         priority
                     />
                     {/* <Image

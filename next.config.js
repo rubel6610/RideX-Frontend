@@ -1,13 +1,27 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["res.cloudinary.com", "lh3.googleusercontent.com", "i.ibb.co"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ibb.co",
+      },
+    ],
   },
   experimental: {
-    turbo: {
-      enabled: false,
+    serverActions: {
+      bodySizeLimit: "5mb",
+      serverActions: true,
     },
   },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
