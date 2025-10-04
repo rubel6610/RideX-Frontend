@@ -129,25 +129,25 @@ export default function RideHistoryPage() {
           </div>
 
           {/* Datepicker */}
-          <div className="flex-1 md:flex-none md:w-1/3 flex justify-center">
-            <div className="w-full md:w-72">
+          <div className="flex-1 md:flex-none md:w-1/3 flex justify-center ">
+            <div className="w-full md:w-72 ">
               <label className="text-sm font-medium text-foreground mb-2 block text-left">Date</label>
-              <Popover className=" bg-muted">
-                <PopoverTrigger asChild className="border border-primary">
+              <Popover className=" bg-muted ">
+                <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
                     {selectedDate ? selectedDate.toDateString() : "Select Date"}
                     <CalendarIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto rounded-2xl s space-y-2">
+                <PopoverContent className="w-auto rounded-2xl s space-y-2 border border-primary">
                   <Calendar
-                    className="w-60 bg-muted rounded-2xl p-4 border border-primary"
+                    className="w-60 bg-muted rounded-2xl "
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     initialFocuss
                   />
-                  {selectedDate && (
+                   {selectedDate && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -156,7 +156,7 @@ export default function RideHistoryPage() {
                     >
                       Clear Date
                     </Button>
-                  )}
+                  )} 
                 </PopoverContent>
               </Popover>
             </div>
@@ -164,9 +164,9 @@ export default function RideHistoryPage() {
 
           {/* Status */}
           <div className="flex-1 md:flex-none md:w-1/3 flex justify-end lg:-ml-10 md:-ml-10">
-            <div className="w-full md:w-48">
+            <div className="w-full md:w-48 ">
               <label className="text-sm font-medium text-foreground mb-2 block lg:text-left">Status</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select className='border border-primary' value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>

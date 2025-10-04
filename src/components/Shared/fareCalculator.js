@@ -1,3 +1,4 @@
+// fareCalculator.js
 import fetch from "node-fetch";
 
 // Static BDT per km rates
@@ -5,6 +6,13 @@ const RATE_TABLE = {
   bike: 12,
   cng: 20,
   car: 35,
+};
+
+// Promo code logic
+const PROMO_CODES = {
+  "EIDSPECIAL20%": 0.20,
+  "NEWYEAR10%": 0.10,
+  "SUMMER05%": 0.05,
 };
 
 // Address -> Coordinates using Nominatim
@@ -22,7 +30,7 @@ async function geocodeAddress(address) {
   return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
 }
 
-// Haversine distance
+// Haversine distance (backup calculation if OSRM fails)
 function toRad(deg) {
   return (deg * Math.PI) / 180;
 }
@@ -37,25 +45,71 @@ function haversine(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
+// Get route info (distance + duration) from OSRM
+async function getRouteInfo(fromCoords, toCoords, type) {
+  let profile = "driving"; // default car
+  if (type === "bike") profile = "cycling";
+  if (type === "cng") profile = "driving"; // CNG = driving
+
+  const url = `https://router.project-osrm.org/route/v1/${profile}/${fromCoords.lon},${fromCoords.lat};${toCoords.lon},${toCoords.lat}?overview=false&geometries=geojson`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data && data.routes && data.routes.length > 0) {
+      return {
+        distanceKm: data.routes[0].distance / 1000, // meters -> km
+        durationMin: data.routes[0].duration / 60, // sec -> min
+      };
+    }
+  } catch (error) {
+    console.error("OSRM error:", error.message);
+  }
+
+  // fallback if OSRM fails
+  return {
+    distanceKm: haversine(fromCoords.lat, fromCoords.lon, toCoords.lat, toCoords.lon),
+    durationMin: null,
+  };
+}
+
 // Main function
-export async function calculateFare(from, to, type = "bike") {
+export async function calculateFare(from, to, type = "bike", promo = "") {
   if (!RATE_TABLE[type]) throw new Error(`Invalid vehicle type: ${type}`);
 
   const fromCoords = await geocodeAddress(from);
   const toCoords = await geocodeAddress(to);
 
-  const distanceKm = haversine(fromCoords.lat, fromCoords.lon, toCoords.lat, toCoords.lon);
+  // Get route info (distance + time)
+  const routeInfo = await getRouteInfo(fromCoords, toCoords, type);
+  const distanceKm = routeInfo.distanceKm;
+  const durationMin = routeInfo.durationMin
+    ? Number(routeInfo.durationMin.toFixed(0))
+    : Math.ceil(distanceKm / 0.5); // fallback: assume 30 km/h avg
+
+  // Calculate fare
   const perKm = RATE_TABLE[type];
-  const cost = Number((distanceKm * perKm).toFixed(2));
+  let cost = Number((distanceKm * perKm).toFixed(2));
+
+  let discount = 0;
+  if (promo && PROMO_CODES[promo]) {
+    discount = PROMO_CODES[promo];
+    cost = Number((cost * (1 - discount)).toFixed(2));
+  }
 
   // rideData object
   const rideData = {
     from: fromCoords,
     to: toCoords,
     distanceKm: Number(distanceKm.toFixed(2)),
+    durationMin,
+    eta: `Arrives in ${durationMin} min`,
     cost,
-    vehicle: type.charAt(0).toUpperCase() + type.slice(1)
+    vehicle: type.charAt(0).toUpperCase() + type.slice(1),
+    promoApplied: promo && PROMO_CODES[promo] ? promo : null,
+    discountPercent: discount ? discount * 100 : 0,
   };
 
-  return rideData; // ✅ direct JS object
+  return rideData;
 }

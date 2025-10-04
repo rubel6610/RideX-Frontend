@@ -9,7 +9,6 @@ import {
   MapPin,
   Search,
   Bell,
-  LucideLogOut,
   PanelRightOpen,
   PanelRightClose,
   Moon,
@@ -25,34 +24,18 @@ import { useAuth } from "../hooks/AuthProvider";
 import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
+import RiderStatus from "@/components/Shared/Riders/RiderStatus";
+import SignOutButton from "@/components/Shared/SignOutButton";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // for mobile-md
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // for lg+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const [userData, setUserData] = useState(null);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    if (!user?.email) return;
-    const fetchUserData = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch user data");
-        const data = await res.json();
-        setUserData(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchUserData();
-  }, [user?.email]);
-
-  const userRole = "user";
+  const userRole = user?.role;
 
   return (
     <ProtectedRoute>
@@ -118,15 +101,8 @@ export default function DashboardLayout({ children }) {
             </nav>
           </div>
 
-          <Button
-            onClick={logout}
-            variant="destructiveOutline"
-            size="lg"
-            className="w-full m-3 text-md ml-1 flex items-center gap-2 justify-center"
-          >
-            <LucideLogOut className="w-5 h-5" />
-            {!sidebarCollapsed && "Sign Out"}
-          </Button>
+          {/* Logout Button */}
+          <SignOutButton />
         </aside>
 
         {/* Main Content */}
@@ -188,6 +164,12 @@ export default function DashboardLayout({ children }) {
                 )}
               </button>
               <Bell className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+
+              {/* go online - offline */}
+              {
+                userRole === 'rider' && <RiderStatus />
+              }
+
               <Link href="/dashboard/my-profile">
                 <Button
                   variant="outline"
