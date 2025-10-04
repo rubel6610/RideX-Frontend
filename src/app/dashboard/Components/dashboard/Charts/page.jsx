@@ -12,9 +12,6 @@ import {
 import { TrendingUp } from "lucide-react";
 
 const chartData = [
-  { month: "January", desktop: 120, mobile: 60 },
-  { month: "February", desktop: 250, mobile: 140 },
-  { month: "March", desktop: 320, mobile: 180 },
   { month: "April", desktop: 210, mobile: 90 },
   { month: "May", desktop: 400, mobile: 230 },
   { month: "June", desktop: 380, mobile: 200 },
@@ -26,7 +23,6 @@ const chartData = [
   { month: "December", desktop: 600, mobile: 400 },
 ];
 
-
 const chartConfig = {
   desktop: { label: "Desktop", color: "#4F46E5" },
   mobile: { label: "Mobile", color: "#10B981" },
@@ -37,13 +33,25 @@ export default function Charts() {
     <div className="bg-background rounded-xl shadow p-4">
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Website Earnings</h2>
-        <span className="text-muted-foreground text-sm">January - June 2024</span>
+        <span className="text-muted-foreground text-sm">
+          January - June 2024
+        </span>
       </div>
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData}>
-          <CartesianGrid vertical={false} stroke="var(--muted)" strokeDasharray="4 4" />
-          <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} tickFormatter={(v) => v.slice(0, 3)} />
+          <CartesianGrid
+            vertical={false}
+            stroke="var(--muted)"
+            strokeDasharray="4 4"
+          />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+            tickFormatter={(v) => v.slice(0, 3)}
+          />
           <Tooltip
             cursor={{ fill: "rgba(0,0,0,0.05)" }}
             contentStyle={{
