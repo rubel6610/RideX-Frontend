@@ -14,7 +14,7 @@ const BeRidersAndPassenger = () => {
     <section className="pb-16">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-8">
           {/* Left Section */}
-          <div className="rounded-2xl p-10 shadow-lg bg-amber-200/5 backdrop-blur-md border border-accent flex flex-col justify-center">
+          <div className="rounded-2xl p-10 shadow-lg bg-amber-300/5 backdrop-blur-md border border-accent flex flex-col justify-center hover:-translate-y-1 duration-300 transition-all">
             <div className="flex items-center gap-2 bg-accent/30 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-border mb-4 max-w-max">
               <Users className="h-5 w-5" />
               <span>For RideX Passenger</span>
@@ -71,8 +71,8 @@ const BeRidersAndPassenger = () => {
           </div>
 
           {/* Right / Driver Section */}
-          <div className="rounded-2xl p-10 shadow-lg bg-accent/20 backdrop-blur-md border border-accent flex flex-col justify-center">
-            <div className="flex items-center gap-2 bg-accent/30 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-border mb-4 max-w-max">
+          <div className="rounded-2xl p-10 shadow-lg bg-accent/20 backdrop-blur-md border border-border flex flex-col justify-center hover:-translate-y-1 duration-300 transition-all">
+            <div className="flex items-center gap-2 bg-accent/0 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-border mb-4 max-w-max">
               <Car className="h-5 w-5" />
               <span>For RideX Rider</span>
             </div>

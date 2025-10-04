@@ -1,13 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Star, ArrowRight, MapPin, Navigation, Bike } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import heroImage from "@/Assets/hero-img.svg";
+import heroImageDark from "@/Assets/hero-img-dark.svg";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 
 const MapPopup = dynamic(() => import("./MapPopup"), { ssr: false });
 
@@ -17,6 +17,52 @@ const Hero = () => {
     const [drop, setDrop] = useState("");
     const [showPickupMap, setShowPickupMap] = useState(false);
     const [showDropMap, setShowDropMap] = useState(false);
+
+    // page load এ current location fetch
+    useEffect(() => {
+        if (!pickup && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    // reverse geocode to get address
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                            const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                            setPickup(locName);
+                        })
+                        .catch(() => {
+                            setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                        });
+                },
+                (err) => console.error("Error getting location:", err),
+                { enableHighAccuracy: true }
+            );
+        }
+    }, []);
+
+    // page load এ current location fetch
+    useEffect(() => {
+        if (!pickup && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    // reverse geocode to get address
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                            const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                            setPickup(locName);
+                        })
+                        .catch(() => {
+                            setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                        });
+                },
+                (err) => console.error("Error getting location:", err),
+                { enableHighAccuracy: true }
+            );
+        }
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -41,7 +87,10 @@ const Hero = () => {
                         #1 Rated Ride-Sharing Platform
                     </div>
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight text-foreground">
-                        Your Ride, Your Way with <span className="text-primary">RideX</span>
+                        Your Ride, Your Way with{" "}
+                        <span className="text-primary">RideX</span>
+                        Your Ride, Your Way with{" "}
+                        <span className="text-primary">RideX</span>
                     </h1>
                     <p className="text-xl text-muted-foreground leading-relaxed mb-6">
                         Experience seamless transportation with trusted drivers, affordable
@@ -112,9 +161,25 @@ const Hero = () => {
                         alt="RideX Hero"
                         width={600}
                         height={400}
-                        className="w-full max-w-xl h-auto rounded-2xl"
+                        className="w-full max-w-xl h-auto rounded-2xl block dark:hidden"
                         priority
                     />
+                    <Image
+                        src={heroImageDark}
+                        alt="RideX Hero Dark"
+                        width={600}
+                        height={400}
+                        className="w-full max-w-xl h-auto rounded-2xl hidden dark:block"
+                        priority
+                    />
+                    {/* <Image
+                        src={heroImageDark}
+                        alt="RideX Hero Dark"
+                        width={600}
+                        height={400}
+                        className="w-full max-w-xl h-auto rounded-2xl hidden dark:block"
+                        priority
+                    /> */}
                     {/* Floating Stats */}
                     <div className="absolute -bottom-8 left-0 bg-accent border border-primary rounded-xl p-4 shadow-lg flex items-center space-x-3">
                         <Star className="h-5 w-5 text-primary" />

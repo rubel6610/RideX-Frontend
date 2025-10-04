@@ -3,8 +3,10 @@
 import * as React from "react";
 import { Settings, Users, User, Bike, DollarSign } from "lucide-react";
 import CountUp from "react-countup";
-import Charts from "./Charts/page";
-import DataTableDemo from "./DataTableDemo/page";
+
+// আলাদা component import
+import Charts from "./Components/Charts";
+import DataTableDemo from "./Components/DataTableDemo";
 
 /* ---------- utils ---------- */
 function cn(...classes) {

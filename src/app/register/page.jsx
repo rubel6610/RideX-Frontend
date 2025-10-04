@@ -3,13 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
-
 import CarLogo from "../../Assets/car-icon.png";
 import GuestOnlyRoute from "../hooks/GuestOnlyRoute";
-import { toast } from "react-hot-toast"; // Import toast from react-hot-toast
+import { toast } from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +18,6 @@ function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-  // React Hook Form
   const {
     register,
     handleSubmit,
@@ -30,37 +27,49 @@ function RegisterPage() {
 
   const password = watch("password");
 
-  // Submit Handler
   const onSubmit = async (data) => {
     try {
       // Handle image upload
       if (data.image && data.image.length > 0) {
         const imgForm = new FormData();
         imgForm.append("image", data.image[0]);
-        const res = await fetch(process.env.NEXT_PUBLIC_IMGBB_KEY, {
-          method: "POST",
-          body: imgForm,
-        });
+
+        const res = await fetch(
+          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`,
+          {
+            method: "POST",
+            body: imgForm,
+          }
+        );
+
         const imgData = await res.json();
-        data.photoUrl = imgData?.data?.url; // Store uploaded image URL
+
+        if (imgData?.success) {
+          data.photoUrl = imgData.data.url;
+        } else {
+          throw new Error("Image upload failed");
+        }
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-        }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...data }),
+        }
+      );
 
       const userdata = await res.json();
       if (res.ok) {
-        toast.success("Registered successfully! Redirecting to Sign In..."); // Success toast
+        toast.success("Registered successfully! Redirecting to Sign In...");
         setTimeout(() => {
-          router.push("/signIn"); // Redirect to sign-in page after success
-        }, 2000); // Wait 2 seconds before redirecting
+          router.push("/signIn");
+        }, 2000);
       } else {
-        toast.error(userdata.message || "Registration failed. Please try again."); // Error toast
+        toast.error(
+          userdata.message || "Registration failed. Please try again."
+        );
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -68,7 +77,6 @@ function RegisterPage() {
     }
   };
 
-  // Handle image preview
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -97,7 +105,7 @@ function RegisterPage() {
         >
           {/* Full Name */}
           <div>
-            <Label htmlFor="fullName" className="block">
+            <Label htmlFor="fullName">
               Full Name <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -114,7 +122,7 @@ function RegisterPage() {
 
           {/* Image Upload */}
           <div>
-            <Label htmlFor="image" className="block mb-1.5">
+            <Label htmlFor="image">
               Profile Image <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -128,8 +136,6 @@ function RegisterPage() {
             {errors.image && (
               <p className="text-red-500 text-sm">{errors.image.message}</p>
             )}
-
-            {/* Image Preview */}
             {previewImage && (
               <div className="mt-3">
                 <p className="text-sm text-gray-500 mb-1">Preview:</p>
@@ -147,22 +153,25 @@ function RegisterPage() {
           {/* Date of Birth & NID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="dateOfBirth" className="block mb-1.5">
+              <Label htmlFor="dateOfBirth">
                 Date Of Birth <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="dateOfBirth"
                 type="date"
-                {...register("dateOfBirth", { required: "Date of birth is required" })}
+                {...register("dateOfBirth", {
+                  required: "Date of birth is required",
+                })}
                 className="w-full mt-2"
               />
               {errors.dateOfBirth && (
-                <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.dateOfBirth.message}
+                </p>
               )}
             </div>
-
             <div>
-              <Label htmlFor="NIDno" className="block mb-1.5">
+              <Label htmlFor="NIDno">
                 NID Number <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -181,7 +190,7 @@ function RegisterPage() {
           {/* Email & Gender */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="email" className="block mb-1.5">
+              <Label htmlFor="email">
                 Email <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -195,9 +204,8 @@ function RegisterPage() {
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
               )}
             </div>
-
             <div>
-              <Label htmlFor="gender" className="block mb-1.5">
+              <Label htmlFor="gender">
                 Gender <span className="text-red-500">*</span>
               </Label>
               <div className="flex gap-6 mt-2">
@@ -206,25 +214,23 @@ function RegisterPage() {
                     type="radio"
                     value="male"
                     {...register("gender", { required: "Gender is required" })}
-                  />
+                  />{" "}
                   Male
                 </label>
-
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
                     value="female"
                     {...register("gender", { required: "Gender is required" })}
-                  />
+                  />{" "}
                   Female
                 </label>
-
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
                     value="custom"
                     {...register("gender", { required: "Gender is required" })}
-                  />
+                  />{" "}
                   Custom
                 </label>
               </div>
@@ -237,7 +243,7 @@ function RegisterPage() {
           {/* Password & Confirm Password */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
-              <Label htmlFor="password" className="block mb-1.5">
+              <Label htmlFor="password">
                 Password <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -255,12 +261,13 @@ function RegisterPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
               {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.password.message}
+                </p>
               )}
             </div>
-
             <div className="relative">
-              <Label htmlFor="confirmPassword" className="block mb-1.5">
+              <Label htmlFor="confirmPassword">
                 Confirm Password <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -269,7 +276,8 @@ function RegisterPage() {
                 placeholder="Confirm your password"
                 {...register("confirmPassword", {
                   required: "Please confirm your password",
-                  validate: (val) => val === password || "Passwords do not match",
+                  validate: (val) =>
+                    val === password || "Passwords do not match",
                 })}
                 className="w-full mt-2"
               />
@@ -281,11 +289,25 @@ function RegisterPage() {
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
           </div>
-          {/* Terms Checkbox */} <div className="flex items-center gap-2"> <input type="checkbox" {...register("terms", { required: true })} /> <small className="text-muted-foreground"> I agree to the{" "} <span className="text-primary">Terms of Service</span> and{" "} <span className="text-primary">Privacy Policy</span> </small> </div> {errors.terms && ( <p className="text-red-500 text-sm">You must agree to continue</p> )}
+
+          {/* Terms Checkbox */}
+          <div className="flex items-center gap-2 mt-4">
+            <input type="checkbox" {...register("terms", { required: true })} />
+            <small className="text-muted-foreground">
+              I agree to the{" "}
+              <span className="text-primary">Terms of Service</span> and{" "}
+              <span className="text-primary">Privacy Policy</span>
+            </small>
+          </div>
+          {errors.terms && (
+            <p className="text-red-500 text-sm">You must agree to continue</p>
+          )}
 
           {/* Submit Button */}
           <Button

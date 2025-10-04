@@ -37,7 +37,7 @@ const HowItWorks = () => {
       {/* Steps */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
         {steps.map((step) => (
-          <div key={step.id} className="flex flex-col items-center p-8 rounded-2xl shadow-lg bg-white/60 dark:bg-accent/60 backdrop-blur-md border border-primary/20">
+          <div key={step.id} className="flex flex-col items-center p-8 rounded-2xl shadow-lg bg-card backdrop-blur-md border border-border hover:-translate-y-1 duration-300 transition-all">
             {/* Icon + Number */}
             <div className="relative mb-4">
               <div className="bg-primary/20 rounded-full w-20 h-20 flex items-center justify-center border-2 border-primary">
