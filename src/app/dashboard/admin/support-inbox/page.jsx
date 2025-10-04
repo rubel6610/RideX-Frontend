@@ -1,149 +1,163 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import socket from "@/app/hooks/socket/socket";
+
+import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/app/hooks/AuthProvider";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { initSocket } from "@/app/hooks/socket/socket";
 import { Button } from "@/components/ui/button";
 
-export default function AdminPanel() {
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
-  const { user: admin } = useAuth();
+const BACKEND = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
-  // Join admin socket room
+export default function AdminSupport() {
+  const { user } = useAuth();
+  const [threads, setThreads] = useState([]);
+  const [activeThread, setActiveThread] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const adminId = user?.role === "admin" ? user.id : null;
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
-    if (!admin?._id) return;
-    socket.emit("joinRoom", admin.id);
+    async function load() {
+      const res = await fetch(`${BACKEND}/support/admin/threads`);
+      const data = await res.json();
+      setThreads(data.threads || []);
+    }
+    load();
 
-    socket.on("receiveMessage", (msg) => {
-      // Only show messages for selected user
-      if (selectedUser && (msg.senderId === selectedUser._id || msg.receiverId === selectedUser._id)) {
-        setMessages((prev) => [...prev, msg]);
-      }
+    const socket = initSocket(adminId, true);
 
-      // Update unread count for other users
-      if (!selectedUser || msg.senderId !== selectedUser._id) {
-        setUsers((prev) =>
-          prev.map((u) =>
-            u._id === msg.senderId
-              ? { ...u, unreadCount: (u.unreadCount || 0) + 1 }
-              : u
-          )
-        );
+    socket.on("new_support_thread", (payload) => {
+      setThreads((prev) => {
+        if (prev.find((t) => String(t._id) === String(payload._id))) return prev;
+        return [payload, ...prev];
+      });
+    });
+
+    socket.on("thread_updated", (payload) => {
+      setThreads((prev) =>
+        prev.map((t) =>
+          String(t._id) === String(payload._id)
+            ? { ...t, status: payload.status, updatedAt: payload.updatedAt }
+            : t
+        )
+      );
+
+      if (activeThread && String(activeThread._id) === String(payload._id)) {
+        setActiveThread((prev) => ({ ...prev, status: payload.status }));
       }
     });
 
-    return () => socket.off("receiveMessage");
-  }, [admin.id, selectedUser]);
+    return () => {
+      socket.off("new_support_thread");
+      socket.off("thread_updated");
+    };
+  }, [adminId, activeThread]);
 
-  // Fetch users who sent messages
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/users/messaged")
-      .then((res) => {
-        // Initialize unreadCount
-        const usersWithUnread = res.data.map((u) => ({ ...u, unreadCount: 0 }));
-        setUsers(usersWithUnread);
-      })
-      .catch((err) => console.error(err));
-  }, []);
+    scrollToBottom();
+  }, [activeThread?.messages]);
 
-  // Fetch messages for selected user
-  useEffect(() => {
-    if (!selectedUser) return;
+  function openThread(threadId) {
+    const t = threads.find((th) => String(th._id) === String(threadId));
+    setActiveThread(t);
+  }
 
-    axios
-      .get("http://localhost:5000/api/messages", { params: { userId: selectedUser._id } })
-      .then((res) => setMessages(res.data))
-      .catch((err) => console.error(err));
+  async function sendReply(e) {
+    e.preventDefault();
+    if (!replyText.trim() || !activeThread) return;
 
-    // Reset unread count when user is selected
-    setUsers((prev) =>
-      prev.map((u) =>
-        u._id === selectedUser._id ? { ...u, unreadCount: 0 } : u
-      )
+    const res = await fetch(`${BACKEND}/support/admin/reply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        threadId: String(activeThread._id),
+        adminId,
+        text: replyText,
+      }),
+    });
+
+    const data = await res.json();
+    setActiveThread(data.thread);
+    setReplyText("");
+    setThreads((prev) =>
+      prev.map((t) => (String(t._id) === String(data.thread._id) ? data.thread : t))
     );
-  }, [selectedUser]);
-
-  // Send message
-  const sendMessage = async () => {
-    if (!text || !selectedUser) return;
-
-    try {
-      const res = await axios.post("http://localhost:5000/api/messages/reply", {
-        message: text,
-        adminId: admin.id,
-        userId: selectedUser._id,
-      });
-
-      setMessages((prev) => [...prev, res.data.message]);
-      setText("");
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.error || "Failed to send message");
-    }
-  };
+  }
 
   return (
-    <div className="flex gap-4">
-      {/* Users List */}
-      <Card className="w-64 h-[400px] overflow-auto">
-        <CardContent>
-          <h3 className="font-bold mb-2">Users</h3>
-          {users.map((u) => (
-            <Button
-              key={u._id}
-              variant={selectedUser?._id === u._id ? "default" : "outline"}
-              className="mb-1 w-full flex justify-between items-center"
-              onClick={() => setSelectedUser(u)}
-            >
-              {u.fullName}
-              {u.unreadCount > 0 && (
-                <span className="bg-red-500 text-white px-2 rounded text-xs">
-                  {u.unreadCount}
-                </span>
-              )}
-            </Button>
+    <div className="p-4 max-w-4xl mx-auto flex gap-4">
+      <div className="w-1/3 border rounded p-2">
+        <h3 className="font-bold mb-2">Inbox</h3>
+        <ul>
+          {threads.map((t, i) => (
+            <li key={i} className="mb-2 cursor-pointer" onClick={() => openThread(t._id)}>
+              <div className="flex justify-between">
+                <div>
+                  <div className="text-sm font-medium">User: {t.userId}</div>
+                  <div className="text-xs text-gray-500">
+                    {t.lastMessage || (t.messages && t.messages.slice(-1)[0]?.text)}
+                  </div>
+                </div>
+                <div className="text-xs">
+                  <span
+                    className={`px-2 py-1 rounded ${
+                      t.status === "waiting" ? "bg-yellow-200" : "bg-green-100"
+                    }`}
+                  >
+                    {t.status || "unknown"}
+                  </span>
+                </div>
+              </div>
+            </li>
           ))}
-        </CardContent>
-      </Card>
+        </ul>
+      </div>
 
-      {/* Chat Panel */}
-      {selectedUser && (
-        <Card className="flex-1">
-          <CardContent>
-            <h3 className="font-bold mb-2">Chat with {selectedUser.fullName}</h3>
-            <ScrollArea className="h-64 mb-2">
-              {messages.map((msg, i) => (
+      <div className="flex-1 border rounded p-4">
+        {!activeThread && (
+          <div className="text-sm text-gray-500">Select a thread to view messages</div>
+        )}
+
+        {activeThread && (
+          <>
+            <h4 className="font-semibold mb-2">Chat with: {activeThread.userId}</h4>
+            <div className="h-72 overflow-auto border rounded p-2 mb-3">
+              {(activeThread.messages || []).map((m, idx) => (
                 <div
-                  key={i}
-                  className={`p-2 my-1 rounded max-w-[70%] ${
-                    msg.senderId === admin.id
-                      ? "bg-blue-200 text-right ml-auto"
-                      : "bg-gray-200 text-left"
-                  }`}
+                  key={idx}
+                  className={`mb-3 ${m.sender === "user" ? "text-left" : "text-right"}`}
                 >
-                  <b>{msg.userName}</b>: {msg.message}
+                  <div
+                    className={`inline-block p-2 rounded ${
+                      m.sender === "user" ? "bg-gray-500 text-white" : "bg-blue-500 text-white"
+                    }`}
+                  >
+                    <div className="text-sm">{m.text}</div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {new Date(m.createdAt).toLocaleString()}
+                  </div>
                 </div>
               ))}
-            </ScrollArea>
-            <div className="flex gap-2 mt-2">
-              <Input
-                placeholder="Type your message..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              />
-              <Button onClick={sendMessage}>Send</Button>
+              <div ref={messagesEndRef} />
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            <form onSubmit={sendReply} className="flex gap-2">
+              <input
+                className="flex-1 border rounded p-2"
+                placeholder="Write reply..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+              />
+              <Button variant="primary"  className="px-4 py-2 bg-green-600 text-white rounded">Reply</Button>
+            </form>
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,119 +1,133 @@
-"use client"
-import React, { useEffect, useState } from "react";
-import socket from "@/app/hooks/socket/socket";
-import { useAuth } from "@/app/hooks/AuthProvider";
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
-import { CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { SendHorizonal } from "lucide-react";
+"use client";
 
-export default function UserChat() {
-  const {user}=useAuth();
+import React, { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/app/hooks/AuthProvider";
+import { initSocket } from "@/app/hooks/socket/socket";
+import { Button } from '@/components/ui/button';
+import { Input } from "@/components/ui/input";
+
+const BACKEND = process.env.NEXT_PUBLIC_SERVER_BASE_URL || "http://localhost:5000";
+
+export default function SupportPage() {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
+
+  const [thread, setThread] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const adminRole = "admin";
+  const [isWaiting, setIsWaiting] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  // Auto scroll to bottom when messages change
   useEffect(() => {
-    socket.emit("joinRoom", user.id);
+    scrollToBottom();
+  }, [messages]);
 
-    socket.on("receiveMessage", (msg) => {
-      if (msg.senderId === user.id || msg.receiverRole === adminRole) {
-        setMessages((prev) => [...prev, msg]);
-      }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    const socket = initSocket();
+
+    // Register user on socket
+    socket.emit("register_user", currentUserId);
+
+    // Handle admin reply
+    socket.on("support_reply", (payload) => {
+      if (thread && String(payload.threadId) !== String(thread._id)) return;
+      setMessages((prev) => [
+        ...prev,
+        { sender: "admin", text: payload.text, createdAt: payload.createdAt },
+      ]);
+      setIsWaiting(false);
     });
 
-    // return () => socket.off("receiveMessage");
-  }, [user?.id]);
+    // Handle user message acknowledgment
+    socket.on("message_sent_ack", (payload) => {
+      if (thread && String(payload.threadId) !== String(thread._id)) return;
+      setMessages((prev) => [
+        ...prev,
+        { sender: "user", text: payload.text, createdAt: payload.createdAt },
+      ]);
+    });
 
-useEffect(() => {
-  if (!user?.id) return;
+    return () => {
+      socket.off("support_reply");
+      socket.off("message_sent_ack");
+    };
+  }, [currentUserId, thread]);
 
-  fetch(`http://localhost:5000/api/messages?userId=${user.id}`)
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch messages");
-      return res.json();
-    })
-    .then((data) => setMessages(data))
-    .catch((err) => console.error(err));
-}, [user?.id]);
+  async function handleSend(e) {
+    e.preventDefault();
+    if (!text.trim() || isWaiting) return;
 
-const sendMessage = async () => {
-  if (!text) return;
-
-  try {
-    const res = await fetch("http://localhost:5000/api/messages", {
+    const res = await fetch(`${BACKEND}/support/send`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: text,
-        senderId: user.id,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUserId, text }),
     });
 
-    if (!res.ok) throw new Error("Failed to send message");
+    const data = await res.json();
 
+    setThread(data.thread);
+    setMessages(data.thread.messages || []);
     setText("");
-  } catch (err) {
-    console.error(err);
+    setIsWaiting(true);
   }
-};
-
 
   return (
-   <Card className="w-full max-w-md mx-auto mt-6 shadow-lg rounded-2xl border border-border">
-  <CardContent className="p-4">
-    <h3 className="text-xl font-semibold mb-3 text-center text-primary">
-      💬 Live Chat
-    </h3>
+    <div className="max-w-2xl mx-auto p-4">
+      <h2 className="text-xl font-bold mb-2">Support Chat</h2>
 
-    {/* Messages Area */}
-    <ScrollArea className="h-64 mb-3 pr-2">
-      {messages.length === 0 && (
-        <p className="text-gray-400 text-center mt-20">No messages yet...</p>
-      )}
+      <div className="border rounded p-4 h-80 overflow-auto mb-4">
+        {messages.length === 0 && (
+          <div className="text-sm text-gray-500">
+            No messages yet — send a support message.
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            className={`mb-3 ${m.sender === "user" ? "text-right" : "text-left"}`}
+          >
+            <div
+              className={`inline-block p-2 rounded text-white ${
+                m.sender === "user" ? "bg-blue-500" : "bg-gray-500"
+              }`}
+            >
+              <div className="text-sm">{m.text}</div>
+            </div>
+            <div className="text-xs mt-1 text-gray-600">
+              {new Date(m.createdAt).toLocaleString()}
+            </div>
+          </div>
+        ))}
+        {/* Scroll target */}
+        <div ref={messagesEndRef} />
+      </div>
 
-      {messages.map((msg, i) => (
-        <div
-          key={i}
-          className={`max-w-[60%] p-2 my-1 rounded-lg text-sm shadow-sm ${
-            msg.senderId === user.id
-              ? "bg-blue-500 text-white ml-auto text-right rounded-br-none"
-              : "bg-gray-100 text-gray-800 mr-auto text-left rounded-bl-none"
-          }`}
+      <form onSubmit={handleSend} className="flex gap-2">
+        <Input
+          className="flex-1 border rounded p-2"
+          placeholder={isWaiting ? "Waiting for admin reply…" : "Write your message..."}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          disabled={isWaiting}
+        />
+        <Button variant="primary"
+          disabled={isWaiting || !text.trim()}
         >
-          {msg.message}
-        </div>
-      ))}
-    </ScrollArea>
+          Send
+        </Button>
+      </form>
 
-    {/* Input + Button */}
-    <form
-      className="flex gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        sendMessage();
-      }}
-    >
-      <Input
-        placeholder="Type your message..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-          }
-        }}
-        className="flex-1"
-      />
-      <Button type="submit" className="px-3">
-        <SendHorizonal size={18} />
-      </Button>
-    </form>
-  </CardContent>
-</Card>
+      {isWaiting && (
+        <div className="mt-2 text-sm text-yellow-600">
+          Waiting for admin reply…
+        </div>
+      )}
+    </div>
   );
 }

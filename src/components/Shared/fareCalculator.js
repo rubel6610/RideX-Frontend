@@ -21,13 +21,13 @@ async function geocodeAddress(address) {
     address
   )}`;
   const res = await fetch(url, { headers: { "User-Agent": "ride-app" } });
-  const data = await res.json();
+  const data = await res?.json();
 
-  if (!data || data.length === 0) {
+  if (!data || data?.length === 0) {
     throw new Error(`Coordinates not found for: ${address}`);
   }
 
-  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+  return { lat: parseFloat(data[0]?.lat), lon: parseFloat(data[0]?.lon) };
 }
 
 // Haversine distance (backup calculation if OSRM fails)

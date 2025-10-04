@@ -95,7 +95,7 @@ const FeaturedDrivers = () => {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-12 w-4/12 mx-auto">
+        <div className="text-center mt-12 ">
           <Button variant="primary" size="lg">
             <Award className="h-4 w-10 " />
             Become a Featured Driver

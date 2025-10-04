@@ -24,12 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
-const rideHistory = [
-  { id: "RDX-001", date: "2025-09-25", from: "Banani, Dhaka", to: "Dhanmondi, Dhaka", type: "Bike", fare: 120, driver: "John D.", driverImage: "/driver/bike offer.png", rating: 4.9, status: "Completed" },
-  { id: "RDX-002", date: "2025-09-20", from: "Uttara, Dhaka", to: "Gulshan, Dhaka", type: "Car", fare: 350, driver: "Amit H.", driverImage: "/driver/bike offer.png", rating: 4.7, status: "Completed" },
-  { id: "RDX-003", date: "2025-09-15", from: "Mirpur, Dhaka", to: "Motijheel, Dhaka", type: "CNG", fare: 200, driver: "Rahim U.", driverImage: "/driver/bike offer.png", rating: 4.8, status: "Cancelled" },
-];
+import User from "./user";
 
 // Type icon mapping
 const typeIcon = {
@@ -41,10 +36,22 @@ const typeIcon = {
 // Status badge
 const statusBadge = (status) => {
   if (status === "Completed")
-    return <Badge className="bg-green-500/20 text-green-600 border border-green-500 rounded-full px-2 md:px-3 py-1 text-xs md:text-sm">{status}</Badge>;
+    return (
+      <Badge className="bg-green-500/20 text-green-600 border border-green-500 rounded-full px-2 md:px-3 py-1 text-xs md:text-sm">
+        {status}
+      </Badge>
+    );
   if (status === "Cancelled")
-    return <Badge className="bg-red-500/20 text-red-600 border border-red-500 rounded-full px-2 md:px-3 py-1 text-xs md:text-sm">{status}</Badge>;
-  return <Badge className="rounded-full px-2 md:px-3 py-1 text-xs md:text-sm">{status}</Badge>;
+    return (
+      <Badge className="bg-red-500/20 text-red-600 border border-red-500 rounded-full px-2 md:px-3 py-1 text-xs md:text-sm">
+        {status}
+      </Badge>
+    );
+  return (
+    <Badge className="rounded-full px-2 md:px-3 py-1 text-xs md:text-sm">
+      {status}
+    </Badge>
+  );
 };
 
 // Skeleton loader
@@ -54,9 +61,13 @@ function TableSkeletonWrapper() {
       <Table className="min-w-[700px] md:min-w-full">
         <TableHeader className="bg-accent/30">
           <TableRow>
-            {["#", "Date", "From", "To", "Type", "Fare", "Driver", "Rating", "Status"].map((head, i) => (
-              <TableHead key={i} className="text-xs md:text-sm">{head}</TableHead>
-            ))}
+            {["#", "Date", "From", "To", "Type", "Fare", "Driver", "Rating", "Status"].map(
+              (head, i) => (
+                <TableHead key={i} className="text-xs md:text-sm">
+                  {head}
+                </TableHead>
+              )
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -76,27 +87,43 @@ function TableSkeletonWrapper() {
 }
 
 export default function RideHistoryPage() {
+  const [rides, setRides] = useState([]); // database থেকে আসা data
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedDate, setSelectedDate] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch rides from API
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2000);
-    return () => clearTimeout(timer);
+    const fetchRides = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/rides");
+        const data = await res.json();
+        setRides(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching rides:", error);
+        setIsLoading(false);
+      }
+    };
+    fetchRides();
   }, []);
 
-  const filtered = rideHistory.filter((ride) => {
+  // Filtering logic
+  const filtered = rides.filter((ride) => {
     const searchText = search.toLowerCase();
     const matchesSearch =
-      ride.from.toLowerCase().includes(searchText) ||
-      ride.to.toLowerCase().includes(searchText) ||
-      ride.driver.toLowerCase().includes(searchText) ||
-      ride.type.toLowerCase().includes(searchText) ||
+      ride.riderInfo?.fullName.toLowerCase().includes(searchText) ||
+      ride.vehicleType.toLowerCase().includes(searchText) ||
       ride.fare.toString().includes(searchText);
 
-    const matchesStatus = statusFilter === "all" || ride.status === statusFilter;
-    const matchesDate = !selectedDate || new Date(ride.date).toDateString() === selectedDate.toDateString();
+    const matchesStatus =
+      statusFilter === "all" || ride.status === statusFilter;
+
+    const matchesDate =
+      !selectedDate ||
+      new Date(ride.createdAt).toDateString() ===
+        selectedDate.toDateString();
 
     return matchesSearch && matchesStatus && matchesDate;
   });
@@ -106,8 +133,12 @@ export default function RideHistoryPage() {
       {/* Header */}
       <div className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-primary">My Ride History</h1>
-          <p className="text-sm md:text-base text-foreground/60 mt-1">All your completed and cancelled rides</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary">
+            My Ride History
+          </h1>
+          <p className="text-sm md:text-base text-foreground/60 mt-1">
+            All your completed and cancelled rides
+          </p>
         </div>
       </div>
 
@@ -116,7 +147,9 @@ export default function RideHistoryPage() {
         <div className="bg-background rounded-lg border border-accent p-4 flex flex-col md:flex-row gap-4 md:items-end">
           {/* Search */}
           <div className="flex-1 md:flex-none md:w-1/3">
-            <label className="text-sm font-medium text-foreground mb-2 block">Search</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Search
+            </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -131,7 +164,9 @@ export default function RideHistoryPage() {
           {/* Datepicker */}
           <div className="flex-1 md:flex-none md:w-1/3 flex justify-center ">
             <div className="w-full md:w-72 ">
-              <label className="text-sm font-medium text-foreground mb-2 block text-left">Date</label>
+              <label className="text-sm font-medium text-foreground mb-2 block text-left">
+                Date
+              </label>
               <Popover className=" bg-muted ">
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
@@ -145,9 +180,8 @@ export default function RideHistoryPage() {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    initialFocuss
                   />
-                   {selectedDate && (
+                  {selectedDate && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -156,7 +190,7 @@ export default function RideHistoryPage() {
                     >
                       Clear Date
                     </Button>
-                  )} 
+                  )}
                 </PopoverContent>
               </Popover>
             </div>
@@ -165,13 +199,20 @@ export default function RideHistoryPage() {
           {/* Status */}
           <div className="flex-1 md:flex-none md:w-1/3 flex justify-end lg:-ml-10 md:-ml-10">
             <div className="w-full md:w-48 ">
-              <label className="text-sm font-medium text-foreground mb-2 block lg:text-left">Status</label>
-              <Select className='border border-primary' value={statusFilter} onValueChange={setStatusFilter}>
+              <label className="text-sm font-medium text-foreground mb-2 block lg:text-left">
+                Status
+              </label>
+              <Select
+                className="border border-primary"
+                value={statusFilter}
+                onValueChange={setStatusFilter}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent className="border border-primary">
                   <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
                   <SelectItem value="Cancelled">Cancelled</SelectItem>
                 </SelectContent>
@@ -185,7 +226,9 @@ export default function RideHistoryPage() {
       <div className="w-full max-w-6xl bg-background rounded-lg border border-accent shadow-sm mt-4 overflow-x-auto">
         <div className="p-4 border-b border-primary flex justify-between items-center">
           <h2 className="text-lg font-semibold">All Rides</h2>
-          <div className="text-sm text-foreground/50">Showing {filtered.length} of {rideHistory.length} rides</div>
+          <div className="text-sm text-foreground/50">
+            Showing {filtered.length} of {rides.length} rides
+          </div>
         </div>
 
         {isLoading ? (
@@ -208,49 +251,61 @@ export default function RideHistoryPage() {
             <TableBody>
               {filtered.length ? (
                 filtered.map((ride, idx) => (
-                  <TableRow key={ride.id} className="hover:bg-accent/20 transition-colors">
-                    <TableCell className="text-xs md:text-sm text-muted-foreground">{idx + 1}</TableCell>
-                    <TableCell className="text-xs md:text-sm">{ride.date}</TableCell>
-                    <TableCell className="text-xs md:text-sm">{ride.from}</TableCell>
-                    <TableCell className="text-xs md:text-sm">{ride.to}</TableCell>
+                  <TableRow key={ride._id} className="hover:bg-accent/20 transition-colors">
+                    <TableCell className="text-xs md:text-sm text-muted-foreground">
+                      {idx + 1}
+                    </TableCell>
+                    <TableCell className="text-xs md:text-sm">
+                      {new Date(ride.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-xs md:text-sm">
+                      {ride.pickup?.coordinates.join(", ")}
+                    </TableCell>
+                    <TableCell className="text-xs md:text-sm">
+                      {ride.drop?.coordinates.join(", ")}
+                    </TableCell>
                     <TableCell className="text-xs md:text-sm">
                       <div className="flex items-center gap-1">
-                        {typeIcon[ride.type]} <span className="font-medium text-foreground">{ride.type}</span>
+                        {typeIcon[ride.vehicleType] || <Car className="w-5 h-5 text-primary" />}
+                        <span className="font-medium text-foreground">{ride.vehicleType}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs md:text-sm"><span className="font-semibold text-primary">৳{ride.fare}</span></TableCell>
-                   {/* driver  all details  */}
+                    <TableCell className="text-xs md:text-sm">
+                      <span className="font-semibold text-primary">৳{ride.fare}</span>
+                    </TableCell>
+                    {/* Driver details */}
                     <TableCell className="text-xs md:text-sm">
                       <Popover>
                         <PopoverTrigger asChild>
                           <div className="flex items-center gap-2 cursor-pointer">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={ride.driverImage} alt={ride.driver} />
-                              <AvatarFallback>{ride.driver.charAt(0)}</AvatarFallback>
+                              <AvatarImage src={"/driver/bike offer.png"} alt={ride.riderInfo?.fullName} />
+                              <AvatarFallback>{ride.riderInfo?.fullName?.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <span>{ride.driver}</span>
+                            <span>{ride.riderInfo?.fullName}</span>
                           </div>
                         </PopoverTrigger>
-
                         <PopoverContent className="w-60 bg-background p-4 rounded-xl shadow-md flex flex-col items-center gap-2">
                           <Avatar className="h-16 w-16">
-                            <AvatarImage src={ride.driverImage} alt={ride.driver} />
-                            <AvatarFallback>{ride.driver.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={"/driver/bike offer.png"} alt={ride.riderInfo?.fullName} />
+                            <AvatarFallback>{ride.riderInfo?.fullName?.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <h3 className="font-semibold text-lg">{ride.driver}</h3>
-                          <div className="flex items-center gap-1 text-yellow-400">
-                            {ride.rating} <Star className="w-4 h-4" />
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-2">Ride Type: {ride.type}</p>
+                          <h3 className="font-semibold text-lg">{ride.riderInfo?.fullName}</h3>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Vehicle: {ride.riderInfo?.vehicleModel}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Reg: {ride.riderInfo?.vehicleRegisterNumber}
+                          </p>
                           <p className="text-sm text-muted-foreground">Fare: ৳{ride.fare}</p>
                           <p className="text-sm text-muted-foreground">Status: {ride.status}</p>
                         </PopoverContent>
                       </Popover>
                     </TableCell>
-
                     <TableCell className="text-xs md:text-sm">
                       <span className="flex items-center gap-1 text-foreground font-medium">
-                        {ride.rating} <Star className="w-4 h-4 text-yellow-400" />
+                        {/* Database এ rating নাই তাই placeholder */}
+                        4.8 <Star className="w-4 h-4 text-yellow-400" />
                       </span>
                     </TableCell>
                     <TableCell>{statusBadge(ride.status)}</TableCell>
@@ -258,7 +313,10 @@ export default function RideHistoryPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground text-sm md:text-base">
+                  <TableCell
+                    colSpan={9}
+                    className="h-24 text-center text-muted-foreground text-sm md:text-base"
+                  >
                     No rides found. Try adjusting your search, filters, or date.
                   </TableCell>
                 </TableRow>
@@ -267,6 +325,7 @@ export default function RideHistoryPage() {
           </Table>
         )}
       </div>
+      <User />
     </div>
   );
 }
