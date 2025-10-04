@@ -1,10 +1,11 @@
-// app/components/RiderManagementClient.jsx
+
 "use client";
 
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
 import {
   Table,
   TableBody,
@@ -12,10 +13,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  CardContent
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import RiderActions from "./RiderActions";
 import { useQuery } from '@tanstack/react-query';
+
+import { TableSkeleton } from "@/app/hooks/Skeleton/TableSkeleton";
 
 async function fetchRiders() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
@@ -52,7 +56,7 @@ export default function RiderManagementClient() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading riders...</div>;
+    return <TableSkeleton/>
   }
 
   if (error) {
@@ -60,7 +64,7 @@ export default function RiderManagementClient() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 shadow-lg rounded-2xl">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-primary">Rider Management</h1>
         <Button onClick={() => refetch()} variant="outline" size="sm">

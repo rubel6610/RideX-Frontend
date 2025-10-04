@@ -155,7 +155,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
                 type="text"
                 value={pickupDisplayName}
                 onChange={(e) => handleInputChange(e.target.value, 'pickup')}
-                className="flex-1 focus:border-none focus:outline-none rounded-none text-base font-normal  focus:border-none placeholder:text-gray-500 dark:placeholder:text-gray-500 bg-transparent"
+                className="flex-1  rounded-none text-base font-normal placeholder:text-gray-500 dark:placeholder:text-gray-500 bg-transparent"
                 placeholder="Pickup location"
               />
               <div className="flex items-center justify-center w-12 h-12">
