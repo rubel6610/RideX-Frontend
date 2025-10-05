@@ -199,7 +199,7 @@ export default function RideHistoryPage() {
 
         {/* Filters */}
         <div className="w-full max-w-6xl">
-          <div className="bg-background rounded-lg border border-accent p-4 flex flex-col lg:flex-row gap-4 lg:items-end">
+          <div className="bg-background rounded-lg border border-accent p-4 flex flex-col lg:flex-row gap-14 lg:items-end">
             {/* Search */}
             <div className="lg:w-70">
               <label className="text-sm font-medium text-foreground mb-2 block">
@@ -211,7 +211,7 @@ export default function RideHistoryPage() {
                   placeholder="Search by, location, driver, type, fare..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className=""
+                  className="pl-10"
                 />
               </div>
             </div>
