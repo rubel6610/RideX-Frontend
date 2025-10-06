@@ -53,7 +53,7 @@ export default function SavedLocationsPage() {
     <div className="p-6 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-        <h2 className="text-2xl font-bold">Saved Locations</h2>
+        <h2 className="text-2xl text-primary font-bold">Saved Locations</h2>
         <div className="flex items-center gap-3">
           <Input
             placeholder="Search location..."
@@ -85,13 +85,13 @@ export default function SavedLocationsPage() {
           {filtered.map((loc) => (
             <Card
               key={loc._id}
-              className="shadow-sm hover:shadow-md transition border border-gray-200"
+              className="shadow-lg hover:shadow-lg  transition border border-primary"
             >
               <CardHeader className="flex flex-row justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <MapPin className="text-blue-600 h-5 w-5" />
+                  <MapPin className="text-primary h-5 w-5" />
                   <CardTitle className="text-lg">{loc.label}</CardTitle>
-                  <Badge variant="secondary">{loc.type}</Badge>
+                  <Badge className='text-white dark:text-black bg-primary'>{loc.type}</Badge>
                 </div>
                 {/* Actions Menu */}
                 <DropdownMenu>
@@ -115,7 +115,7 @@ export default function SavedLocationsPage() {
               </CardHeader>
 
               <CardContent>
-                <p className="text-sm text-gray-700">{loc.address}</p>
+                <p className="text-sm text-gray-500">{loc.address}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   Lat: {loc.coordinates[1]} | Lng: {loc.coordinates[0]}
                 </p>

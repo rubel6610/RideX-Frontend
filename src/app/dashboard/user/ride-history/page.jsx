@@ -184,7 +184,7 @@ export default function RideHistoryPage() {
   return (
     <TooltipProvider>
       {/*  className="space-y-6 w-7xl  lg:w-full md:w-12/12 min-h-screen bg-accent/10 flex flex-col items-center py-6 px-2" */}
-      <div className="max-w-screen mx-auto lg:w-full md:w-full px-4">
+      <div className="max-w-screen mx-auto lg:w-full md:w-full -ml-5 px-2">
         {/* Header */}
         <div className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
           <div>
@@ -198,8 +198,8 @@ export default function RideHistoryPage() {
         </div>
 
         {/* Filters */}
-        <div className="w-full max-w-6xl">
-          <div className="bg-background rounded-lg border border-accent p-4 flex flex-col lg:flex-row gap-14 lg:items-end">
+        <div className="w-full ml-0 max-w-6xl">
+          <div className="bg-background rounded-lg border border-accent p-4 flex flex-col lg:flex-row gap-10 lg:items-end">
             {/* Search */}
             <div className="lg:w-70">
               <label className="text-sm font-medium text-foreground mb-2 block">
@@ -217,44 +217,47 @@ export default function RideHistoryPage() {
             </div>
 
             {/* Datepicker */}
-            <div className="">
-              <div className="w-full lg:w-70 ">
-                <label className="text-sm font-medium text-foreground mb-2 block text-left">
-                  Date
-                </label>
-                <Popover className=" bg-muted">
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {selectedDate
-                        ? selectedDate.toDateString()
-                        : "Select Date"}
-                      <CalendarIcon className="ml-2 h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto  rounded-2xl -p-7  space-y-2">
-                    <Calendar
-                      className="w-70 bg-muted rounded-2xl"
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                    />
-                    {selectedDate && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedDate(null)}
-                        className="w-full  text-red-500 hover:bg-red-100"
-                      >
-                        Clear Date
-                      </Button>
-                    )}
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
+         <div className="">
+  <div className="w-full lg:w-70">
+    <label className="text-sm font-medium text-foreground mb-2 block text-left">
+      Date
+    </label>
+    <Popover className="">
+      <PopoverTrigger asChild>
+       
+        <div className=" border border-primary rounded-md focus:ring-2 focus:ring-primary/50 focus:outline-none">
+           <Button
+          variant="outline"
+          className="w-full justify-between border-1 border-primary rounded-md focus:ring-2 focus:ring-primary/50 focus:outline-none"
+        >
+          {selectedDate ? selectedDate.toDateString() : "Select Date"}
+          <CalendarIcon className="ml-2 h-4 w-4" />
+        </Button>
+        </div>
+       
+      </PopoverTrigger>
+      <PopoverContent className="w-auto rounded-2xl bg-background border border-primary p-2 space-y-2">
+        <Calendar
+          className="w-70 rounded-2xl"
+          mode="single"
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+        />
+        {selectedDate && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedDate(null)}
+            className="w-full text-red-500 hover:bg-red-100"
+          >
+            Clear Date
+          </Button>
+        )}
+      </PopoverContent>
+    </Popover>
+  </div>
+</div>
+
 
             {/* Status */}
             <div className="lg:w-70 md:w-full">
@@ -292,7 +295,7 @@ export default function RideHistoryPage() {
           {isLoading ? (
             <TableSkeletonWrapper />
           ) : (
-            <Table className="min-w-[700px] md:min-w-full custom-scrollbar">
+            <Table className="min-w-[700px] md:min-w-full rounded-none custom-scrollbar">
               <TableHeader className="bg-accent/30">
                 <TableRow>
                   <TableHead className="text-left text-xs md:text-sm text-muted-foreground">
