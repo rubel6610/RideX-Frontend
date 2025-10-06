@@ -33,7 +33,7 @@ const BookARide = () => {
   const {user}=useAuth();
 
   const router = useRouter();
-  const baseUrl = process?.env?.NEXT_PUBLIC_SERVER_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
   // Get current location and set as default pickup
   useEffect(() => {
@@ -44,22 +44,24 @@ const BookARide = () => {
         if (savedCurrentLocation) {
           const location = JSON.parse(savedCurrentLocation);
           setCurrentLocation(location);
-          // Don't set pickup by default
+          setPickup(location.coordinates);
+          setPickupName(location.name);
+          setIsCurrentLocationActive(true);
           return;
         }
 
         // Get current location from browser
         if (navigator.geolocation) {
-          navigator?.geolocation.getCurrentPosition(
+          navigator.geolocation.getCurrentPosition(
             async (position) => {
-              const { latitude, longitude } = position?.coords;
+              const { latitude, longitude } = position.coords;
               try {
                 // Reverse geocode to get location name
                 const response = await fetch(
                   `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
                 );
-                const data = await response?.json();
-                const locationName = data?.display_name || `Current Location (${latitude?.toFixed(4)}, ${longitude?.toFixed(4)})`;
+                const data = await response.json();
+                const locationName = data.display_name || `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
                 
                 const locationData = {
                   coordinates: `${latitude},${longitude}`,
@@ -69,7 +71,9 @@ const BookARide = () => {
                 };
                 
                 setCurrentLocation(locationData);
-                // Don't set pickup by default
+                setPickup(locationData.coordinates);
+                setPickupName(locationData.name);
+                setIsCurrentLocationActive(true);
                 
                 // Save to localStorage
                 localStorage.setItem('currentLocation', JSON.stringify(locationData));
@@ -78,12 +82,14 @@ const BookARide = () => {
                 // Fallback location
                 const fallbackLocation = {
                   coordinates: `${latitude},${longitude}`,
-                  name: `Current Location (${latitude?.toFixed(4)}, ${longitude?.toFixed(4)})`,
+                  name: `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
                   lat: latitude,
                   lng: longitude
                 };
                 setCurrentLocation(fallbackLocation);
-                // Don't set pickup by default
+                setPickup(fallbackLocation.coordinates);
+                setPickupName(fallbackLocation.name);
+                setIsCurrentLocationActive(true);
                 localStorage.setItem('currentLocation', JSON.stringify(fallbackLocation));
               }
             },
@@ -97,7 +103,9 @@ const BookARide = () => {
                 lng: 90.4125
               };
               setCurrentLocation(defaultLocation);
-              // Don't set pickup by default
+              setPickup(defaultLocation.coordinates);
+              setPickupName(defaultLocation.name);
+              setIsCurrentLocationActive(true);
               localStorage.setItem('currentLocation', JSON.stringify(defaultLocation));
             }
           );
@@ -290,7 +298,7 @@ const BookARide = () => {
           router.push(`/dashboard/user/book-a-ride/searching?${params}`);
         }, 2000);
       } else {
-        throw new Error(result.message || `Server error: ${response?.status} ${response?.statusText}`);
+        throw new Error(result.message || `Server error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Ride request error:', error);
@@ -320,7 +328,7 @@ const BookARide = () => {
   };
 
   return (
-    <div className="bg-accent/20 p-4">
+    <div className="min-h-screen bg-accent/20 p-4">
       <style jsx>{`
         .hidden-scrollbar {
           scrollbar-width: none; /* Firefox */
@@ -330,10 +338,10 @@ const BookARide = () => {
           display: none; /* WebKit */
         }
       `}</style>
-      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 h-screen">
         
         {/* Left Column - Main Booking Form */}
-        <div className="space-y-4 pr-2 hidden-scrollbar h-fit">
+        <div className="space-y-4 overflow-y-auto pr-2 hidden-scrollbar">
 
           {/* Mode Selector */}
           <ModeSelector mode={mode} setMode={setMode} />
@@ -385,8 +393,6 @@ const BookARide = () => {
           <ConsolidatedRideCard 
             pickup={pickup}
             drop={drop}
-            pickupName={pickupName}
-            dropName={dropName}
             selectedType={selectedType}
             rideData={rideData}
             onRequestRide={handleRideRequest}
@@ -395,7 +401,7 @@ const BookARide = () => {
           </div>
 
         {/* Right Column - Interactive Map */}
-        <div className="h-fit bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
           <RideMap 
             pickup={pickup}
             drop={drop}

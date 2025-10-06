@@ -33,8 +33,8 @@ const ModeSelector = ({ mode, setMode }) => {
             onClick={() => setMode(modeOption.id)}
             className={`h-auto p-4 justify-start gap-3 ${
               mode === modeOption.id
-                ? "border border-border bg-primary/40 text-foreground"
-                : "text-primary-foreground border-border "
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border/20 hover:border-primary/40"
             }`}
           >
             <div className="flex items-center gap-3 w-full">
@@ -43,8 +43,8 @@ const ModeSelector = ({ mode, setMode }) => {
                 <div className="font-semibold text-sm">{modeOption.label}</div>
                 <div className={`text-xs ${
                   mode === modeOption.id 
-                    ? "text-foreground" 
-                    : "text-primary-foreground"
+                    ? "text-primary-foreground/80" 
+                    : "text-muted-foreground"
                 }`}>
                   {modeOption.description}
                 </div>
