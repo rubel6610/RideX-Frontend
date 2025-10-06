@@ -33,7 +33,25 @@ export default function DashboardLayout({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch user data");
+        const data = await res.json();
+        setUserData(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUserData();
+  }, [user?.email]);
 
   const userRole = "rider";
 
