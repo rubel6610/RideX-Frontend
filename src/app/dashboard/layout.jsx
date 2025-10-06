@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const userRole = "admin";
+  const userRole = "rider";
 
   return (
     <ProtectedRoute>
