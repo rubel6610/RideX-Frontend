@@ -41,15 +41,6 @@ const dropoffIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-// Current location icon
-const currentLocationIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
 
 // Map click handler component
 const MapClickHandler = ({ onMapClick }) => {
@@ -218,7 +209,7 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, currentLocation, isCu
   }
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-[750px] relative">
       <MapContainer
         center={center}
         zoom={zoom}
@@ -232,23 +223,6 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, currentLocation, isCu
         
         <ChangeView center={center} zoom={zoom} />
         <MapClickHandler onMapClick={handleMapClick} />
-        
-        {/* Current Location Marker */}
-        {currentLocation && (
-          <Marker
-            position={[currentLocation.lat, currentLocation.lng]}
-            icon={currentLocationIcon}
-          >
-            <Popup>
-              <div className="text-center">
-                <div className="w-4 h-4 rounded-full mx-auto mb-1 bg-green-500"></div>
-                <p className="font-semibold text-sm">Current Location</p>
-                <p className="text-xs text-gray-600">{currentLocation.name}</p>
-                <p className="text-xs text-gray-500 mt-1">Always visible on map</p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
         
         {/* Pickup Marker */}
         {parsedPickupCoords && parsedPickupCoords[0] && parsedPickupCoords[1] && 
@@ -352,23 +326,6 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, currentLocation, isCu
         </p>
       </div>
 
-      {/* Current Location Button */}
-      {currentLocation && (
-        <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
-          <button
-            onClick={onCurrentLocationClick}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold transition-all duration-200 ${
-              isCurrentLocationActive
-                ? 'bg-green-500 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
-            }`}
-            title="Click to set current location as pickup"
-          >
-            <MapPinIcon className="w-4 h-4" />
-            <span>Current</span>
-          </button>
-        </div>
-      )}
 
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
@@ -381,12 +338,6 @@ const RideMap = ({ pickup, drop, pickupCoords, dropCoords, currentLocation, isCu
             <div className="w-4 h-4 bg-blue-500 rounded-full shadow-sm"></div>
             <span className="text-gray-700">Drop</span>
           </div>
-          {currentLocation && (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded-full shadow-sm"></div>
-              <span className="text-gray-700">Current</span>
-            </div>
-          )}
         </div>
       </div>
     </div>

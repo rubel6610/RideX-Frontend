@@ -5,6 +5,8 @@ import { Bike, BusFront, Car, MapPin, Navigation, Clock, Star, Loader2 } from "l
 const ConsolidatedRideCard = ({ 
   pickup, 
   drop, 
+  pickupName,
+  dropName,
   selectedType, 
   rideData, 
   onRequestRide, 
@@ -67,14 +69,14 @@ const ConsolidatedRideCard = ({
           <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
           <div className="text-sm">
             <div className="font-semibold text-foreground">Pickup</div>
-            <div className="text-muted-foreground text-xs truncate">{pickup}</div>
+            <div className="text-muted-foreground text-xs truncate">{pickupName || pickup}</div>
           </div>
         </div>
         <div className="flex items-start gap-2">
           <Navigation className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
           <div className="text-sm">
             <div className="font-semibold text-foreground">Drop</div>
-            <div className="text-muted-foreground text-xs truncate">{drop}</div>
+            <div className="text-muted-foreground text-xs truncate">{dropName || drop}</div>
           </div>
         </div>
       </div>
