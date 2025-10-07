@@ -12,7 +12,6 @@ export default function BecomeRiderPage() {
   const [licensePreview, setLicensePreview] = useState(null);
   const [licenseFileName, setLicenseFileName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loggedUser, setLoggedUser] = useState(null)
   const { user } = useAuth();
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export default function BecomeRiderPage() {
         return;
       }
 
-      setLoggedUser(data);
+      
 
       // Set default values for form fields except emergency/vehicle/license
       setValue("fullName", data.fullName || "");
@@ -49,7 +48,7 @@ export default function BecomeRiderPage() {
 
   const onSubmit = async (data) => {
     try {
-      if (!loggedUser) return alert("User not logged in");
+      if (!user) return alert("User not logged in");
 
       // Age check
       const dob = new Date(data.dob);
@@ -60,11 +59,11 @@ export default function BecomeRiderPage() {
         return;
       }
 
-      const baseUrl = "http://localhost:5000";
+     
 
       // Prepare payload
       const payload = {
-        userId: loggedUser._id,
+        userId: user.id,
         present_address: {
           village: data.present_address.village,
           post: data.present_address.post,
@@ -78,7 +77,7 @@ export default function BecomeRiderPage() {
         password: data.password,
       };
 
-      const res = await fetch(`${baseUrl}/api/rider/become-rider`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/become-rider`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

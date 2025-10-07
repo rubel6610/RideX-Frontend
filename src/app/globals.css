@@ -19,36 +19,36 @@
 :root {
   --background: #ffffff;
   --foreground: #09090b;
-  --card: #dbf7c9;
+  --card: rgb(43, 127, 255, 0.05);
   --card-foreground: #09090b;
   --popover: #ffffff;
   --popover-foreground: #09090b;
-  --primary: #87e64b;
+  --primary: #2B7FFF;
   --primary-foreground: #1a3a05;
-  --secondary: #dbf7c9;
+  --secondary: lab(79.78% -41.19 48.42);
   --secondary-foreground: #09090b;
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
-  --accent: #dbf7c9;
+  --accent: #2b80ff86;
   --accent-foreground: #09090b;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #e4e4e7;
+  --border: #2b80ff86;
   --input: #e4e4e7;
-  --ring: #87e64b;
-  --chart-1: #87e64b;
-  --chart-2: #6bcf32;
+  --ring: #2B7FFF;
+  --chart-1: #2b80ffc2;
+  --chart-2: #2b80ffa1;
   --chart-3: #398212;
-  --chart-4: #dbf7c9;
-  --chart-5: #1a3a05;
+  --chart-4: #7533f0;
+  --chart-5: #8114ca;
   --sidebar: #dbf7c9;
   --sidebar-foreground: #09090b;
-  --sidebar-primary: #87e64b;
+  --sidebar-primary: #2B7FFF;
   --sidebar-primary-foreground: #1a3a05;
-  --sidebar-accent: #87e64b;
+  --sidebar-accent: #2B7FFF;
   --sidebar-accent-foreground: #09090b;
   --sidebar-border: #e4e4e7;
-  --sidebar-ring: #87e64b;
+  --sidebar-ring: #2B7FFF;
   --font-sans: Roboto, ui-sans-serif, sans-serif, system-ui;
   --font-serif: serif;
   --font-mono: monospace;
@@ -66,38 +66,38 @@
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #1e1e24;
+  --background: #02131C;
+  --foreground: #f5f6f7;
+  --card: rgb(0, 182, 166, 0.05);
   --card-foreground: #fafafa;
   --popover: #09090b;
   --popover-foreground: #fafafa;
-  --primary: #87e64b;
-  --primary-foreground: #87e64b;
+  --primary: #00B6A6;
+  --primary-foreground: #00B6A6;
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
   --muted: #27272a;
   --muted-foreground: #a1a1aa;
-  --accent: #27272a;
+  --accent: #00b6a711;
   --accent-foreground: #fafafa;
   --destructive: #7f1d1d;
   --destructive-foreground: #f8fafc;
   --border: #27272a;
   --input: #27272a;
-  --ring: #87e64b;
-  --chart-1: #87e64b;
-  --chart-2: #a3f37a;
-  --chart-3: #c0f8a5;
-  --chart-4: #d8fbc7;
-  --chart-5: #edfde4;
-  --sidebar: #121214;
+  --ring: #00B6A6;
+  --chart-1: #12d3c3;
+  --chart-2: #1ee6d5;
+  --chart-3: #7f1d1d;
+  --chart-4: #ac3131;
+  --chart-5: #a1a1aa;
+  --sidebar: #9797b8;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #87e64b;
+  --sidebar-primary: #00B6A6;
   --sidebar-primary-foreground: #1a3a05;
   --sidebar-accent: #27272a;
   --sidebar-accent-foreground: #fafafa;
   --sidebar-border: #27272a;
-  --sidebar-ring: #87e64b;
+  --sidebar-ring: #00B6A6;
   --font-sans: Roboto, ui-sans-serif, sans-serif, system-ui;
   --font-serif: serif;
   --font-mono: monospace;
@@ -184,6 +184,31 @@ body {
 .scrollbar-hidden {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+/* Custom scrollbar styling with dark/light mode support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  opacity: 0.8;
 }
 /* @layer base {
   * {

@@ -118,7 +118,7 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
     formData.append("image", file);
 
     const res = await fetch(
-      process.env.NEXT_PUBLIC_IMGBB_KEY,
+      process.env.IMGBB_KEY,
       {
         method: "POST",
         body: formData,

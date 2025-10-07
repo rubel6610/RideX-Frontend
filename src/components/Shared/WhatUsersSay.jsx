@@ -42,7 +42,7 @@ function WhatUsersSay() {
         <Image
           src={PassengerCar}
           alt="Riders"
-          className="rounded-2xl w-full object-cover shadow-lg"
+          className="rounded-2xl w-full object-cover shadow-lg border-2 border-border"
         />
         <div className="p-6 rounded-2xl shadow bg-background">
           <p className="text-muted-foreground italic">

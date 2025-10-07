@@ -2,46 +2,15 @@
 
 import { useAuth } from '@/app/hooks/AuthProvider';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+
 import { CheckCircle2, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import EditProfilePopup from './Components/EditProfilePopup';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ProfileSkeleton } from '@/app/hooks/Skeleton/ProfileSkeleton';
 
-// Loader for profile skeleton
-function ProfileSkeleton() {
-  return (
-    <div className="max-w-4xl mx-auto bg-background rounded-2xl shadow-lg p-0 border border-border/20 animate-pulse ">
-      <div className="flex flex-col items-center pt-10 pb-6 bg-background rounded-t-2xl">
-        <Skeleton className="w-28 h-28 rounded-full mb-4" />
-        <Skeleton className="h-8 w-48 mb-2 rounded" />
-        <Skeleton className="h-5 w-32 mb-2 rounded" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 py-10">
-        <div>
-          <Skeleton className="h-6 w-40 mb-4 rounded" />
-          <div className="bg-accent/10 rounded-xl border border-border/10 divide-y divide-border/10">
-            {[...Array(7)].map((_, i) => (
-              <Skeleton key={i} className="h-6 w-full my-3 rounded" />
-            ))}
-          </div>
-        </div>
-        <div>
-          <Skeleton className="h-6 w-40 mb-4 rounded" />
-          <div className="bg-accent/10 rounded-xl border border-border/10 divide-y divide-border/10">
-            {[...Array(7)].map((_, i) => (
-              <Skeleton key={i} className="h-6 w-full my-3 rounded" />
-            ))}
-          </div>
-        </div>
-      </div>
-      <div className="flex justify-end gap-4 px-8 pb-8">
-        <Skeleton className="h-10 w-32 rounded" />
-        <Skeleton className="h-10 w-32 rounded" />
-      </div>
-    </div>
-  );
-}
+
+
 
 // Reusable detail row
 function DetailRow({ label, value }) {
@@ -178,7 +147,7 @@ const MyProfile = () => {
               <DetailRow
                 label="Account Verification"
                 value={
-                  profile.isVerified === 'approved' ? (
+                  profile.isVerified === "verified" ? (
                     <span className="px-2 py-0.5 rounded bg-success/10 text-success text-xs font-semibold border border-success/30">
                       Verified
                     </span>
