@@ -33,7 +33,7 @@ const BookARide = () => {
   const {user}=useAuth();
 
   const router = useRouter();
-  const baseUrl = process?.env?.NEXT_PUBLIC_SERVER_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
   // Get current location and set as default pickup
   useEffect(() => {
@@ -44,24 +44,24 @@ const BookARide = () => {
         if (savedCurrentLocation) {
           const location = JSON.parse(savedCurrentLocation);
           setCurrentLocation(location);
-          setPickup(location?.coordinates);
-          setPickupName(location?.name);
+          setPickup(location.coordinates);
+          setPickupName(location.name);
           setIsCurrentLocationActive(true);
           return;
         }
 
         // Get current location from browser
         if (navigator.geolocation) {
-          navigator?.geolocation.getCurrentPosition(
+          navigator.geolocation.getCurrentPosition(
             async (position) => {
-              const { latitude, longitude } = position?.coords;
+              const { latitude, longitude } = position.coords;
               try {
                 // Reverse geocode to get location name
                 const response = await fetch(
                   `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
                 );
-                const data = await response?.json();
-                const locationName = data?.display_name || `Current Location (${latitude?.toFixed(4)}, ${longitude?.toFixed(4)})`;
+                const data = await response.json();
+                const locationName = data.display_name || `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
                 
                 const locationData = {
                   coordinates: `${latitude},${longitude}`,
@@ -71,8 +71,8 @@ const BookARide = () => {
                 };
                 
                 setCurrentLocation(locationData);
-                setPickup(locationData?.coordinates);
-                setPickupName(locationData?.name);
+                setPickup(locationData.coordinates);
+                setPickupName(locationData.name);
                 setIsCurrentLocationActive(true);
                 
                 // Save to localStorage
@@ -82,13 +82,13 @@ const BookARide = () => {
                 // Fallback location
                 const fallbackLocation = {
                   coordinates: `${latitude},${longitude}`,
-                  name: `Current Location (${latitude?.toFixed(4)}, ${longitude?.toFixed(4)})`,
+                  name: `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
                   lat: latitude,
                   lng: longitude
                 };
                 setCurrentLocation(fallbackLocation);
-                setPickup(fallbackLocation?.coordinates);
-                setPickupName(fallbackLocation?.name);
+                setPickup(fallbackLocation.coordinates);
+                setPickupName(fallbackLocation.name);
                 setIsCurrentLocationActive(true);
                 localStorage.setItem('currentLocation', JSON.stringify(fallbackLocation));
               }
@@ -298,7 +298,7 @@ const BookARide = () => {
           router.push(`/dashboard/user/book-a-ride/searching?${params}`);
         }, 2000);
       } else {
-        throw new Error(result.message || `Server error: ${response?.status} ${response?.statusText}`);
+        throw new Error(result.message || `Server error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Ride request error:', error);

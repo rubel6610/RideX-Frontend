@@ -71,7 +71,7 @@ const AvailableRidesPage = () => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-accept`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rideId, riderId}),
+        body: JSON.stringify({ rideId, riderId }),
       });
       console.log(res)
       setRides((prev) => prev.map(r => r._id === rideId ? { ...r, status: "accepted" } : r));

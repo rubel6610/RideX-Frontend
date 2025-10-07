@@ -30,8 +30,10 @@ export default function OngoingRidePage() {
 
     return (
         <div className="p-4  max-w-4xl mx-auto space-y-4">
-            {/* Current Trip Info */}
+
             <div className="p-6 shadow-md rounded-2xl hover:border-primary border border-border bg-accent/50">
+
+                {/* Current Trip Info */}
                 <CardHeader>
                     <CardTitle className="text-lg">Current Trip Info</CardTitle>
                 </CardHeader>
@@ -52,45 +54,47 @@ export default function OngoingRidePage() {
                         <span className="font-medium">Status:</span>{" "}
                         <span
                             className={`px-2 py-1 rounded text-xs ${ride.status === "completed"
-                                ? "bg-green-100 text-green-700"
+                                ? "bg-sidebar/40 text-primary"
                                 : ride.status === "cancelled"
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-blue-100 text-blue-700"
+                                    ? "bg-destructive/40"
+                                    : "bg-secondary"
                                 }`}
                         >
                             {ride.status}
                         </span>
                     </p>
                 </CardContent>
-            </div>
 
-            {/* Fare Details */}
-            <div  className="p-6 shadow-md rounded-2xl hover:border-primary border border-border bg-accent/50">
-                <CardHeader>
-                    <CardTitle className="text-lg">Fare Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                    <p className="flex justify-between">
-                        <span>Base Fare</span>
-                        <span>${ride.fare.base}</span>
-                    </p>
-                    <p className="flex justify-between">
-                        <span>Distance Fare</span>
-                        <span>${ride.fare.distance}</span>
-                    </p>
-                    <p className="flex justify-between font-medium">
-                        <span>Total</span>
-                        <span>${ride.fare.total}</span>
-                    </p>
-                    <p className="flex justify-between text-red-600">
-                        <span>Commission</span>
-                        <span>-${ride.fare.commission}</span>
-                    </p>
-                    <p className="flex justify-between font-bold text-green-600">
-                        <span>Earning</span>
-                        <span>${ride.fare.total - ride.fare.commission}</span>
-                    </p>
-                </CardContent>
+                <div className="border-t border-border"></div>
+                {/* Fare Details */}
+                <div>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Fare Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                        <p className="flex justify-between">
+                            <span>Base Fare</span>
+                            <span>${ride.fare.base}</span>
+                        </p>
+                        <p className="flex justify-between">
+                            <span>Distance Fare</span>
+                            <span>${ride.fare.distance}</span>
+                        </p>
+                        <p className="flex justify-between font-medium">
+                            <span>Total</span>
+                            <span>${ride.fare.total}</span>
+                        </p>
+                        <p className="flex justify-between text-red-600">
+                            <span>Commission</span>
+                            <span>-${ride.fare.commission}</span>
+                        </p>
+                        <p className="flex justify-between font-bold text-green-600">
+                            <span>Earning</span>
+                            <span>${ride.fare.total - ride.fare.commission}</span>
+                        </p>
+                    </CardContent>
+                </div>
+
             </div>
 
             {/* Passenger Info (Modal) */}
@@ -145,6 +149,14 @@ export default function OngoingRidePage() {
                         >
                             <XCircle className="w-4 h-4" /> Cancel Ride
                         </Button>
+                    )}
+
+                    {ride.status == "cancelled" && (
+                        <button
+                            className="bg-destructive flex gap-1 py-2 px-4 rounded-md items-center cursor-not-allowed"
+                        >
+                            <XCircle className="w-4 h-4" /> Cancelled
+                        </button>
                     )}
                 </div>
             </div>
