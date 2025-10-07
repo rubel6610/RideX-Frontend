@@ -35,7 +35,8 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const userRole = "admin";
+  
+  const userRole = user?.role;
 
   return (
     <ProtectedRoute>
@@ -49,7 +50,7 @@ export default function DashboardLayout({ children }) {
 
         {/* Sidebar */}
         <aside
-          className={`fixed top-0 left-0 z-50 h-full flex flex-col justify-between transition-all duration-300 bg-background border-r border-border py-4 px-4 text-foreground ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} lg:static ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
+          className={`fixed top-0 left-0 z-50 h-full flex flex-col justify-between transition-all duration-300 bg-accent border-r border-border py-4 px-4 text-foreground ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} lg:static ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
 `}>
           <div>
             {/* Logo + Close btn */}

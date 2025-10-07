@@ -10,7 +10,7 @@ const UserDashboard = () => {
                   <Link
                     href="/dashboard/user/book-a-ride"
                     className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${
-                      usePathname === "/dashboard/user/book-a-ride"
+                      pathname === "/dashboard/user/book-a-ride"
                         ? "bg-primary/90 text-background"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
                     }`}
