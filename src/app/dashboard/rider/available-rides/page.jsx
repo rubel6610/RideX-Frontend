@@ -1,142 +1,180 @@
 "use client";
-
-import React, { useState } from "react";
-import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
-import axios from "axios";
+import { Badge } from "@/components/ui/badge";
+import NoRide from "./components/NoRide";
 import { useAuth } from "@/app/hooks/AuthProvider";
-import { useQuery } from "@tanstack/react-query";
 
-const PassengerDummyData = [
-  {
-    "_id": 1,
-    "passengerName": "John Doe",
-    "from": "Banani, Dhaka",
-    "to": "Gulshan, Dhaka",
-    "distance": "8 km",
-    "fare": "$5"
-  },
-  {
-    "_id": 2,
-    "passengerName": "Sara Khan",
-    "from": "Dhanmondi, Dhaka",
-    "to": "Motijheel, Dhaka",
-    "distance": "12 km",
-    "fare": "$8"
-  },
-  {
-    "_id": 3,
-    "passengerName": "Alex Smith",
-    "from": "Uttara, Dhaka",
-    "to": "Mirpur, Dhaka",
-    "distance": "10 km",
-    "fare": "$6"
-  },
-  {
-    "_id": 4,
-    "passengerName": "Nadia Rahman",
-    "from": "Tejgaon, Dhaka",
-    "to": "Jatrabari, Dhaka",
-    "distance": "15 km",
-    "fare": "$10"
-  }
-]
-
-export default function AvailableRidesPage() {
-
-  const { user } = useAuth();
-  const [rides, setRides] = useState(PassengerDummyData || []);
-  console.log(user);
-
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
-
-
-  // Fetch profile with React Query
-  // const { data: ridersData, isLoading, isError, error } = useQuery({
-  //   queryKey: ['riders-data', user?.email],
-  //   queryFn: async () => {
-  //     const res = await axios(`${baseUrl}/api/riders`);
-  //     const data = await res.json();
-  //     return Array.isArray(data)
-  //       ? data.find((u) => u.email === user?.email)
-  //       : data.email === user?.email
-  //         ? data
-  //         : null;
-  //   },
-  //   enabled: !!user?.email,
-  // });
-
-  // Placeholder functions for buttons
-  const handleConfirm = (rideId) => {
-    console.log(`Confirm clicked for ride ${rideId}`);
-    // এখানে তুমি API call বা state update করতে পারবে
-  };
-
-  const handleCancel = (rideId) => {
-    console.log(`Cancel clicked for ride ${rideId}`);
-    // এখানে তুমি API call বা state update করতে পারবে
-  };
-
-  // if (isError) return <div className="text-red-500">Error: {error.message}</div>;
-  // if (!ridersData) return <div>No profile data found.</div>;
-
+function RideModal({ open, onClose, ride }) {
+  if (!open || !ride) return null;
   return (
-    <div className="space-y-4">
-      {/* Heading + Spinner */}
-      <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100 uppercase">
-        Available Rides
-      </h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ">
-        {rides.map((ride) => (
-          <div
-            key={ride._id}
-            className="shadow-md rounded-2xl hover:border-primary border border-border bg-accent/50"
-          >
-            {/* passenger info  */}
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <User className="w-5 h-5 text-primary" /> {ride.passengerName}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <p>
-                <strong>From:</strong> {ride.from}
-              </p>
-              <p>
-                <strong>To:</strong> {ride.to}
-              </p>
-              <p>
-                <strong>Distance:</strong> {ride.distance}
-              </p>
-              <p>
-                <strong>Fare:</strong> {ride.fare}
-              </p>
-            </CardContent>
-
-            {/* action button  */}
-            <CardFooter className="flex gap-2">
-              <Button
-                variant="default"
-                className="flex-1 cursor-pointer"
-                onClick={() => handleConfirm(ride._id)}
-              >
-                Confirm
-              </Button>
-              <Button
-                variant="destructive"
-                className="flex-1 cursor-pointer"
-                onClick={() => handleCancel(ride._id)}
-              >
-                Cancel
-              </Button>
-            </CardFooter>
-          </div>
-        ))}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs">
+      <div className="bg-[var(--color-background)] text-[var(--color-card-foreground)] rounded-xl shadow-lg w-full max-w-md p-6">
+        <h3 className="text-xl font-semibold mb-4">Ride Details</h3>
+        <div className="space-y-2 text-sm">
+          <p><strong>Pickup:</strong> {ride.pickup.address || JSON.stringify(ride.pickup)}</p>
+          <p><strong>Drop:</strong> {ride.drop.address || JSON.stringify(ride.drop)}</p>
+          <p><strong>Fare:</strong> {ride.fare} ৳</p>
+          <p><strong>Vehicle:</strong> {ride.vehicleType}</p>
+          <p><strong>Status:</strong> {ride.status}</p>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </div>
       </div>
-
     </div>
-  )
+  );
 }
 
+const AvailableRidesPage = () => {
+  const { user } = useAuth();
+  const [rides, setRides] = useState([]);
+  const [riderInfo, setRiderInfo] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRide, setSelectedRide] = useState(null);
+
+  // fetch rides once we have token + user
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchRides = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rides/${user.id}`);
+        const data = await res.json();
+
+        setRides(data.rides);
+        setRiderInfo(data.riderInfo);
+      } catch (err) {
+        console.error(err);
+        setRides([]);
+        setRiderInfo([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRides();
+  }, [user]);
+
+  const handleAccept = async (rideId, riderId) => {
+    console.log(rideId, riderId)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rideId, riderId }),
+      });
+      console.log(res)
+      setRides((prev) => prev.map(r => r._id === rideId ? { ...r, status: "accepted" } : r));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReject = async (rideId, riderId) => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rideId, riderId }),
+      });
+      setRides((prev) => prev.filter(r => r._id !== rideId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCancel = async (rideId, riderId) => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rideId, riderId }),
+      });
+      setRides((prev) => prev.map(r => r._id === rideId ? { ...r, status: "cancelled" } : r));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "pending":
+        return <Badge className="bg-[var(--color-accent)]">{status}</Badge>;
+      case "accepted":
+        return <Badge className="bg-[var(--color-primary)]">{status}</Badge>;
+      case "rejected":
+        return <Badge className="bg-[var(--color-destructive)]">{status}</Badge>;
+      case "cancelled":
+        return <Badge variant="outline">{status}</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading rides...</div>;
+  }
+
+  if (rides?.length == 0) {
+    return <NoRide />;
+  }
+
+  return (
+    <div className="p-4">
+      <h2 className="text-lg font-semibold mb-4">Ride Requests</h2>
+      <div className="overflow-hidden rounded-xl shadow-md border border-[var(--color-border)]">
+        <Table className="text-[var(--color-foreground)] bg-[var(--color-background)]">
+          <TableHeader className="bg-[var(--color-card)]">
+            <TableRow>
+              <TableHead>Pickup</TableHead>
+              <TableHead>Drop</TableHead>
+              <TableHead>Fare</TableHead>
+              <TableHead>Vehicle</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rides?.map((ride, idx) => (
+              <TableRow
+                key={ride._id}
+                className={`transition-colors hover:bg-[var(--color-card)] ${idx % 2 === 0 ? "bg-[var(--color-muted)]/30" : ""}`}
+              >
+                <TableCell>{ride.pickup.address || JSON.stringify(ride.pickup)}</TableCell>
+                <TableCell>{ride.drop.address || JSON.stringify(ride.drop)}</TableCell>
+                <TableCell>{ride.fare} ৳</TableCell>
+                <TableCell>{ride.vehicleType}</TableCell>
+                <TableCell>{getStatusBadge(ride.status)}</TableCell>
+                <TableCell className="text-right space-x-2">
+                  <Button size="sm" variant="secondary" onClick={() => setSelectedRide(ride)}>Details</Button>
+                  {ride.status === "pending" && (
+                    <>
+                      <Button size="sm" onClick={() => handleAccept(ride._id, ride.riderId)}>Accept</Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleReject(ride._id, ride.riderId)}>Reject</Button>
+                    </>
+                  )}
+                  {ride.status === "accepted" && (
+                    <Button size="sm" variant="outline" onClick={() => handleCancel(ride._id, ride.riderId)}>Cancel</Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <RideModal open={!!selectedRide} ride={selectedRide} onClose={() => setSelectedRide(null)} />
+    </div>
+  );
+};
+
+export default AvailableRidesPage;

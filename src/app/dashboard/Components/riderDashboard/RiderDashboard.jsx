@@ -9,7 +9,7 @@ const RiderDashboard = () => {
     <>
       <Link
         href="/dashboard/rider/available-rides"
-        className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${usePathname === "/dashboard/rider/available-rides"
+        className={`nav-link flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors text-base ${pathname === "/dashboard/rider/available-rides"
             ? "bg-primary/90 text-background"
             : "text-foreground hover:bg-primary/10 hover:text-primary"
           }`}
