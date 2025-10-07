@@ -1,22 +1,25 @@
+'use client'
+
 import React from 'react';
 import AdminDash from './Components/dashboard/AdminDash';
 import PassengerDash from './Components/dashboard/PassengerDash';
 import RiderDash from './Components/dashboard/RiderDash';
+import { useAuth } from '../hooks/AuthProvider';
 
 export default function DashboardPage() {
-  const role = 'user';
+  const { user} = useAuth();
   return (
     <>
       {
-        role === 'admin'
+        user.role === 'admin'
         && <AdminDash />
       }
       {
-        role === 'user'
+        user.role === 'user'
         && <PassengerDash />
       }
       {
-        role === 'rider'
+        user.role === 'rider'
         && <RiderDash />
       }
     </>

@@ -1,28 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Settings } from "lucide-react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-} from "recharts";
-import { Users, User, Bike, DollarSign } from "lucide-react";
+import { Settings, Users, User, Bike, DollarSign } from "lucide-react";
 import CountUp from "react-countup";
+
+// আলাদা component import
+import Charts from "./Components/Charts";
+import DataTableDemo from "./Components/DataTableDemo";
 
 /* ---------- utils ---------- */
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-/* ---------- shadcn/ui inline card ---------- */
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
@@ -55,33 +45,6 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- Dummy chart data ---------- */
-const areaData = [
-  { month: "Jan", revenue: 200 },
-  { month: "Feb", revenue: 400 },
-  { month: "Mar", revenue: 300 },
-  { month: "Apr", revenue: 600 },
-  { month: "May", revenue: 500 },
-  { month: "Jun", revenue: 800 },
-];
-
-const barData = [
-  { day: "Mon", bookings: 20 },
-  { day: "Tue", bookings: 40 },
-  { day: "Wed", bookings: 25 },
-  { day: "Thu", bookings: 50 },
-  { day: "Fri", bookings: 35 },
-  { day: "Sat", bookings: 60 },
-  { day: "Sun", bookings: 45 },
-];
-
-const lineData = [
-  { week: "W1", growth: 200 },
-  { week: "W2", growth: 300 },
-  { week: "W3", growth: 250 },
-  { week: "W4", growth: 400 },
-  { week: "W5", growth: 350 },
-];
 /* ---------- AdminDash ---------- */
 export default function AdminDash() {
   const stats = [
@@ -92,16 +55,16 @@ export default function AdminDash() {
   ];
 
   return (
-    <div className="space-y-4">
-      {/* Heading + Spinner */}
+    <div className="space-y-8">
+      {/* Heading */}
       <div className="flex items-center space-x-3">
         <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
-          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />  SEE ANALYSIS
+          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />
+          SEE ANALYSIS
         </h1>
       </div>
 
-
-      {/* Top Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((item, idx) => (
           <Card key={idx} className="flex flex-col justify-center p-2">
@@ -111,89 +74,18 @@ export default function AdminDash() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-extrabold ml-8 pb-2">
-                <CountUp
-                  end={item.value}
-                  duration={2.2}
-                  delay={0.4}
-                  separator=","
-                />
+                <CountUp end={item.value} duration={2.2} delay={0.4} separator="," />
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Bottom Row (3 charts same size) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Revenue Area Chart */}
-        <Card className="h-[280px] md:h-[300px]">
-          <CardHeader className="mt-5">
-            <CardTitle>Revenue</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" className="[stop-color:#87e64b]" stopOpacity={0.7} />
-                    <stop offset="95%" className="[stop-color:#87e64b]" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#6bcf32"
-                  fill="url(#colorRev)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {/* Chart Section */}
+      <Charts />
 
-        {/* Bookings Bar Chart */}
-        <Card className="h-[280px] md:h-[300px]">
-          <CardHeader className="mt-5">
-            <CardTitle>Bookings</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="bookings" className="fill-[#ef4444]" />
-                <Bar dataKey="bookings" className="fill-[#ef4444]" opacity={0.6} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Growth Line Chart */}
-        <Card className="h-[280px] md:h-[300px]">
-          <CardHeader className="mt-5">
-            <CardTitle>Growth</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="growth"
-                  stroke="#87e64b"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Table Section */}
+      <DataTableDemo />
     </div>
   );
 }
