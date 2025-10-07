@@ -1,0 +1,115 @@
+// fareCalculator.js
+import fetch from "node-fetch";
+
+// Static BDT per km rates
+const RATE_TABLE = {
+  bike: 12,
+  cng: 20,
+  car: 35,
+};
+
+// Promo code logic
+const PROMO_CODES = {
+  "EIDSPECIAL20%": 0.20,
+  "NEWYEAR10%": 0.10,
+  "SUMMER05%": 0.05,
+};
+
+// Address -> Coordinates using Nominatim
+async function geocodeAddress(address) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+    address
+  )}`;
+  const res = await fetch(url, { headers: { "User-Agent": "ride-app" } });
+  const data = await res?.json();
+
+  if (!data || data?.length === 0) {
+    throw new Error(`Coordinates not found for: ${address}`);
+  }
+
+  return { lat: parseFloat(data[0]?.lat), lon: parseFloat(data[0]?.lon) };
+}
+
+// Haversine distance (backup calculation if OSRM fails)
+function toRad(deg) {
+  return (deg * Math.PI) / 180;
+}
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.asin(Math.sqrt(a));
+  return R * c;
+}
+
+// Get route info (distance + duration) from OSRM
+async function getRouteInfo(fromCoords, toCoords, type) {
+  let profile = "driving"; // default car
+  if (type === "bike") profile = "cycling";
+  if (type === "cng") profile = "driving"; // CNG = driving
+
+  const url = `https://router.project-osrm.org/route/v1/${profile}/${fromCoords.lon},${fromCoords.lat};${toCoords.lon},${toCoords.lat}?overview=false&geometries=geojson`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data && data.routes && data.routes.length > 0) {
+      return {
+        distanceKm: data.routes[0].distance / 1000, // meters -> km
+        durationMin: data.routes[0].duration / 60, // sec -> min
+      };
+    }
+  } catch (error) {
+    console.error("OSRM error:", error.message);
+  }
+
+  // fallback if OSRM fails
+  return {
+    distanceKm: haversine(fromCoords.lat, fromCoords.lon, toCoords.lat, toCoords.lon),
+    durationMin: null,
+  };
+}
+
+// Main function
+export async function calculateFare(from, to, type = "bike", promo = "") {
+  if (!RATE_TABLE[type]) throw new Error(`Invalid vehicle type: ${type}`);
+
+  const fromCoords = await geocodeAddress(from);
+  const toCoords = await geocodeAddress(to);
+
+  // Get route info (distance + time)
+  const routeInfo = await getRouteInfo(fromCoords, toCoords, type);
+  const distanceKm = routeInfo.distanceKm;
+  const durationMin = routeInfo.durationMin
+    ? Number(routeInfo.durationMin.toFixed(0))
+    : Math.ceil(distanceKm / 0.5); // fallback: assume 30 km/h avg
+
+  // Calculate fare
+  const perKm = RATE_TABLE[type];
+  let cost = Number((distanceKm * perKm).toFixed(2));
+
+  let discount = 0;
+  if (promo && PROMO_CODES[promo]) {
+    discount = PROMO_CODES[promo];
+    cost = Number((cost * (1 - discount)).toFixed(2));
+  }
+
+  // rideData object
+  const rideData = {
+    from: fromCoords,
+    to: toCoords,
+    distanceKm: Number(distanceKm.toFixed(2)),
+    durationMin,
+    eta: `Arrives in ${durationMin} min`,
+    cost,
+    vehicle: type.charAt(0).toUpperCase() + type.slice(1),
+    promoApplied: promo && PROMO_CODES[promo] ? promo : null,
+    discountPercent: discount ? discount * 100 : 0,
+  };
+
+  return rideData;
+}

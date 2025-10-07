@@ -1,27 +1,49 @@
-// import { Roboto } from 'next/font/google';
-import Navbar from "@/components/Shared/Navbar/Navbar";
+"use client";
 import "./globals.css";
+import Navbar from "@/components/Shared/Navbar/Navbar";
 import Footer from "@/components/Shared/Footer";
+import { AuthProvider } from "./hooks/AuthProvider";
+import useHideLayout from "./hooks/useHideLayout";
+import { useAuth } from "./hooks/AuthProvider";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeProvider } from "./hooks/themeContext";
+import Providers from "./hooks/Providers";
+import { Toaster } from "sonner";
 
-// // ✅ Roboto font config
-// const roboto = Roboto({
-//   variable: '--font-roboto',
-//   subsets: ['latin'],
-//   weight: ['400', '500', '600', '700'],
-// });
 
-export const metadata = {
-  title: 'Ridex',
-  description: 'Ride Sharing Platform',
-};
+function LayoutContent({ children }) {
+  const hideLayout = useHideLayout();
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Skeleton className="h-[20px] w-[100px] rounded-full" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {!hideLayout && <Navbar />}
+      <main className="min-h-screen">{children}</main>
+      {!hideLayout && <Footer />}
+    </>
+  );
+}
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light">
       <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
-        <Navbar />
-        {children}
-        <Footer />
+        <Providers>
+          <ThemeProvider>
+            <AuthProvider>
+              <LayoutContent>{children}</LayoutContent>
+            </AuthProvider>
+          </ThemeProvider>
+        </Providers>
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

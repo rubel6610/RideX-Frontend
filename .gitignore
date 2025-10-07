@@ -12,7 +12,7 @@
 components.json
 # testing
 /coverage
-
+.netlify
 # next.js
 /.next/
 /out/
@@ -43,3 +43,5 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+.env.local
