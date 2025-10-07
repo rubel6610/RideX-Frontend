@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash, Plus, Search } from "lucide-react";
+// import { TableSkeleton } from "@/app/hooks/Skeleton/TableSkeleton";
+
 
 const PromotionsDiscounts = () => {
   const [promotions, setPromotions] = useState([
@@ -48,6 +50,7 @@ const PromotionsDiscounts = () => {
   const [editingPromo, setEditingPromo] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  // const [isLoading, setIsLoading] = useState(true);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -143,6 +146,8 @@ const PromotionsDiscounts = () => {
     }
     setFormData({...formData, code});
   };
+
+  // if(isLoading) return <TableSkeleton/>
 
   return (
     <div className="p-6 space-y-6">
