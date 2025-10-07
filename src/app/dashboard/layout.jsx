@@ -4,16 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  User,
-  MapPin,
-  Search,
-  Bell,
-  PanelRightOpen,
-  PanelRightClose,
-  Moon,
-  Sun,
-  X,
+import {User,MapPin,Search,Bell,PanelRightOpen,PanelRightClose,Moon,Sun,X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
@@ -35,7 +26,7 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const userRole = "admin";
+  const userRole = user?.role;
 
   return (
     <ProtectedRoute>

@@ -193,7 +193,9 @@ export default function AdminDash() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+       
       </div>
+      
     </div>
   );
 }

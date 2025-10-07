@@ -58,17 +58,17 @@ export default function EarningPage() {
     <div className="p-4 space-y-6 max-w-5xl mx-auto">
       {/* Top 3 summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center  hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <h2 className="text-lg font-semibold">Today's Earning</h2>
           <h2 className="text-2xl font-bold text-primary">${summary.today}</h2>
         </div>
 
-        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center  hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <h2 className="text-lg font-semibold">This Week</h2>
           <h2 className="text-2xl font-bold text-primary">${summary.week}</h2>
         </div>
 
-        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
+        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center  hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
           <h2 className="text-lg font-semibold">This Month</h2>
           <h2 className="text-2xl font-bold text-primary">${summary.month}</h2>
         </div>
