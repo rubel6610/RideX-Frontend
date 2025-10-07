@@ -41,7 +41,7 @@ const EarningPage = () => {
           { title: "This Week", value: summary.week },
           { title: "This Month", value: summary.month },
         ].map((item, index) => (
-          <div key={index} className="p-6 bg-gray-50 rounded-2xl border border-gray-200 text-center">
+          <div key={index} className="p-6  rounded-2xl border border-gray-200 text-center">
             <h2 className="text-lg font-semibold">{item.title}</h2>
             <h2 className="text-2xl font-bold text-blue-600">${item.value}</h2>
           </div>
@@ -57,7 +57,7 @@ const EarningPage = () => {
               <button
                 key={p}
                 className={`px-4 py-1 rounded-lg font-medium ${
-                  period === p ? "bg-background " : "bg-gray-100 text-gray-700"
+                  period === p ? "bg-muted " : "bg-gray-100 text-gray-700"
                 }`}
                 onClick={() => setPeriod(p)}
               >
