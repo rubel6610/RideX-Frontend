@@ -1,12 +1,13 @@
-"use client"
+'use client'
+
 import React from 'react';
 import AdminDash from './Components/dashboard/AdminDash';
 import PassengerDash from './Components/dashboard/PassengerDash';
 import RiderDash from './Components/dashboard/RiderDash';
-import { useAuth } from '@/app/hooks/AuthProvider';
+import { useAuth } from '../hooks/AuthProvider';
 
 export default function DashboardPage() {
-  const {user} = useAuth();
+  const { user} = useAuth();
   return (
     <>
       {

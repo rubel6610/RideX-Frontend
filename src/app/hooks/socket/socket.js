@@ -1,4 +1,3 @@
-// lib/socket.js
 import { io } from 'socket.io-client';
 
 let socket = null;
@@ -17,3 +16,6 @@ export function initSocket(userId = null, isAdmin = false) {
 export function getSocket() {
   return socket;
 }
+
+// Export socket as default for backward compatibility
+export default socket;
