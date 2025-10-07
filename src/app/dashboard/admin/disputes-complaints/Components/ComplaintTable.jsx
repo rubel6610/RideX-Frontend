@@ -76,7 +76,7 @@ export default function ComplaintTable({
                   </Button>
                   <Button
                     size="sm"
-                    variant="default"
+                    variant="destructive"
                     onClick={() => openModal(complaint, "resolve")}
                   >
                     Resolve

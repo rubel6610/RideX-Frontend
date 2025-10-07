@@ -73,7 +73,7 @@ const AdminDashboard = () => {
             : "text-foreground hover:bg-primary/10 hover:text-primary"
         }`}
       >
-        <Gift className="w-5 h-5" /> support-inbox
+        <Gift className="w-5 h-5" /> Support-inbox
       </Link>
     </div>
   );
