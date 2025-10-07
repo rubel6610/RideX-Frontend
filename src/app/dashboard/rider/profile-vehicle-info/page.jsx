@@ -70,7 +70,7 @@ export default function ProfileVehicleInfoPage() {
 
       <CardContent className="space-y-4">
         {/* Rider Info */}
-        <div>
+        {/* <div>
           <p>
             <span className="font-medium">Contact:</span> {currentRider.contact}
           </p>
@@ -81,7 +81,7 @@ export default function ProfileVehicleInfoPage() {
             <span className="font-medium">Address:</span>{" "}
             {`${currentRider.present_address.village}, ${currentRider.present_address.upazila}, ${currentRider.present_address.district}`}
           </p>
-        </div>
+        </div> */}
 
         {/* Vehicle Info */}
         <div className="border-t pt-3">
@@ -114,7 +114,7 @@ export default function ProfileVehicleInfoPage() {
         </div>
 
         {/* Future Document Upload */}
-        <div className="border-t pt-4 space-y-4">
+        {/* <div className="border-t pt-4 space-y-4">
           <p className="font-medium flex items-center gap-2 text-base md:text-lg">
             Documents:
           </p>
@@ -131,9 +131,9 @@ export default function ProfileVehicleInfoPage() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
-        <Button className="w-full mt-2">Update Profile</Button>
+        {/* <Button className="w-full mt-2">Update Profile</Button> */}
       </CardContent>
     </div>
   )
