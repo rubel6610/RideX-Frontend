@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { TableSkeleton } from "@/app/hooks/Skeleton/TableSkeleton";
+import { apiRequest } from "@/app/api/apiRequest";
 
 const BACKEND = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
@@ -39,11 +40,11 @@ export default function UserManagement() {
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await fetch(`${BACKEND}/api/users`);
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return res.json();
+     return await apiRequest("users")
     },
   });
+
+
 
   // mutation for role update
   const mutation = useMutation({

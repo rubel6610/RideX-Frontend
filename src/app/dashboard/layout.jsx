@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }) {
   const { user } = useAuth();
 
   
-  const userRole = "user";   //rider  admin
+  const userRole = user?.role;   //rider  admin
 
   return (
     <ProtectedRoute>

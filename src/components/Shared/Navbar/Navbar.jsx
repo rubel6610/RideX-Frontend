@@ -154,7 +154,7 @@ const Navbar = () => {
             </Link>
           ) : (
            <Link href="/dashboard">
-              <Button variant="primary" size="lg" className="mr-3 text-md ml-1">
+              <Button variant="default" size="lg" className="mr-3 text-md ml-1">
                 Dashboard
               </Button>
             </Link>
