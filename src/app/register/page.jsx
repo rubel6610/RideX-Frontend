@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import CarLogo from "../../Assets/car-icon.png";
 import GuestOnlyRoute from "../hooks/GuestOnlyRoute";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
