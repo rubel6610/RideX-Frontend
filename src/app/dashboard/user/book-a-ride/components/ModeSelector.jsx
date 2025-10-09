@@ -7,22 +7,22 @@ const ModeSelector = ({ mode, setMode }) => {
     {
       id: "auto",
       label: "Auto Mode",
-      description: "Automatic ride matching",
+      description: "Automatic ride",
       icon: <Car className="w-5 h-5" />,
     },
     {
       id: "manual",
       label: "Manual Mode", 
-      description: "Choose your own rider",
+      description: "Own rider",
       icon: <Settings className="w-5 h-5" />,
     },
   ];
 
   return (
-    <div className="bg-accent/10 rounded-xl p-4 border border-border/20">
-      <div className="flex items-center gap-2 mb-3">
+    <div>
+      <div className="flex items-center gap-2 mb-2">
         <Settings className="w-5 h-5 text-primary" />
-        <h3 className="font-semibold text-foreground">Ride Mode</h3>
+        <h3 className="font-semibold text-foreground">Choose A Ride Mode</h3>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -33,8 +33,8 @@ const ModeSelector = ({ mode, setMode }) => {
             onClick={() => setMode(modeOption.id)}
             className={`h-auto p-4 justify-start gap-3 ${
               mode === modeOption.id
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border/20 hover:border-primary/40"
+                ? "border border-border bg-primary/40 text-foreground"
+                : "text-primary-foreground border-border "
             }`}
           >
             <div className="flex items-center gap-3 w-full">
@@ -43,8 +43,8 @@ const ModeSelector = ({ mode, setMode }) => {
                 <div className="font-semibold text-sm">{modeOption.label}</div>
                 <div className={`text-xs ${
                   mode === modeOption.id 
-                    ? "text-primary-foreground/80" 
-                    : "text-muted-foreground"
+                    ? "text-foreground" 
+                    : "text-primary-foreground"
                 }`}>
                   {modeOption.description}
                 </div>
