@@ -3,9 +3,7 @@ import React, { useState } from "react";
 import { Car, Bike, CarFront, Clock, Shield, Users } from "lucide-react";
 import Image from "next/image";
 import heroRide from "@/Assets/car.png"; // যদি illustration/image থাকে
-import ecoIcon from "@/Assets/bike.png"; // optional eco-friendly icon
 import { Minus, Plus } from "lucide-react";
-import heroRidex from "@/Assets/car ridex.jpg";
 import Cng from "@/Assets/cng.png";
 
 export default function AboutPage() {

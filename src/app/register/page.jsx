@@ -35,7 +35,7 @@ function RegisterPage() {
         imgForm.append("image", data.image[0]);
 
         const res = await fetch(
-          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`,
+          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY || process.env.IMGBB_KEY}`,
           {
             method: "POST",
             body: imgForm,

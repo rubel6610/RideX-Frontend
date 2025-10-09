@@ -2,6 +2,9 @@
   "name": "ridex",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -44,6 +47,7 @@
     "react-hook-form": "^7.63.0",
     "react-leaflet": "^5.0.0",
     "recharts": "^2.15.4",
+    "sharp": "^0.32.6",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
     "swiper": "^12.0.2",
