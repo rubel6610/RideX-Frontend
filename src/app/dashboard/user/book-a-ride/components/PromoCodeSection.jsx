@@ -70,9 +70,13 @@ const PromoCodeSection = ({
     });
   };
 
+  if(promoError){
+    toast.error(promoError);
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-2">
         <Tag className="w-5 h-5 text-primary" />
         <h3 className="font-semibold text-foreground">Promo Code</h3>
         {appliedPromo && (
@@ -96,11 +100,11 @@ const PromoCodeSection = ({
                 setPromoError("");
               }}
               placeholder="Enter promo code"
-              className={`h-12 pr-16 bg-white border ${
+              className={`h-12 pr-16 bg-background border text-foreground placeholder:text-muted-foreground ${
                 promoError 
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-200" 
-                  : "border-gray-200 focus:border-primary focus:ring-primary/20"
-              } rounded-lg shadow-sm hover:shadow-md transition-shadow`}
+                  ? "border-destructive focus:border-destructive focus:ring-destructive/20" 
+                  : "border-border focus:border-primary focus:ring-primary/20"
+              } rounded-lg shadow-sm hover:shadow-md transition-shadow focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20`}
             />
             
 
@@ -110,7 +114,7 @@ const PromoCodeSection = ({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-3 text-xs text-gray-400 hover:text-gray-600"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
                 onClick={handleClearPromo}
               >
                 <X className="w-3 h-3" />
@@ -118,9 +122,9 @@ const PromoCodeSection = ({
             ) : (
               <Button
                 type="button"
-                variant="primary"
+                variant="default"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-3 text-xs"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-3 text-xs "
                 onClick={handleApplyPromo}
                 disabled={!promo.trim()}
               >
@@ -133,30 +137,30 @@ const PromoCodeSection = ({
           <Popover>
             <PopoverTrigger asChild>
               <button
-                className="flex items-center justify-center w-12 h-12 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center justify-center w-12 h-12 bg-background border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow hover:border-primary hover:bg-accent"
                 title="Available promo codes"
               >
-                <Gift className="w-5 h-5 text-gray-600" />
+                <Gift className="w-5 h-5 text-muted-foreground hover:text-primary" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0">
+            <PopoverContent className="w-80 p-0 bg-background border-border">
               <div className="p-4">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Available Promo Codes</h4>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                <h4 className="text-sm font-semibold text-foreground mb-3">Available Promo Codes</h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                   {availablePromos.map((promoCode, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex items-center justify-between p-3 bg-accent rounded-lg hover:bg-accent/80 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Tag className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Tag className="w-4 h-4 text-primary" />
                         </div>
                         <div>
-                          <div className="font-semibold text-sm text-gray-900">
+                          <div className="font-semibold text-sm text-foreground">
                             {promoCode.code}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground">
                             {promoCode.desc}
                           </div>
                         </div>
@@ -166,7 +170,7 @@ const PromoCodeSection = ({
                         variant="primary"
                         size="sm"
                         onClick={() => handleQuickApply(promoCode)}
-                        className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700"
+                        className="h-8 px-3 text-xs "
                       >
                         Apply
                       </Button>
@@ -177,15 +181,6 @@ const PromoCodeSection = ({
             </PopoverContent>
           </Popover>
         </div>
-
-        {/* Error Message */}
-        {promoError && (
-          <div className="text-sm text-red-600 font-medium flex items-center gap-1">
-            <X className="w-4 h-4" />
-            {promoError}
-          </div>
-        )}
-
       </div>
 
     </div>

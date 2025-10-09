@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import CarLogo from "../../Assets/car-icon.png";
 import GuestOnlyRoute from "../hooks/GuestOnlyRoute";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ function RegisterPage() {
         imgForm.append("image", data.image[0]);
 
         const res = await fetch(
-          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`,
+          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY || process.env.IMGBB_KEY}`,
           {
             method: "POST",
             body: imgForm,
