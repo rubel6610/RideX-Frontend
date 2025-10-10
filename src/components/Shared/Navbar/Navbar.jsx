@@ -124,14 +124,14 @@ const Navbar = () => {
             >
               About
             </Link>
-            <Link
+         {user?.role === "user" &&  <Link
               href="/become-rider"
               className={`h-full flex items-center hover:text-primary ${activeStyle(
                 "/become-rider"
               )}`}
             >
               Become a Rider
-            </Link>
+            </Link>}
           </nav>
         </div>
 
