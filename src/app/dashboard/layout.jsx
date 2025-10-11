@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {User,MapPin,Search,Bell,PanelRightOpen,PanelRightClose,Moon,Sun,X,
+import {MapPin,Search,Bell,PanelRightOpen,PanelRightClose,Moon,Sun,X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp";
 import ProtectedRoute from "../hooks/ProtectedRoute";
@@ -164,10 +163,10 @@ export default function DashboardLayout({ children }) {
                 userRole === 'rider' && <RiderStatus />
               }
 
-              <Link href="/dashboard/my-profile">
-                  <Image src={data?.photoUrl} height="120" width="120" alt="userPhoto" className="w-4 h-4 md:w-10 md:h-10 rounded-full object-cover hover:scale-110" />
+             {data &&  <Link href="/dashboard/my-profile">
+                  <Image src={data.photoUrl} height="120" width="120" alt="userPhoto" className="w-4 h-4 md:w-10 md:h-10 rounded-full object-cover hover:scale-110" />
                
-              </Link>
+              </Link> }
             </div>
           </header>
 

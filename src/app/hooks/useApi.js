@@ -3,12 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 
 //  GET data hook
-export const useFetchData = (key, endpoint, params = {}) => {
+export const useFetchData = (key, endpoint, params = {}, options = {}) => {
   return useQuery({
     queryKey: [key, params],
     queryFn: () => apiRequest(endpoint, "GET", {}, params),
+    enabled: options.enabled !== undefined ? options.enabled : true, 
+    ...options, 
   });
 };
+
 
 //  POST data hook
 export const usePostData = (endpoint, options = {}) => {

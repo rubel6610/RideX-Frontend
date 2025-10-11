@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 function RegisterPage() {
   const router = useRouter();
@@ -318,7 +319,17 @@ function RegisterPage() {
           >
             Register
           </Button>
+          {/* toggle sign Up page */}
+            <p className="text-center text-foreground mt-4">
+            Already have an account? Please{" "}
+            <Link 
+              href="/signIn" 
+              className="text-primary underline hover:text-primary/80 cursor-pointer"
+            >
+              Sign In
+            </Link></p>
         </form>
+         
       </div>
     </GuestOnlyRoute>
   );
