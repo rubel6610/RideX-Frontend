@@ -13,31 +13,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import RiderActions from "./RiderActions";
-import { useQuery } from "@tanstack/react-query";
-import { TableSkeleton } from "@/app/hooks/Skeleton/TableSkeleton";
+import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
 import { RefreshCw } from "lucide-react";
-
-async function fetchRiders() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
-  if (!res.ok) throw new Error("Failed to fetch riders");
-  const data = await res.json();
-
-  return Array.isArray(data.riders)
-    ? data.riders.filter((rider) => rider && typeof rider === "object" && rider._id)
-    : [];
-}
+import { useFetchData } from "@/app/hooks/useApi";
 
 export default function RiderManagementClient() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("pending");
 
-  const { data: riders = [], error, isLoading, refetch } = useQuery({
-    queryKey: ["riders"],
-    queryFn: fetchRiders,
-  });
+  // Use reusable fetch hook
+  const { data, error, isLoading, refetch } = useFetchData("riders", "/riders");
+
+  // Support both array directly or object.riders
+  const riders = (data?.riders || data || []).filter((r) => r && typeof r === "object");
 
   const filteredRiders = riders.filter((rider) => {
-    if (!rider || typeof rider !== "object") return false;
     const riderStatus = rider.status?.toLowerCase() || "pending";
     return statusFilter === riderStatus;
   });
@@ -113,7 +103,7 @@ export default function RiderManagementClient() {
       </div>
 
       {/* Table Container */}
-      <div className="rounded-2xl  border-blue-300 shadow-sm overflow-x-auto bg-background border">
+      <div className="rounded-2xl border-blue-300 shadow-sm overflow-x-auto bg-background border">
         <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow className="bg-blue-50">

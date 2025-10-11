@@ -89,8 +89,6 @@ const Hero = () => {
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight text-foreground">
                         Your Ride, Your Way with{" "}
                         <span className="text-primary">RideX</span>
-                        Your Ride, Your Way with{" "}
-                        <span className="text-primary">RideX</span>
                     </h1>
                     <p className="text-xl text-muted-foreground leading-relaxed mb-6">
                         Experience seamless transportation with trusted drivers, affordable
@@ -181,7 +179,7 @@ const Hero = () => {
                         priority
                     /> */}
                     {/* Floating Stats */}
-                    <div className="absolute -bottom-8 left-0 bg-accent border border-primary rounded-xl p-4 shadow-lg flex items-center space-x-3">
+                    <div className="absolute -bottom-6 left-0 bg-accent border border-primary rounded-xl p-4 shadow-lg flex items-center space-x-3">
                         <Star className="h-5 w-5 text-primary" />
                         <div>
                             <p className="font-semibold text-lg">2 min</p>

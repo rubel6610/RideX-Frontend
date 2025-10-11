@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {User,MapPin,Search,Bell,PanelRightOpen,PanelRightClose,Moon,Sun,X,
+import {MapPin,Search,Bell,PanelRightOpen,PanelRightClose,Moon,Sun,X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp";
 import ProtectedRoute from "../hooks/ProtectedRoute";
@@ -17,6 +16,7 @@ import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
 import RiderStatus from "@/components/Shared/Riders/RiderStatus";
 import SignOutButton from "@/components/Shared/SignOutButton";
+import { useFetchData } from "../hooks/useApi";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
@@ -26,8 +26,9 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  
-  const userRole = "user";   //rider  admin
+   const {data}=useFetchData("users","/user", {email:user?.email})
+  const userRole = user?.role;   
+ 
 
   return (
     <ProtectedRoute>
@@ -162,17 +163,10 @@ export default function DashboardLayout({ children }) {
                 userRole === 'rider' && <RiderStatus />
               }
 
-              <Link href="/dashboard/my-profile">
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 px-2 md:px-3 text-sm md:text-base"
-                >
-                  <User className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                  <span className="hidden md:inline text-foreground">
-                    Profile
-                  </span>
-                </Button>
-              </Link>
+             {data &&  <Link href="/dashboard/my-profile">
+                  <Image src={data.photoUrl} height="120" width="120" alt="userPhoto" className="w-4 h-4 md:w-10 md:h-10 rounded-full object-cover hover:scale-110" />
+               
+              </Link> }
             </div>
           </header>
 
