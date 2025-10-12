@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { calculateFare } from "@/components/Shared/fareCalculator";
+import { Car, Loader2, LocateFixed } from "lucide-react";
 
 import ModeSelector from "./components/ModeSelector";
 import LocationInputs from "./components/LocationInputs";
@@ -26,10 +27,11 @@ const BookARide = () => {
   const [promoError, setPromoError] = useState("");
   const [rideData, setRideData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [counter, setCounter] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
 
   const router = useRouter();
-  const baseUrl = process?.env?.NEXT_PUBLIC_SERVER_BASE_URL;
 
   useEffect(() => {
     const getCurrentLocation = async () => {
@@ -74,6 +76,18 @@ const BookARide = () => {
     };
     getCurrentLocation();
   }, []);
+
+  useEffect(() => {
+    let interval;
+    if (isLoading && isModalOpen) {
+      interval = setInterval(() => {
+        setCounter((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setCounter(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading, isModalOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -121,8 +135,10 @@ const BookARide = () => {
       toast.warning("Please complete all fields");
       return;
     }
+
     setIsLoading(true);
-    const loadingToastId = toast.loading("Requesting ride...");
+    setIsModalOpen(true);
+
     try {
       let pickupCoords, dropCoords;
       if (pickup.includes(",")) {
@@ -144,7 +160,7 @@ const BookARide = () => {
       }
 
       const requestData = {
-        userId: user?.id || "demo-user-id",
+        userId: user?.id,
         pickup: pickupCoords,
         drop: dropCoords,
         vehicleType: selectedType,
@@ -155,19 +171,25 @@ const BookARide = () => {
         dropName: dropName || drop,
       };
 
-      const response = await fetch(`${baseUrl}/api/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/request`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestData),
+        }
+      );
+
       const contentType = response.headers.get("content-type");
       if (!contentType?.includes("application/json"))
         throw new Error("Server returned non-JSON response.");
+
       const result = await response.json();
+
       if (response.ok) {
-        toast.dismiss(loadingToastId);
         toast.success("Ride request sent successfully!");
         setTimeout(() => {
+          setIsModalOpen(false);
           const params = new URLSearchParams({
             pickup,
             drop,
@@ -182,103 +204,120 @@ const BookARide = () => {
             mode: mode,
           }).toString();
           router.push(`/dashboard/user/book-a-ride/searching?${params}`);
-        }, 2000);
+        }, 1500);
       } else {
+        setIsModalOpen(false);
+        setIsLoading(false);
         throw new Error(result.message || `Server error`);
       }
     } catch (error) {
-      toast.dismiss(loadingToastId);
-      toast.error("Ride Request Failed");
-    } finally {
+      setIsModalOpen(false);
       setIsLoading(false);
+      toast.error("Ride Request Failed");
+      console.error(error);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-      {/* Left side form scrollable */}
-      <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
-        <ModeSelector mode={mode} setMode={setMode} />
-        <LocationInputs
-          pickup={pickup}
-          setPickup={setPickup}
-          drop={drop}
-          setDrop={setDrop}
-          onLocationChange={(location, type) => {
-            if (type === "pickup") {
-              setPickupName(location.name);
-              setIsCurrentLocationActive(
-                currentLocation &&
-                location.coordinates === currentLocation.coordinates
-              );
-            } else {
-              setDropName(location.name);
-            }
-          }}
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-3">
-          <div className="w-full flex-1">
-            <VehicleTypeSelector
-              selectedType={selectedType}
-              setSelectedType={setSelectedType}
-            />
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+        <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
+          <ModeSelector mode={mode} setMode={setMode} />
+          <LocationInputs
+            pickup={pickup}
+            setPickup={setPickup}
+            drop={drop}
+            setDrop={setDrop}
+            onLocationChange={(location, type) => {
+              if (type === "pickup") {
+                setPickupName(location.name);
+                setIsCurrentLocationActive(
+                  currentLocation &&
+                  location.coordinates === currentLocation.coordinates
+                );
+              } else {
+                setDropName(location.name);
+              }
+            }}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-3">
+            <div className="w-full flex-1">
+              <VehicleTypeSelector
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
+              />
+            </div>
+            <div className="w-full flex-1">
+              <PromoCodeSection
+                promo={promo}
+                setPromo={setPromo}
+                appliedPromo={appliedPromo}
+                setAppliedPromo={setAppliedPromo}
+                promoError={promoError}
+                setPromoError={setPromoError}
+              />
+            </div>
           </div>
-          <div className="w-full flex-1">
-            <PromoCodeSection
-              promo={promo}
-              setPromo={setPromo}
-              appliedPromo={appliedPromo}
-              setAppliedPromo={setAppliedPromo}
-              promoError={promoError}
-              setPromoError={setPromoError}
-            />
-          </div>
+          <ConsolidatedRideCard
+            pickup={pickup}
+            drop={drop}
+            pickupName={pickupName}
+            dropName={dropName}
+            selectedType={selectedType}
+            rideData={rideData}
+            onRequestRide={handleRideRequest}
+            isLoading={isLoading}
+          />
         </div>
-        <ConsolidatedRideCard
-          pickup={pickup}
-          drop={drop}
-          pickupName={pickupName}
-          dropName={dropName}
-          selectedType={selectedType}
-          rideData={rideData}
-          onRequestRide={handleRideRequest}
-          isLoading={isLoading}
-        />
+
+        <div className="h-full bg-white rounded-xl shadow-lg hidden md:block">
+          <RideMap
+            pickup={pickup}
+            drop={drop}
+            pickupCoords={null}
+            dropCoords={null}
+            currentLocation={currentLocation}
+            isCurrentLocationActive={isCurrentLocationActive}
+            onLocationSelect={(location, type) => {
+              if (type === "pickup") {
+                setPickup(location.coordinates);
+                setPickupName(location.name);
+                setIsCurrentLocationActive(
+                  currentLocation &&
+                  location.coordinates === currentLocation.coordinates
+                );
+              } else {
+                setDrop(location.coordinates);
+                setDropName(location.name);
+              }
+            }}
+            onCurrentLocationClick={() => {
+              if (currentLocation) {
+                setPickup(currentLocation.coordinates);
+                setPickupName(currentLocation.name);
+                setIsCurrentLocationActive(true);
+                toast.success("Current location set as pickup point");
+              }
+            }}
+          />
+        </div>
       </div>
 
-      {/* Right side map full height */}
-      <div className="h-full bg-white rounded-xl shadow-lg hidden md:block">
-        <RideMap
-          pickup={pickup}
-          drop={drop}
-          pickupCoords={null}
-          dropCoords={null}
-          currentLocation={currentLocation}
-          isCurrentLocationActive={isCurrentLocationActive}
-          onLocationSelect={(location, type) => {
-            if (type === "pickup") {
-              setPickup(location.coordinates);
-              setPickupName(location.name);
-              setIsCurrentLocationActive(
-                currentLocation &&
-                location.coordinates === currentLocation.coordinates
-              );
-            } else {
-              setDrop(location.coordinates);
-              setDropName(location.name);
-            }
-          }}
-          onCurrentLocationClick={() => {
-            if (currentLocation) {
-              setPickup(currentLocation.coordinates);
-              setPickupName(currentLocation.name);
-              setIsCurrentLocationActive(true);
-              toast.success("Current location set as pickup point");
-            }
-          }}
-        />
-      </div>
-    </div>
+      {/* Custom Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+          <div className="relative bg-white rounded-full shadow-2xl h-20 w-20 flex items-center justify-center">
+            <div
+              className="absolute h-full w-full rounded-full border-6 border-t-primary border-r-primary border-b-primary/30 border-l-primary/30 animate-spin-slow"
+              style={{ animationDuration: "3s" }}
+            ></div>
+            <div className="text-center text-4xl font-bold text-primary">
+              {counter}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
