@@ -58,10 +58,12 @@ export default function SearchingPage() {
   // Get all info from query params
   const pickup = searchParams.get("pickup") || "";
   const drop = searchParams.get("drop") || "";
+  const pickupName = searchParams.get("pickupName") || "";
+  const dropName = searchParams.get("dropName") || "";
   const type = searchParams.get("type") || "Bike";
   const fare = searchParams.get("fare") || "";
   const distance = searchParams.get("distance") || "";
-  const eta = searchParams.get("eta") || "3-7 min";
+  const eta = searchParams.get("eta") || "00h:00m";
   const rideId = searchParams.get("rideId") || "";
   const riderId = searchParams.get("riderId") || "";
   const riderName = searchParams.get("riderName") || "";
@@ -304,7 +306,9 @@ export default function SearchingPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Pickup Location</p>
-                  <p className="text-sm font-semibold text-foreground line-clamp-1">{pickup || "Setting pickup..."}</p>
+                  <p className="text-sm font-semibold text-foreground line-clamp-2">
+                    {pickupName || pickup || "Setting pickup..."}
+                  </p>
                 </div>
               </div>
 
@@ -314,7 +318,9 @@ export default function SearchingPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Drop Location</p>
-                  <p className="text-sm font-semibold text-foreground line-clamp-1">{drop || "Setting destination..."}</p>
+                  <p className="text-sm font-semibold text-foreground line-clamp-2">
+                    {dropName || drop || "Setting destination..."}
+                  </p>
                 </div>
               </div>
             </div>

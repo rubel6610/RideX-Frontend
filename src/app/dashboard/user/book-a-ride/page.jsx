@@ -115,10 +115,21 @@ const BookARide = () => {
 
   useEffect(() => {
     const fetchDistance = async () => {
-      if (!pickup || !drop) {
+      // Validate that pickup and drop are coordinates (format: "lat,lng")
+      const isValidCoordinate = (str) => {
+        if (!str) return false;
+        const parts = str.split(',');
+        if (parts.length !== 2) return false;
+        const lat = parseFloat(parts[0]);
+        const lng = parseFloat(parts[1]);
+        return !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+      };
+
+      if (!pickup || !drop || !isValidCoordinate(pickup) || !isValidCoordinate(drop)) {
         setRideData(null);
         return;
       }
+
       try {
         const type = selectedType.toLowerCase();
         const result = await calculateFare(pickup, drop, type, appliedPromo);
@@ -193,10 +204,13 @@ const BookARide = () => {
           const params = new URLSearchParams({
             pickup,
             drop,
+            pickupName: pickupName || pickup,
+            dropName: dropName || drop,
             type: selectedType,
             promo: appliedPromo,
             fare: rideData?.cost?.toString() || "",
             distance: rideData?.distanceKm?.toString() || "",
+            eta: rideData?.arrivalTime || "",
             rideId: result.rideId || "demo-ride-id",
             riderId: result.rider?._id || "demo-rider-id",
             riderName: result.rider?.fullName || "Demo Rider",
