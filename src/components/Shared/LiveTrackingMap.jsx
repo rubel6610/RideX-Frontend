@@ -157,7 +157,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Bike" }) => {
   }
 
   return (
-    <div className="w-full h-[400px] rounded-xl overflow-hidden border border-border shadow-lg">
+    <div className="w-full h-[380px] rounded-xl overflow-hidden border border-border shadow-lg">
       <MapContainer
         center={[riderLocation.lat, riderLocation.lng]}
         zoom={15}
