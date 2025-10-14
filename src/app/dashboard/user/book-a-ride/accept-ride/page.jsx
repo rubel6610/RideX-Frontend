@@ -128,9 +128,10 @@ export default function SearchingPage() {
     );
   };
 
-  // Cancel Ride Handler
+  // ✅ Updated Cancel Ride Handler
   const handleCancelRide = () => {
-    // TODO: Add cancel ride API call
+    console.log("Ride cancelled:", rideId);
+    // You can add cancel ride logic here (API call, etc.)
   };
 
   return (
@@ -303,6 +304,15 @@ export default function SearchingPage() {
                 >
                   <X className="w-5 h-5 mr-2" />
                   Cancel Ride
+                </Button>
+
+                {/* ✅ Updated Complete Button */}
+                <Button
+                  onClick={handleCompleteRide}
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  Complete Ride
                 </Button>
 
                 {/* ✅ Updated Complete Button */}
