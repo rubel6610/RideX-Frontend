@@ -134,17 +134,14 @@ const BookARide = () => {
     fetchDistance();
   }, [pickup, drop, selectedType, appliedPromo]);
 
-  
   // ✅ Ride status polling (optimized)
   useEffect(() => {
     if (!rideId) return;
     let hasPushed = false;
-    console.log("rideId", rideId);
     const fetchRideStatus = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${rideId}`);
         const data = await res.json();
-        console.log("DATA: ", data);
         if (!hasPushed && data.status === "accepted" && data?.rideInfo) {
           hasPushed = true;
 
@@ -168,6 +165,8 @@ const BookARide = () => {
             riderEmail: data?.rideInfo?.riderInfo?.email || "",
             vehicleModel: data?.rideInfo?.riderInfo?.vehicleModel || "",
             vehicleRegisterNumber: data?.rideInfo?.riderInfo?.vehicleRegisterNumber || "",
+            ratings: data?.rideInfo?.riderInfo?.ratings?.toString() || "0",
+            completedRides: data?.rideInfo?.riderInfo?.completedRides?.toString() || "0",
           }).toString();
 
           router.push(`/dashboard/user/book-a-ride/accept-ride?${params}`);
