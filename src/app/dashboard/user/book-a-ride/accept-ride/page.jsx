@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Bike,
@@ -13,7 +13,7 @@ import {
   Phone,
   Hash,
   CheckCircle,
-  Star,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +21,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
-import ChatModal from "@/components/Shared/ChatModal";
-import RideReviewModal from "@/components/Shared/RideReviewModal";
 
 // Dynamically import map component to prevent SSR issues
 const LiveTrackingMap = dynamic(
@@ -47,18 +45,14 @@ const rideTypeIcon = {
   Car: Car,
 };
 
-export default function AcceptRidePage() {
+export default function SearchingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   // Extract ride details from URL query parameters
   const pickup = searchParams.get("pickup") || "";
   const drop = searchParams.get("drop") || "";
-  const pickupName = searchParams.get("pickupName") || "";
-  const dropName = searchParams.get("dropName") || "";
   const type = searchParams.get("vehicleType") || "Bike";
   const fare = searchParams.get("amount") || "";
   const distance = searchParams.get("distance") || "";
@@ -71,6 +65,8 @@ export default function AcceptRidePage() {
   const vehicleType = searchParams.get("vehicleType") || "";
   const vehicleModel = searchParams.get("vehicleModel") || "";
   const vehicleRegisterNumber = searchParams.get("vehicleRegisterNumber") || "";
+  const completedRides = searchParams.get("completedRides") || "0";
+  const ratings = searchParams.get("ratings") || "0";
   const baseFare = searchParams.get("baseFare") || "0";
   const distanceFare = searchParams.get("distanceFare") || "0";
   const timeFare = searchParams.get("timeFare") || "0";
@@ -83,7 +79,7 @@ export default function AcceptRidePage() {
   const VehicleIcon = rideTypeIcon[type] || Bike;
 
   // Rider information fetched from URL
-  const [riderInfo, setRiderInfo] = useState({
+  const riderInfo ={
     fullName: riderName || "N/A",
     email: riderEmail || "",
     vehicleType: vehicleType || type,
@@ -94,12 +90,46 @@ export default function AcceptRidePage() {
       type: "Point",
       coordinates: [90.4125, 23.8103],
     },
-  });
+  };
 
-  // Handle payment click
-  const handlePayment = () => {
-    // TODO: Implement payment functionality
-    // Payment gateway integration will go here
+  // ✅ Updated Complete Ride Handler
+  const handleCompleteRide = () => {
+
+    const params = new URLSearchParams({
+      rideId,
+      userId,
+      riderId,
+      ratings,
+      riderName,
+      riderEmail,
+      pickup,
+      drop,
+      vehicleType,
+      vehicleModel,
+      vehicleRegisterNumber,
+      distance,
+      baseFare,
+      distanceFare,
+      timeFare,
+      tax,
+      total,
+      promo,
+      fare,
+      arrivalTime: eta,
+      vehicleType: type,
+      completedRides,
+      mode,
+    });
+
+    router.push(
+      `http://localhost:3000/dashboard/user/payment?${params.toString()}`
+    );
+  };
+
+  // ✅ Updated Cancel Ride Handler
+  const handleCancelRide = () => {
+    console.log("Ride cancelled:", rideId);
+    // You can add cancel ride logic here (API call, etc.)
   };
 
   return (
@@ -118,8 +148,8 @@ export default function AcceptRidePage() {
                   <h2 className="text-xl font-bold">Your {type} is on the way</h2>
                   <p className="text-background text-sm">
                     Track your ride in real-time
-          </p>
-        </div>
+                  </p>
+                </div>
               </div>
 
               {/* ETA and Mode */}
@@ -158,7 +188,6 @@ export default function AcceptRidePage() {
                       <h4 className="text-3xl font-bold text-foreground mb-1 uppercase">
                         {riderInfo.fullName}
                       </h4>
-                     
                       <Badge className="bg-green-600 text-white">
                         {riderInfo.status}
                       </Badge>
@@ -193,7 +222,7 @@ export default function AcceptRidePage() {
                         Pickup Location
                       </p>
                       <p className="text-sm font-semibold text-foreground line-clamp-2">
-                        {pickupName || pickup || "Setting pickup..."}
+                        {pickup || "Setting pickup..."}
                       </p>
                     </div>
                   </div>
@@ -207,13 +236,13 @@ export default function AcceptRidePage() {
                         Drop Location
                       </p>
                       <p className="text-sm font-semibold text-foreground line-clamp-2">
-                        {dropName || drop || "Setting destination..."}
+                        {drop || "Setting destination..."}
                       </p>
                     </div>
                   </div>
                 </div>
-                {/* Vehicle Information */}
-                <div className="grid grid-cols-1 space-y-3">
+
+                <div className="grid grid-cols-1">
                   <h5 className="my-2 text-sm font-semibold text-muted-foreground uppercase">
                     Vehicle Information
                   </h5>
@@ -255,35 +284,30 @@ export default function AcceptRidePage() {
                   </div>
                 </div>
               </div>
-              
-               {/* Buttons */}
-               <div className="space-y-3">
-                 <Button 
-                   onClick={() => setIsChatOpen(true)}
-                   className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
-                 >
-                   <Phone className="w-5 h-5 mr-2" />
-                   Chat with Rider
-                 </Button>
 
-                {/* TODO: should be conditional */}
-                <Button
-                  onClick={handlePayment}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
-                >
-                  <DollarSign className="w-5 h-5 mr-2" />
-                  Complete Ride
+              {/* Buttons */}
+              <div className="space-y-3">
+                <Button className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg">
+                  <Phone className="w-5 h-5 mr-2" />
+                  Chat with {riderInfo.fullName.split(" ")[0]}
                 </Button>
+
+                {/* ✅ Updated Gradient Cancel Button */}
                 <Button
-                  onClick={() => setIsReviewOpen(true)}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                  onClick={handleCancelRide}
+                  className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
                 >
-                  <Star className="w-5 h-5 mr-2" />
-                  Leave a Review
-                </Button>
-                <Button className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg">
                   <X className="w-5 h-5 mr-2" />
                   Cancel Ride
+                </Button>
+
+                {/* ✅ Updated Complete Button */}
+                <Button
+                  onClick={handleCompleteRide}
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  Complete Ride
                 </Button>
               </div>
             </div>
@@ -307,7 +331,6 @@ export default function AcceptRidePage() {
                 Ride Details
               </h5>
 
-              {/* Summary flex */}
               <div className="flex flex-col gap-3">
                 <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
                   <div className="flex flex-col items-center text-center">
@@ -319,7 +342,7 @@ export default function AcceptRidePage() {
                   </div>
                 </div>
 
-               <div className="w-full flex gap-3">
+                <div className="w-full flex gap-3">
                   <div className="w-full p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
                     <div className="flex flex-col items-center text-center">
                       <Navigation className="w-6 h-6 text-primary mb-1" />
@@ -337,7 +360,7 @@ export default function AcceptRidePage() {
                       <p className="text-xl font-bold text-primary uppercase">{eta}</p>
                     </div>
                   </div>
-               </div>
+                </div>
               </div>
 
               {/* Promo Display */}
@@ -350,244 +373,14 @@ export default function AcceptRidePage() {
                     <span className="text-sm font-semibold text-green-700">
                       {promo}
                     </span>
-          </div>
+                  </div>
                   <span className="text-xs text-green-600">Applied</span>
-          </div>
+                </div>
               )}
-          </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Chat Modal */}
-      <ChatModal
-        open={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        riderName={riderInfo.fullName}
-        riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
-      />
-
-      {/* Ride Review Modal */}
-      <RideReviewModal
-        open={isReviewOpen}
-        onClose={() => setIsReviewOpen(false)}
-        rideId={rideId}
-        riderId={riderId}
-        userId={user?.id || userId}
-        riderName={riderInfo.fullName}
-        riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
-      />
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

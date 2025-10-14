@@ -82,7 +82,7 @@ const RideReviewModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden z-[9999]">
         {/* Header with Gradient */}
         <DialogHeader className="p-6 bg-gradient-to-r from-primary to-accent text-white">
           <div className="flex items-center gap-4">
