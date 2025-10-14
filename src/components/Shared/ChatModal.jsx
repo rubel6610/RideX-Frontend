@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Phone, MoreVertical } from "lucide-react";
+import { Send, MoreVertical, ChatBubbleLeftRight, Phone } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ChatModal = ({ open, onClose, riderName, riderVehicle }) => {
