@@ -13,6 +13,7 @@ import {
   Phone,
   Hash,
   CheckCircle,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
 import ChatModal from "@/components/Shared/ChatModal";
+import RideReviewModal from "@/components/Shared/RideReviewModal";
 
 // Dynamically import map component to prevent SSR issues
 const LiveTrackingMap = dynamic(
@@ -50,6 +52,7 @@ export default function AcceptRidePage() {
   const router = useRouter();
   const { user } = useAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   // Extract ride details from URL query parameters
   const pickup = searchParams.get("pickup") || "";
@@ -95,27 +98,8 @@ export default function AcceptRidePage() {
 
   // Handle payment click
   const handlePayment = () => {
-    console.log("=== Ride Payment Data ===");
-    console.log({
-      rideId,
-      userId,
-      riderId,
-      riderName,
-      riderEmail,
-      pickup,
-      drop,
-      vehicleType,
-      vehicleModel,
-      vehicleRegisterNumber,
-      distance,
-      baseFare,
-      distanceFare,
-      timeFare,
-      tax,
-      total,
-      promo,
-      fare,
-    });
+    // TODO: Implement payment functionality
+    // Payment gateway integration will go here
   };
 
   return (
@@ -291,10 +275,11 @@ export default function AcceptRidePage() {
                   Complete Ride
                 </Button>
                 <Button
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                  onClick={() => setIsReviewOpen(true)}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
                 >
-                  <DollarSign className="w-5 h-5 mr-2" />
-                  Leave a review
+                  <Star className="w-5 h-5 mr-2" />
+                  Leave a Review
                 </Button>
                 <Button className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg">
                   <X className="w-5 h-5 mr-2" />
@@ -378,6 +363,17 @@ export default function AcceptRidePage() {
       <ChatModal
         open={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+        riderName={riderInfo.fullName}
+        riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
+      />
+
+      {/* Ride Review Modal */}
+      <RideReviewModal
+        open={isReviewOpen}
+        onClose={() => setIsReviewOpen(false)}
+        rideId={rideId}
+        riderId={riderId}
+        userId={user?.id || userId}
         riderName={riderInfo.fullName}
         riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
       />
