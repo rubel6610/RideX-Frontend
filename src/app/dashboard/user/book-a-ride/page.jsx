@@ -169,7 +169,7 @@ const BookARide = () => {
             vehicleRegisterNumber: data?.rideInfo?.riderInfo?.vehicleRegisterNumber || "",
           }).toString();
 
-          router.push(`/dashboard/user/book-a-ride/searching?${params}`);
+          router.push(`/dashboard/user/book-a-ride/accept-ride?${params}`);
         }
       } catch (err) {
         console.error("Error fetching ride status:", err);

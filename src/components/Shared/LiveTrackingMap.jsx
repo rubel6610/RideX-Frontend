@@ -143,7 +143,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Bike" }) => {
 
   if (!isClient) {
     return (
-      <div className="w-full h-[400px] rounded-xl bg-card border border-border flex items-center justify-center">
+      <div className="w-full h-[400px] z-40 rounded-xl bg-card border border-border flex items-center justify-center">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-3 animate-pulse">
             {getVehicleIcon()}
