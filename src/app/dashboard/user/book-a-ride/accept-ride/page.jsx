@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
+import ChatModal from "@/components/Shared/ChatModal";
 
 // Dynamically import map component to prevent SSR issues
 const LiveTrackingMap = dynamic(
@@ -49,6 +50,7 @@ export default function SearchingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Extract ride details from URL query parameters
   const pickup = searchParams.get("pickup") || "";
@@ -126,10 +128,9 @@ export default function SearchingPage() {
     );
   };
 
-  // ✅ Updated Cancel Ride Handler
+  // Cancel Ride Handler
   const handleCancelRide = () => {
-    console.log("Ride cancelled:", rideId);
-    // You can add cancel ride logic here (API call, etc.)
+    // TODO: Add cancel ride API call
   };
 
   return (
@@ -285,12 +286,15 @@ export default function SearchingPage() {
                 </div>
               </div>
 
-              {/* Buttons */}
-              <div className="space-y-3">
-                <Button className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg">
-                  <Phone className="w-5 h-5 mr-2" />
-                  Chat with {riderInfo.fullName.split(" ")[0]}
-                </Button>
+               {/* Buttons */}
+               <div className="space-y-3">
+                 <Button 
+                   onClick={() => setIsChatOpen(true)}
+                   className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                 >
+                   <Phone className="w-5 h-5 mr-2" />
+                   Chat with {riderInfo.fullName.split(" ")[0]}
+                 </Button>
 
                 {/* ✅ Updated Gradient Cancel Button */}
                 <Button
@@ -381,6 +385,14 @@ export default function SearchingPage() {
           </div>
         </div>
       </div>
+
+      {/* Chat Modal */}
+      <ChatModal
+        open={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        riderName={riderInfo.fullName}
+        riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
+      />
     </div>
   );
 }
