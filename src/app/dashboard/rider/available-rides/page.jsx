@@ -65,24 +65,41 @@ const AvailableRidesPage = () => {
     fetchRides();
   }, [user]);
 
+  // accept handler
   const handleAccept = async (rideId, riderId) => {
-    console.log(rideId, riderId)
+    console.log("🟡 Accept pressed:", rideId, riderId);
+
+    if (!rideId || !riderId) {
+      console.error("❌ Missing IDs");
+      return;
+    }
+
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-accept`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-accept`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rideId, riderId }),
       });
-      console.log(res)
-      setRides((prev) => prev.map(r => r._id === rideId ? { ...r, status: "accepted" } : r));
+
+      const data = await res.json();
+      console.log("✅ Server response:", data);
+
+      if (data.success) {
+        setRides((prev) =>
+          prev.map((r) => (r._id === rideId ? { ...r, status: "accepted" } : r))
+        );
+      } else {
+        console.error("❌ Ride accept failed:", data.message);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("🔥 Fetch error:", err);
     }
   };
 
+  // reject handler
   const handleReject = async (rideId, riderId) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-reject`, {
+      await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rideId, riderId }),

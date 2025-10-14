@@ -1,9 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { calculateFare } from "@/components/Shared/fareCalculator";
-
 import ModeSelector from "./components/ModeSelector";
 import LocationInputs from "./components/LocationInputs";
 import PromoCodeSection from "./components/PromoCodeSection";
@@ -26,19 +25,19 @@ const BookARide = () => {
   const [promoError, setPromoError] = useState("");
   const [rideData, setRideData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [counter, setCounter] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rideId, setRideId] = useState(null);
   const { user } = useAuth();
-
   const router = useRouter();
-  const baseUrl = process?.env?.NEXT_PUBLIC_SERVER_BASE_URL;
 
+  // ✅ Get Current Location (with fallback + caching)
   useEffect(() => {
     const getCurrentLocation = async () => {
       try {
         const saved = localStorage.getItem("currentLocation");
-        if (saved) {
-          setCurrentLocation(JSON.parse(saved));
-          return;
-        }
+        if (saved) return setCurrentLocation(JSON.parse(saved));
+
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             async (pos) => {
@@ -69,12 +68,20 @@ const BookARide = () => {
           );
         }
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching location:", err);
       }
     };
     getCurrentLocation();
   }, []);
 
+  // ✅ Counter animation for modal loader
+  useEffect(() => {
+    if (!isLoading || !isModalOpen) return;
+    const interval = setInterval(() => setCounter((prev) => prev + 1), 1000);
+    return () => clearInterval(interval);
+  }, [isLoading, isModalOpen]);
+
+  // ✅ Load route params from URL if available
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -99,12 +106,22 @@ const BookARide = () => {
       });
   }, []);
 
+  // ✅ Fare calculation effect (optimized)
   useEffect(() => {
+    const isValidCoordinate = (str) => {
+      if (!str) return false;
+      const [lat, lng] = str.split(",").map(Number);
+      return (
+        !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
+      );
+    };
+
+    if (!pickup || !drop || !isValidCoordinate(pickup) || !isValidCoordinate(drop)) {
+      setRideData(null);
+      return;
+    }
+
     const fetchDistance = async () => {
-      if (!pickup || !drop) {
-        setRideData(null);
-        return;
-      }
       try {
         const type = selectedType.toLowerCase();
         const result = await calculateFare(pickup, drop, type, appliedPromo);
@@ -113,38 +130,89 @@ const BookARide = () => {
         toast.error("Fare calculation failed");
       }
     };
+
     fetchDistance();
   }, [pickup, drop, selectedType, appliedPromo]);
 
-  const handleRideRequest = async () => {
+  
+  // ✅ Ride status polling (optimized)
+  useEffect(() => {
+    if (!rideId) return;
+    let hasPushed = false;
+    console.log("rideId", rideId);
+    const fetchRideStatus = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${rideId}`);
+        const data = await res.json();
+        console.log("DATA: ", data);
+        if (!hasPushed && data.status === "accepted" && data?.rideInfo) {
+          hasPushed = true;
+
+          const params = new URLSearchParams({
+            rideId,
+            userId: user?.id || "",
+            riderId: data?.rideInfo?.riderId || "",
+            amount: data?.rideInfo?.fare?.toString() || "",
+            pickup: pickupName || pickup,
+            drop: dropName || drop,
+            vehicleType: selectedType,
+            distance: rideData?.distanceKm?.toString() || "",
+            arrivalTime: rideData?.arrivalTime || "",
+            promo: appliedPromo || "",
+            baseFare: rideData?.baseFare?.toString() || "0",
+            distanceFare: rideData?.distanceFare?.toString() || "0",
+            timeFare: rideData?.timeFare?.toString() || "0",
+            tax: rideData?.tax?.toString() || "0",
+            total: data?.rideInfo?.fare?.toString() || "0",
+            riderName: data?.rideInfo?.riderInfo?.fullName || "",
+            riderEmail: data?.rideInfo?.riderInfo?.email || "",
+            vehicleModel: data?.rideInfo?.riderInfo?.vehicleModel || "",
+            vehicleRegisterNumber: data?.rideInfo?.riderInfo?.vehicleRegisterNumber || "",
+          }).toString();
+
+          router.push(`/dashboard/user/book-a-ride/accept-ride?${params}`);
+        }
+      } catch (err) {
+        console.error("Error fetching ride status:", err);
+      }
+    };
+
+    const interval = setInterval(fetchRideStatus, 1000);
+    return () => clearInterval(interval);
+  }, [rideId, user, rideData, pickup, drop, pickupName, dropName, selectedType, router]);
+
+  // ✅ Handle Ride Request
+  const handleRideRequest = useCallback(async () => {
     if (!pickup || !drop || !selectedType || !rideData?.cost) {
       toast.warning("Please complete all fields");
       return;
     }
     setIsLoading(true);
-    const loadingToastId = toast.loading("Requesting ride...");
+    setIsModalOpen(true);
+
     try {
-      let pickupCoords, dropCoords;
-      if (pickup.includes(",")) {
-        const [lat, lng] = pickup.split(",").map(Number);
-        pickupCoords = { type: "Point", coordinates: [lng, lat] };
-      } else {
-        pickupCoords = currentLocation
-          ? {
-            type: "Point",
-            coordinates: [currentLocation.lng, currentLocation.lat],
-          }
-          : { type: "Point", coordinates: [90.4125, 23.8103] };
-      }
-      if (drop.includes(",")) {
-        const [lat, lng] = drop.split(",").map(Number);
-        dropCoords = { type: "Point", coordinates: [lng, lat] };
-      } else {
-        dropCoords = { type: "Point", coordinates: [90.4125, 23.8103] };
-      }
+      const parseCoords = (coord, fallback) => {
+        if (coord.includes(",")) {
+          const [lat, lng] = coord.split(",").map(Number);
+          return { type: "Point", coordinates: [lng, lat] };
+        }
+        return fallback;
+      };
+
+      const pickupCoords = parseCoords(
+        pickup,
+        currentLocation
+          ? { type: "Point", coordinates: [currentLocation.lng, currentLocation.lat] }
+          : { type: "Point", coordinates: [90.4125, 23.8103] }
+      );
+
+      const dropCoords = parseCoords(
+        drop,
+        { type: "Point", coordinates: [90.4125, 23.8103] }
+      );
 
       const requestData = {
-        userId: user?.id || "demo-user-id",
+        userId: user?.id,
         pickup: pickupCoords,
         drop: dropCoords,
         vehicleType: selectedType,
@@ -155,75 +223,58 @@ const BookARide = () => {
         dropName: dropName || drop,
       };
 
-      const response = await fetch(`${baseUrl}/api/request`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
-      const contentType = response.headers.get("content-type");
-      if (!contentType?.includes("application/json"))
-        throw new Error("Server returned non-JSON response.");
+
+      if (!response.ok) throw new Error("Server error");
+
       const result = await response.json();
-      if (response.ok) {
-        toast.dismiss(loadingToastId);
-        toast.success("Ride request sent successfully!");
-        setTimeout(() => {
-          const params = new URLSearchParams({
-            pickup,
-            drop,
-            type: selectedType,
-            promo: appliedPromo,
-            fare: rideData?.cost?.toString() || "",
-            distance: rideData?.distanceKm?.toString() || "",
-            rideId: result.rideId || "demo-ride-id",
-            riderId: result.rider?._id || "demo-rider-id",
-            riderName: result.rider?.fullName || "Demo Rider",
-            riderDistance: result.rider?.distance || "2 km",
-            mode: mode,
-          }).toString();
-          router.push(`/dashboard/user/book-a-ride/searching?${params}`);
-        }, 2000);
-      } else {
-        throw new Error(result.message || `Server error`);
-      }
+      setRideId(result?.rideId);
+      toast.success("Ride request sent successfully!");
     } catch (error) {
-      toast.dismiss(loadingToastId);
       toast.error("Ride Request Failed");
-    } finally {
+      setIsModalOpen(false);
       setIsLoading(false);
+      console.error(error);
     }
-  };
+  }, [
+    pickup,
+    drop,
+    selectedType,
+    rideData,
+    appliedPromo,
+    user,
+    currentLocation,
+    pickupName,
+    dropName,
+  ]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-      {/* Left side form scrollable */}
-      <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
-        <ModeSelector mode={mode} setMode={setMode} />
-        <LocationInputs
-          pickup={pickup}
-          setPickup={setPickup}
-          drop={drop}
-          setDrop={setDrop}
-          onLocationChange={(location, type) => {
-            if (type === "pickup") {
-              setPickupName(location.name);
-              setIsCurrentLocationActive(
-                currentLocation &&
-                location.coordinates === currentLocation.coordinates
-              );
-            } else {
-              setDropName(location.name);
-            }
-          }}
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-3">
-          <div className="w-full flex-1">
-            <VehicleTypeSelector
-              selectedType={selectedType}
-              setSelectedType={setSelectedType}
-            />
-          </div>
-          <div className="w-full flex-1">
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+        <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
+          <ModeSelector mode={mode} setMode={setMode} />
+          <LocationInputs
+            pickup={pickup}
+            setPickup={setPickup}
+            drop={drop}
+            setDrop={setDrop}
+            onLocationChange={(location, type) => {
+              if (type === "pickup") {
+                setPickupName(location.name);
+                setIsCurrentLocationActive(
+                  currentLocation && location.coordinates === currentLocation.coordinates
+                );
+              } else {
+                setDropName(location.name);
+              }
+            }}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-3">
+            <VehicleTypeSelector selectedType={selectedType} setSelectedType={setSelectedType} />
             <PromoCodeSection
               promo={promo}
               setPromo={setPromo}
@@ -233,52 +284,61 @@ const BookARide = () => {
               setPromoError={setPromoError}
             />
           </div>
+          <ConsolidatedRideCard
+            pickup={pickup}
+            drop={drop}
+            pickupName={pickupName}
+            dropName={dropName}
+            selectedType={selectedType}
+            rideData={rideData}
+            onRequestRide={handleRideRequest}
+            isLoading={isLoading}
+          />
         </div>
-        <ConsolidatedRideCard
-          pickup={pickup}
-          drop={drop}
-          pickupName={pickupName}
-          dropName={dropName}
-          selectedType={selectedType}
-          rideData={rideData}
-          onRequestRide={handleRideRequest}
-          isLoading={isLoading}
-        />
+
+        <div className="h-full bg-white rounded-xl shadow-lg hidden md:block">
+          <RideMap
+            pickup={pickup}
+            drop={drop}
+            currentLocation={currentLocation}
+            isCurrentLocationActive={isCurrentLocationActive}
+            onLocationSelect={(location, type) => {
+              if (type === "pickup") {
+                setPickup(location.coordinates);
+                setPickupName(location.name);
+                setIsCurrentLocationActive(
+                  currentLocation && location.coordinates === currentLocation.coordinates
+                );
+              } else {
+                setDrop(location.coordinates);
+                setDropName(location.name);
+              }
+            }}
+            onCurrentLocationClick={() => {
+              if (currentLocation) {
+                setPickup(currentLocation.coordinates);
+                setPickupName(currentLocation.name);
+                setIsCurrentLocationActive(true);
+                toast.success("Current location set as pickup point");
+              }
+            }}
+          />
+        </div>
       </div>
 
-      {/* Right side map full height */}
-      <div className="h-full bg-white rounded-xl shadow-lg hidden md:block">
-        <RideMap
-          pickup={pickup}
-          drop={drop}
-          pickupCoords={null}
-          dropCoords={null}
-          currentLocation={currentLocation}
-          isCurrentLocationActive={isCurrentLocationActive}
-          onLocationSelect={(location, type) => {
-            if (type === "pickup") {
-              setPickup(location.coordinates);
-              setPickupName(location.name);
-              setIsCurrentLocationActive(
-                currentLocation &&
-                location.coordinates === currentLocation.coordinates
-              );
-            } else {
-              setDrop(location.coordinates);
-              setDropName(location.name);
-            }
-          }}
-          onCurrentLocationClick={() => {
-            if (currentLocation) {
-              setPickup(currentLocation.coordinates);
-              setPickupName(currentLocation.name);
-              setIsCurrentLocationActive(true);
-              toast.success("Current location set as pickup point");
-            }
-          }}
-        />
-      </div>
-    </div>
+      {/* ✅ Custom Loader Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+          <div className="relative bg-white rounded-full shadow-2xl h-20 w-20 flex items-center justify-center">
+            <div
+              className="absolute h-full w-full rounded-full border-6 border-t-primary border-r-primary border-b-primary/30 border-l-primary/30 animate-spin-slow"
+              style={{ animationDuration: "3s" }}
+            ></div>
+            <div className="text-center text-4xl font-bold text-primary">{counter}</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
