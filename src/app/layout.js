@@ -1,15 +1,16 @@
-"use client";
-import "./globals.css";
-import Navbar from "@/components/Shared/Navbar/Navbar";
-import Footer from "@/components/Shared/Footer";
-import { AuthProvider } from "./hooks/AuthProvider";
-import useHideLayout from "./hooks/useHideLayout";
-import { useAuth } from "./hooks/AuthProvider";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeProvider } from "./hooks/themeContext";
-import QueryClientProvider from "./Providers/ReactQueryProvider";
+'use client';
+import './globals.css';
+import Navbar from '@/components/Shared/Navbar/Navbar';
+import Footer from '@/components/Shared/Footer';
+import { AuthProvider } from './hooks/AuthProvider';
+import useHideLayout from './hooks/useHideLayout';
+import { useAuth } from './hooks/AuthProvider';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ThemeProvider } from './hooks/themeContext';
+import QueryClientProvider from './Providers/ReactQueryProvider';
 import Toaster from '@/components/ui/sonner';
 import { Roboto, Mulish } from 'next/font/google';
+import CursorFollower from '@/components/Shared/CursorFollower';
 
 // Load Mulish first
 const mulish = Mulish({
@@ -61,6 +62,7 @@ export default function RootLayout({ children }) {
           </AuthProvider>
         </ThemeProvider>
 
+        <CursorFollower />
         <Toaster position="bottom-right" />
       </body>
     </html>
