@@ -12,7 +12,7 @@ export function TableSkeleton({ rows = 5, cols = 4 }) {
       {/* Table */}
       <div className="w-full overflow-x-auto">
         <table className="w-full border-collapse">
-          <thead className="bg-muted/50">
+          <thead className="bg-muted/10">
             <tr>
               {[...Array(cols)].map((_, i) => (
                 <th key={i} className="px-4 py-3 text-left">

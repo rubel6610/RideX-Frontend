@@ -34,12 +34,12 @@ const Navbar = () => {
   const [rideByOpen, setRideByOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
 
-  const { data } = useFetchData(
+  const { data, isLoading } = useFetchData(
     "users",
     "/user",
     { email: user?.email },
     {
-      enabled: !!user?.email, 
+      enabled: !!user && !!user.email && typeof user.email === 'string' && user.email.trim() !== '', 
     }
   );
 
@@ -198,13 +198,19 @@ const Navbar = () => {
             </Link>
           ) : (
             <div className="relative group h-full flex items-center">
-              <Image
-                src={data?.photoUrl || "/default-avatar.png"}
-                height={40}
-                width={40}
-                alt="User Photo"
-                className="w-10 h-10 border border-border rounded-full object-cover"
-              />
+              {data?.photoUrl ? (
+                <Image
+                  src={data.photoUrl}
+                  height={40}
+                  width={40}
+                  alt="UserPhoto"
+                  className="w-10 h-10 border border-border rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 border border-border rounded-full bg-muted flex items-center justify-center">
+                  <User className="w-5 h-5 text-muted-foreground" />
+                </div>
+              )}
               <div className="absolute w-40 top-10 mt-0.5 -right-0 border border-border bg-popover text-foreground flex flex-col shadow-lg rounded-lg overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
                 <Link
                   href="/dashboard/my-profile"

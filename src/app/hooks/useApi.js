@@ -8,6 +8,13 @@ export const useFetchData = (key, endpoint, params = {}, options = {}) => {
     queryKey: [key, params],
     queryFn: () => apiRequest(endpoint, "GET", {}, params),
     enabled: options.enabled !== undefined ? options.enabled : true, 
+    retry: (failureCount, error) => {
+      // Don't retry if it's a 400 error (bad request)
+      if (error?.response?.status === 400) {
+        return false;
+      }
+      return failureCount < 3;
+    },
     ...options, 
   });
 };

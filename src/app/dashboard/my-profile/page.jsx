@@ -31,7 +31,9 @@ const MyProfile = () => {
     isLoading,
     isError,
     error,
-  } = useFetchData("user", "user", { email: user?.email }, { enabled: !!user?.email });
+  } = useFetchData("user", "user", { email: user?.email }, { 
+    enabled: !!user && !!user.email && typeof user.email === 'string' && user.email.trim() !== ''
+  });
 
   // ✅ Update user profile using your reusable `useUpdateData`
   const updateProfile = useUpdateData("user", {

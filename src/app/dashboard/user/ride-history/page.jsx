@@ -21,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 
+import axios from "axios";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -30,6 +30,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { TableSkeleton } from "@/components/Shared/Skeleton/CardSkeleton";
 
 // Type icon mapping
 const typeIcon = {
@@ -59,52 +60,12 @@ const statusBadge = (status) => {
   );
 };
 
-// Skeleton loader
-function TableSkeletonWrapper() {
-  return (
-    <div className="w-full max-w-6xl bg-background rounded-lg border border-accent shadow-sm mt-4 overflow-x-auto">
-      <Table className="min-w-[700px] md:min-w-full">
-        <TableHeader className="bg-accent/30">
-          <TableRow>
-            {[
-              "#",
-              "Date",
-              "From",
-              "To",
-              "Type",
-              "Fare",
-              "Driver",
-              "Rating",
-              "Status",
-            ].map((head, i) => (
-              <TableHead key={i} className="text-xs md:text-sm">
-                {head}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {[...Array(5)].map((_, i) => (
-            <TableRow key={i}>
-              {[...Array(9)].map((_, j) => (
-                <TableCell key={j}>
-                  <Skeleton className="h-4 w-20 rounded" />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
 // Function to convert coordinates to real location (via backend proxy)
 const fetchLocationName = async (coordinates) => {
   if (!coordinates) return "Unknown location";
   const [lon, lat] = coordinates;
   try {
-    const data = await apiRequest("reverse-geocode", "GET", {}, { lat, lon });
+    const data = await apiRequest( "/reverse-geocode","GET",{}, { lat, lon });
     return data?.display_name || "Unknown location";
   } catch (error) {
     console.error("Error fetching location:", error);
@@ -126,9 +87,9 @@ export default function RideHistoryPage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state for fetching
   const [processing, setProcessing] = useState(true); // Processing state for location resolution
-
+  
   // Fetch rides via hook
-  const { data: ridesData = [], isLoading } = useFetchData("rides", "rides", null);
+  const { data: ridesData = [], isLoading } = useFetchData("rides", "/rides", null);
 
   // Enrich rides with human-readable locations
   useEffect(() => {
@@ -196,7 +157,7 @@ export default function RideHistoryPage() {
   });
 
   // Check if data has been fully processed and fetched
-  const isDataReady = !loading && !processing;
+  const isDataReady = !loading || !processing;
 
   return (
     <TooltipProvider>
@@ -219,9 +180,9 @@ export default function RideHistoryPage() {
                 Search
               </label>
               <div className="relative">
-                <Search className="absolute  right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
-                  className="pr-12 "
+                  className="pr-12"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search rides"
@@ -247,12 +208,13 @@ export default function RideHistoryPage() {
           </div>
 
           {/* Skeleton or No Rides Found Message */}
-          {isDataReady && filtered.length === 0 ? (
+          {!isDataReady && filtered.length === 0 ? (
             <div className="text-center py-6">No rides found. Try adjusting your search, filters, or date.</div>
           ) : (
             <>
-              {processing ? (
-                <TableSkeletonWrapper />
+            
+              {isLoading || loading ? (
+               <TableSkeleton/>
               ) : (
                 <div className="w-full max-w-6xl bg-background rounded-lg border border-accent shadow-sm mt-4 overflow-x-auto">
                   <Table className="min-w-[700px] md:min-w-full">

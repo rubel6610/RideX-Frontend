@@ -26,7 +26,9 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
-   const {data}=useFetchData("users","/user", {email:user?.email})
+   const {data}=useFetchData("users","/user", {email:user?.email}, {
+     enabled: !!user && !!user.email && typeof user.email === 'string' && user.email.trim() !== ''
+   })
   const userRole = user?.role;   
  
 
