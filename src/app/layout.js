@@ -11,6 +11,7 @@ import QueryClientProvider from './Providers/ReactQueryProvider';
 import Toaster from '@/components/ui/sonner';
 import { Roboto, Mulish } from 'next/font/google';
 import CursorFollower from '@/components/Shared/CursorFollower';
+import LenisProvider from '@/components/Shared/LenisProvider';
 
 // Load Mulish first
 const mulish = Mulish({
@@ -38,11 +39,11 @@ function LayoutContent({ children }) {
   }
 
   return (
-    <>
+    <LenisProvider>
       {!hideLayout && <Navbar />}
       <main className="min-h-screen">{children}</main>
       {!hideLayout && <Footer />}
-    </>
+    </LenisProvider>
   );
 }
 
