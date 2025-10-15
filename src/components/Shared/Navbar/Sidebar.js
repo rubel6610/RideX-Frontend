@@ -58,13 +58,13 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
   return (
     <div
       ref={overlayRef}
-      className={`fixed top-0 right-0 h-screen w-full bg-black/40 backdrop-blur-sm z-[997] transform transition-all duration-300 custom-scrollbar ${
+      className={`fixed top-0 right-0 h-screen w-full bg-black/40 backdrop-blur-sm z-[997] transform transition-all duration-300 ${
         sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
       <div className="relative h-screen w-full flex justify-end">
         <aside
-          className={`w-[360px] h-screen bg-background text-foreground shadow-lg p-8 relative flex flex-col overflow-y-auto custom-scroll transition-all duration-300 ${
+          className={`w-[360px] h-screen bg-background text-foreground shadow-lg p-8 relative flex flex-col overflow-y-auto custom-scrollbar transition-all duration-300 ${
             sidebarOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
@@ -195,7 +195,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
           )}
 
           {/* Footer */}
-          <div className="mt-auto sm:mt-40 pt-6 border-t border-border">
+          <div className="mt-auto lg:mt-40 pt-6 border-t border-border">
             <h4 className="font-semibold mb-3 text-lg text-primary">
               Contact Info
             </h4>

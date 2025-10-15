@@ -61,7 +61,7 @@ export default function CursorFollower() {
         {/* Outer ring */}
         <span className="block h-6 w-6 rounded-full border-2 border-primary/90 animate-none"></span>
         {/* Inner dot */}
-        <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/90"></span>
+        <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full  dark:bg-white/80 bg-black/60"></span>
       </div>
     </div>
   );

@@ -229,11 +229,41 @@ body {
   background: var(--primary);
   opacity: 0.8;
 }
-/* @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-} */
+
+/* ===== Global Scrollbar Style for Whole Window ===== */
+
+/* Chrome, Edge, Safari */
+html::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: 3px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  opacity: 0.8;
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background);
+}
+
+/* Optional: Hide scrollbar completely (when needed) */
+html.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+html.scrollbar-hidden {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}

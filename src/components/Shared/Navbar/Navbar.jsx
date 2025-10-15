@@ -183,14 +183,14 @@ const Navbar = () => {
 
       {/* ---------- MAIN NAVBAR ---------- */}
       <header
-        className={`fixed left-0 right-0 z-[90] border-b border-border bg-background transition-all duration-500 ${user
+        className={`fixed left-0 right-0 z-[90] bg-background transition-all duration-500 ${user
             ? "top-0"
             : isScrolled
               ? "top-0 shadow-sm"
               : "mt-0"
           }`}
       >
-        <div className="max-w-[1440px] mx-auto flex justify-between items-center h-20 sm:h-26 px-3 sm:px-6 xl:px-8 relative">
+        <div className="max-w-[1440px] mx-auto flex justify-between items-center h-20 sm:h-24 px-3 sm:px-6 xl:px-8 relative">
           {/* Left section - Logo + Navigation */}
           <div className="flex items-center gap-4">
             <Link href="/" className="dark:hidden">
@@ -368,7 +368,7 @@ const Navbar = () => {
             <div className="h-20 w-full flex flex-col justify-center items-center">
               <TextAlignJustify className="text-white w-6 h-6 sm:w-8 sm:h-8" />
             </div>
-            <div className="bg-white h-2 sm:h-3 w-full" />
+            <div className="bg-foreground/60 dark:bg-foreground h-2 sm:h-3 w-full" />
           </button>
         </div>
 
