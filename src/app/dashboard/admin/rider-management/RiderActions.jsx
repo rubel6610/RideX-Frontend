@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
-import toast from "react-hot-toast";
+import {toast} from "sonner";
 
 export default function RiderActions({ user, onAction }) {
   const [loading, setLoading] = useState(false);

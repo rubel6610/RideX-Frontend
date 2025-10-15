@@ -118,7 +118,7 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
     formData.append("image", file);
 
     const res = await fetch(
-      process.env.NEXT_PUBLIC_IMGBB_KEY,
+      process.env.IMGBB_KEY,
       {
         method: "POST",
         body: formData,
@@ -341,10 +341,10 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
 
           {/* Footer */}
           <div className="flex justify-end gap-3 p-6 border-t bg-accent/5">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <Button type="button" variant="destructive" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" disabled={loading} className="flex items-center gap-2">
+            <Button type="submit" variant="default" disabled={loading} className="flex items-center gap-2">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {loading ? "Saving..." : "Save Changes"}
             </Button>

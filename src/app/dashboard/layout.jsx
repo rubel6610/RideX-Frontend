@@ -4,19 +4,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  User,
-  MapPin,
-  Search,
-  Bell,
-  LucideLogOut,
-  PanelRightOpen,
-  PanelRightClose,
-  Moon,
-  Sun,
-  X,
+import {MapPin,Search,Bell,PanelRightOpen,PanelRightClose,Moon,Sun,X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import logo from "../../Assets/ridex-logo.webp";
 import darkLogo from "../../Assets/logo-dark.webp";
 import ProtectedRoute from "../hooks/ProtectedRoute";
@@ -25,34 +14,21 @@ import { useAuth } from "../hooks/AuthProvider";
 import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
+import RiderStatus from "@/components/Shared/Riders/RiderStatus";
+import SignOutButton from "@/components/Shared/SignOutButton";
+import { useFetchData } from "../hooks/useApi";
 
 export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // for mobile-md
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // for lg+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const [userData, setUserData] = useState(null);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    if (!user?.email) return;
-    const fetchUserData = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch user data");
-        const data = await res.json();
-        setUserData(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchUserData();
-  }, [user?.email]);
-
-  const userRole = "user";
+   const {data}=useFetchData("users","/user", {email:user?.email})
+  const userRole = user?.role;   
+ 
 
   return (
     <ProtectedRoute>
@@ -66,7 +42,7 @@ export default function DashboardLayout({ children }) {
 
         {/* Sidebar */}
         <aside
-          className={`fixed top-0 left-0 z-50 h-full flex flex-col justify-between transition-all duration-300 bg-background border-r border-border py-4 px-4 text-foreground ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} lg:static ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
+          className={`fixed top-0 left-0 z-50 h-full flex flex-col justify-between transition-all duration-300 bg-accent border-r border-border py-4 px-4 text-foreground ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} lg:static ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
 `}>
           <div>
             {/* Logo + Close btn */}
@@ -118,15 +94,8 @@ export default function DashboardLayout({ children }) {
             </nav>
           </div>
 
-          <Button
-            onClick={logout}
-            variant="destructiveOutline"
-            size="lg"
-            className="w-full m-3 text-md ml-1 flex items-center gap-2 justify-center"
-          >
-            <LucideLogOut className="w-5 h-5" />
-            {!sidebarCollapsed && "Sign Out"}
-          </Button>
+          {/* Logout Button */}
+          <SignOutButton />
         </aside>
 
         {/* Main Content */}
@@ -188,17 +157,16 @@ export default function DashboardLayout({ children }) {
                 )}
               </button>
               <Bell className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
-              <Link href="/dashboard/my-profile">
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 px-2 md:px-3 text-sm md:text-base"
-                >
-                  <User className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                  <span className="hidden md:inline text-foreground">
-                    Profile
-                  </span>
-                </Button>
-              </Link>
+
+              {/* go online - offline */}
+              {
+                userRole === 'rider' && <RiderStatus />
+              }
+
+             {data &&  <Link href="/dashboard/my-profile">
+                  <Image src={data.photoUrl} height="120" width="120" alt="userPhoto" className="w-4 h-4 md:w-10 md:h-10 rounded-full object-cover hover:scale-110" />
+               
+              </Link> }
             </div>
           </header>
 

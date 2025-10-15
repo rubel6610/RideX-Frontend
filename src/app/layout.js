@@ -7,9 +7,22 @@ import useHideLayout from "./hooks/useHideLayout";
 import { useAuth } from "./hooks/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeProvider } from "./hooks/themeContext";
-import { Toaster } from "react-hot-toast";
-import Providers from "./hooks/Providers";
+import QueryClientProvider from "./Providers/ReactQueryProvider";
+import Toaster from '@/components/ui/sonner';
+import { Roboto, Mulish } from 'next/font/google';
 
+// Load Mulish first
+const mulish = Mulish({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-mulish',
+});
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-roboto',
+});
 
 function LayoutContent({ children }) {
   const hideLayout = useHideLayout();
@@ -34,16 +47,21 @@ function LayoutContent({ children }) {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="light">
+    <html
+      lang="en"
+      data-theme="light"
+      className={`${mulish.variable} ${roboto.variable}`}
+    >
       <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
-        <Providers>
         <ThemeProvider>
-        <AuthProvider>
-          <LayoutContent>{children}</LayoutContent>
-        </AuthProvider>
+          <AuthProvider>
+            <QueryClientProvider>
+              <LayoutContent>{children}</LayoutContent>
+            </QueryClientProvider>
+          </AuthProvider>
         </ThemeProvider>
-        </Providers>
-         <Toaster position="top-right" />
+
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

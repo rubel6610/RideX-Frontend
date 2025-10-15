@@ -1,158 +1,386 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Bike, Car, BusFront, TextAlignJustify, Moon, Sun } from "lucide-react";
+import {
+  ChevronDown,
+  Bike,
+  Car,
+  BusFront,
+  TextAlignJustify,
+  Moon,
+  Sun,
+  LucideLogOut,
+  User,
+  ChartColumnDecreasing,
+  HelpCircle,
+  MessageSquare,
+  LogIn,
+  UserPlus,
+} from "lucide-react";
+import gsap from "gsap";
 import logo from "../../../Assets/ridex-logo.webp";
 import darkLogo from "../../../Assets/logo-dark.webp";
 import Sidebar from "./Sidebar";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import useTheme from "@/app/hooks/useTheme";
+import { useFetchData } from "@/app/hooks/useApi";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const { user, logout } = useAuth();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rideByOpen, setRideByOpen] = useState(false);
-  const [showNavbar, setShowNavbar] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  useEffect(() => { }, []);
+  const topbarRef = useRef(null);
+
+  const { data } = useFetchData(
+    "users",
+    "/user",
+    { email: user?.email },
+    { enabled: !!user?.email }
+  );
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? "hidden" : "auto";
+  }, [sidebarOpen]);
+
+  // GSAP animation for topbar smooth show/hide
+  useEffect(() => {
+    if (!user && topbarRef.current) {
+      const handleScroll = () => {
+        const scroll = window.scrollY > 0;
+        setIsScrolled(scroll);
+        gsap.to(topbarRef.current, {
+          y: scroll ? -20 : 0,
+          opacity: scroll ? 0.6 : 1,
+          duration: 0.5,
+          ease: "power2.out",
+        });
+      };
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+  }, [user]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleRideBy = () => setRideByOpen(!rideByOpen);
 
-  const activeStyle = (path) => (pathname === path ? "font-semibold" : "transition-colors duration-300");
-
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY <= 0) {
-        setShowNavbar(true);
-      } else if (currentScrollY > lastScrollY) {
-        setShowNavbar(false);
-      } else {
-        setShowNavbar(true);
+    const handleKey = (e) => {
+      if (e.key === "Escape") {
+        setRideByOpen(false);
+        setAccountOpen(false);
       }
-
-      setLastScrollY(currentScrollY);
     };
+    const handleClick = (e) => {
+      const ridePanel = document.getElementById("rideby-panel");
+      const rideBtn = e.target.closest('[aria-controls="rideby-panel"]');
+      const accPanel = document.getElementById("account-panel");
+      const accBtn = e.target.closest("#account-photo");
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+      if (ridePanel && !ridePanel.contains(e.target) && !rideBtn) {
+        setRideByOpen(false);
+      }
+      if (accPanel && !accPanel.contains(e.target) && !accBtn) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+
+  const activeStyle = (path) =>
+    pathname.startsWith(path)
+      ? "text-primary font-semibold"
+      : "hover:text-primary transition-colors duration-300";
+
+  const handleLogout = () => {
+    toast("Are you sure you want to logout?", {
+      description: "Click below to confirm your action.",
+      action: {
+        label: "Logout",
+        onClick: async () => {
+          try {
+            await logout();
+            toast.success("You have been logged out successfully 👋");
+          } catch (err) {
+            toast.error("Logout failed. Please try again.");
+          }
+        },
+      },
+    });
+  };
 
   return (
-    <div className={`bg-background mx-auto max-w-[2600px] fixed top-0 right-0 left-0 transition-transform duration-300 z-[999] ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}>
-      {/* Topbar shown only to guests (not logged in) */}
+    <>
+      {/* ---------- TOPBAR ---------- */}
       {!user && (
-        <div className="w-full bg-foreground text-background text-sm">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 xl:px-8 h-8 flex items-center justify-between">
-            <div className="flex gap-6">
-              <Link href="/support" className="hover:underline">Support Center</Link>
-              <Link href="/faqs" className="hover:underline">Faq's</Link>
+        <div
+          ref={topbarRef}
+          className={`w-full z-[95] bg-primary backdrop-blur-sm transition-all duration-500 ease-in-out`}
+        >
+          <div className="max-w-[1440px] mx-auto flex justify-between items-center h-10 px-4 sm:px-6 xl:px-8 text-sm">
+            {/* Left side */}
+            <div className="flex items-center gap-1.5 sm:gap-4">
+              <Link
+                href="/support"
+                className="flex items-center gap-1 text-white hover:text-black transition-colors duration-200"
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Support Center</span>
+              </Link>
+              <Link
+                href="/faqs"
+                className="flex items-center gap-1 text-white hover:text-black transition-colors duration-200"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">FAQs</span>
+              </Link>
             </div>
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="hover:underline">Login</Link>
-              <Link href="/register" className="hover:underline">Register</Link>
+
+            {/* Middle Text */}
+            <div className="text-xs sm:text-sm text-center text-white transition-opacity duration-500 ease-in-out">
+              <span className="sm:hidden">Hey there, welcome to RideX!</span>
+              <span className="hidden sm:inline">
+                Hey there, welcome to RideX ride sharing platform. To start ride
+                login here!
+              </span>
+            </div>
+
+            {/* Right side */}
+            <div className="flex items-center gap-1.5 sm:gap-4">
+              <Link
+                href="/signIn"
+                className="flex items-center gap-1 text-white hover:text-black transition-colors duration-200"
+              >
+                <LogIn className="w-4 h-4" />
+                <span className="hidden sm:inline">Sign In</span>
+              </Link>
+              <Link
+                href="/register"
+                className="flex items-center gap-1 text-white hover:text-black transition-colors duration-200"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Sign Up</span>
+              </Link>
             </div>
           </div>
         </div>
       )}
 
-      <div className={`max-w-[1440px] mx-auto bg-background text-foreground shadow-sm h-24 px-4 sm:px-6 xl:px-8 relative`}>
-        {/* left diagonal accent (longer) */}
-        <div className="hidden lg:block absolute left-0 top-0 w-44 h-7 bg-primary -skew-x-12 origin-top-left transform pointer-events-none" aria-hidden />
+      {/* ---------- MAIN NAVBAR ---------- */}
+      <header
+        className={`fixed left-0 right-0 z-[90] border-b border-border bg-background transition-all duration-500 ${user
+            ? "top-0"
+            : isScrolled
+              ? "top-0 shadow-sm"
+              : "mt-0"
+          }`}
+      >
+        <div className="max-w-[1440px] mx-auto flex justify-between items-center h-20 sm:h-26 px-3 sm:px-6 xl:px-8 relative">
+          {/* Left section - Logo + Navigation */}
+          <div className="flex items-center gap-4">
+            <Link href="/" className="dark:hidden">
+              <Image
+                src={logo}
+                alt="RideX Logo"
+                width={110}
+                height={44}
+                className="max-sm:w-[110px]"
+              />
+            </Link>
+            <Link href="/" className="hidden dark:block">
+              <Image
+                src={darkLogo}
+                alt="RideX Logo"
+                width={110}
+                height={44}
+                className="max-sm:w-[110px]"
+              />
+            </Link>
 
-        {/* Logo (left) */}
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 z-30">
-          <Link href="/" className="dark:hidden">
-            <Image src={logo} alt="RideX Logo" width={140} height={56} />
-          </Link>
-          <Link href="/" className="hidden dark:block">
-            <Image src={darkLogo} alt="RideX Logo" width={140} height={56} />
-          </Link>
-        </div>
+            <nav className="hidden lg:flex items-center gap-7 text-lg font-semibold ml-6">
+              {/* Ride By dropdown */}
+              <div className="relative h-full flex items-center">
+                <div className="relative">
+                  <button
+                    onClick={toggleRideBy}
+                    aria-expanded={rideByOpen}
+                    aria-controls="rideby-panel"
+                    className="flex items-center py-6 cursor-pointer"
+                  >
+                    Ride By
+                    <ChevronDown
+                      className={`text-xs transition-transform duration-200 ${rideByOpen ? "rotate-180" : ""
+                        }`}
+                    />
+                  </button>
 
-        {/* Nav moved to the right area on large screens (see right area below) */}
-
-        {/* Right area: theme + tall yellow block */}
-        <div className="absolute right-0 top-0 bottom-0 z-40 flex items-center">
-          {/* Desktop nav: links should appear on right side before the theme toggle */}
-          <nav className="hidden lg:flex items-center gap-8 font-semibold pr-4">
-            <div className="relative group h-full flex items-center">
-              <button className="flex items-center gap-1 py-6 text-base font-semibold cursor-pointer">
-                Ride By
-                <ChevronDown className="text-sm transition-transform duration-200 group-hover:rotate-180" />
-              </button>
-              <div className="absolute top-full left-0 mt-0.5 border border-border bg-popover text-popover-foreground flex flex-col shadow-lg rounded-b overflow-hidden transform transition-all duration-200 origin-top scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 z-[9999]">
-                <Link href="/ride-bike" className="flex items-center gap-2 pl-4 pr-12 py-2 border-b border-border hover:text-primary">
-                  <Bike className="text-primary text-xl border p-0.5 rounded" />
-                  <span>Bike</span>
-                </Link>
-                <Link href="/ride-cng" className="flex items-center gap-2 pl-4 pr-12 py-2 border-b border-border hover:text-primary">
-                  <BusFront className="text-primary text-xl border p-0.5 rounded" />
-                  <span>CNG</span>
-                </Link>
-                <Link href="/ride-car" className="flex items-center gap-2 px-4 pr-12 py-2 hover:text-primary">
-                  <Car className="text-primary text-xl border p-0.5 rounded" />
-                  <span>Car</span>
-                </Link>
+                  <div
+                    id="rideby-panel"
+                    role="menu"
+                    className={`absolute top-full right-0 mt-2 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${rideByOpen
+                        ? "opacity-100 translate-y-0 pointer-events-auto"
+                        : "opacity-0 -translate-y-3 pointer-events-none"
+                      }`}
+                  >
+                    {["/ride-bike", "/ride-cng", "/ride-car"].map((path, i) => {
+                      const icons = [Bike, BusFront, Car];
+                      const labels = ["Bike", "CNG", "Car"];
+                      const Icon = icons[i];
+                      return (
+                        <Link
+                          key={path}
+                          href={path}
+                          className={`flex items-center gap-3 justify-between w-full rounded-md px-6 py-3 transition-all duration-300 transform ${pathname.startsWith(path)
+                              ? "font-semibold bg-primary/10 text-primary scale-[0.98] my-0.5"
+                              : "text-muted-foreground hover:bg-primary/10 hover:text-primary hover:scale-[0.98] my-0.5"
+                            }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="text-primary text-xl border p-0.5 rounded" />
+                            <span className="text-sm uppercase">
+                              {labels[i]}
+                            </span>
+                          </div>
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: "var(--primary)" }}
+                          />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <Link href="/offers" className={`h-full flex items-center hover:text-primary ${activeStyle('/offers')}`}>Offers</Link>
-            <Link href="/contact" className={`h-full flex items-center hover:text-primary ${activeStyle('/contact')}`}>Contact</Link>
-            <Link href="/about" className={`h-full flex items-center hover:text-primary ${activeStyle('/about')}`}>About</Link>
-            <Link href="/become-rider" className={`h-full flex items-center hover:text-primary ${activeStyle('/become-rider')}`}>Become a Rider</Link>
-            {user && (
-              <Link href="/dashboard" className={`h-full flex items-center hover:text-primary ${activeStyle('/dashboard')}`}>Dashboard</Link>
-            )}
-          </nav>
+              <Link href="/offers" className={activeStyle("/offers")}>
+                Offers
+              </Link>
+              <Link href="/contact" className={activeStyle("/contact")}>
+                Contact
+              </Link>
+              <Link href="/about" className={activeStyle("/about")}>
+                About
+              </Link>
 
-          {/* Theme toggle (always visible) - placed immediately after the links */}
-          <div className="flex items-center pr-20">
+              {user?.role === "user" && (
+                <Link
+                  href="/become-rider"
+                  className={activeStyle("/become-rider")}
+                >
+                  Become a Rider
+                </Link>
+              )}
+            </nav>
+          </div>
+
+          {/* Right section - Theme Toggle + User */}
+          <div className="flex items-center gap-2 mr-14 sm:mr-16">
             <button
               onClick={toggleTheme}
-              className="inline-flex ml-2 w-9 h-9 rounded-full items-center justify-center bg-background text-foreground border border-border shadow-sm"
-              aria-label="Toggle theme"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full"
             >
-              {theme === 'dark' ? (
-                <Sun className="w-5 h-5 text-primary" />
-              ) : (
-                <Moon className="w-5 h-5 text-primary" />
-              )}
+              {theme === "dark" ? <Sun /> : <Moon />}
             </button>
+
+            {user && (
+              <div className="relative h-full flex items-center">
+                <Image
+                  src={data?.photoUrl || "/default-avatar.png"}
+                  height={36}
+                  width={36}
+                  alt="User Photo"
+                  id="account-photo"
+                  className="w-9 h-9 sm:w-10 sm:h-10 border border-border rounded-full object-cover cursor-pointer"
+                  onClick={() => setAccountOpen((prev) => !prev)}
+                />
+                <div
+                  id="account-panel"
+                  role="menu"
+                  className={`absolute top-full right-0 my-2 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${accountOpen
+                      ? "opacity-100 translate-y-0 pointer-events-auto"
+                      : "opacity-0 -translate-y-3 pointer-events-none"
+                    }`}
+                >
+                  {["/dashboard/my-profile", "/dashboard"].map((path, i) => {
+                    const icons = [User, ChartColumnDecreasing];
+                    const labels = ["Profile", "Dashboard"];
+                    const Icon = icons[i];
+                    const active = pathname.startsWith(path);
+                    return (
+                      <Link
+                        key={path}
+                        href={path}
+                        className={`flex items-center gap-3 justify-between w-full rounded-md px-6 py-3 transition-all duration-300 transform ${active
+                            ? "font-semibold bg-primary/10 text-primary scale-[0.98] my-0.5"
+                            : "text-muted-foreground hover:bg-primary/10 hover:text-primary hover:scale-[0.98] my-0.5"
+                          }`}
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="text-primary text-xl border p-0.5 rounded" />
+                          <span className="text-sm uppercase">
+                            {labels[i]}
+                          </span>
+                        </div>
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: "var(--primary)" }}
+                        />
+                      </Link>
+                    );
+                  })}
+
+                  <Button
+                    onClick={handleLogout}
+                    variant="destructive"
+                    className="flex items-center gap-3 justify-start w-auto rounded-md px-10 py-5 mt-0.5 mb-1 mx-1"
+                  >
+                    <LucideLogOut className="text-white text-xl border p-0.5 rounded" />
+                    <span className="text-sm uppercase">Logout</span>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Tall right menu block (desktop) - flush to viewport edge with hamburger lines */}
-          <div className="hidden lg:flex h-full w-16 bg-primary items-center justify-center cursor-pointer absolute right-0 top-8" onClick={toggleSidebar}>
-            <div className="flex flex-col gap-1">
-              <span className="block w-6 h-[2px] bg-foreground" />
-              <span className="block w-6 h-[2px] bg-foreground" />
-              <span className="block w-6 h-[2px] bg-foreground" />
+          {/* Mobile menu button */}
+          <button
+            aria-label="Open menu"
+            onClick={toggleSidebar}
+            className="absolute right-0 top-6 sm:top-8 bottom-0 bg-primary w-14 h-20 sm:w-18 sm:h-28 flex flex-col justify-between items-center cursor-pointer"
+          >
+            <div className="h-20 w-full flex flex-col justify-center items-center">
+              <TextAlignJustify className="text-white w-6 h-6 sm:w-8 sm:h-8" />
             </div>
-          </div>
-
-          {/* mobile hamburger (kept) */}
-          <div className="lg:hidden flex items-center pr-2">
-            <TextAlignJustify className="text-2xl cursor-pointer" onClick={toggleSidebar} />
-          </div>
+            <div className="bg-white h-2 sm:h-3 w-full" />
+          </button>
         </div>
-      </div>
 
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        toggleSidebar={toggleSidebar}
-        rideByOpen={rideByOpen}
-        toggleRideBy={toggleRideBy}
-        showNavbar={showNavbar}
-      />
-    </div>
+        {/* Sidebar */}
+        <Sidebar
+          sidebarOpen={sidebarOpen}
+          toggleSidebar={toggleSidebar}
+          rideByOpen={rideByOpen}
+          toggleRideBy={toggleRideBy}
+        />
+      </header>
+    </>
   );
 };
 

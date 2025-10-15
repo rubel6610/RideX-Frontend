@@ -1,312 +1,343 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Bike,
-  BusFront,
-  Car,
-  MapPin,
-  Navigation,
-  Star,
-  UserCircle2,
-  MoveVertical,
-} from "lucide-react";
-import dynamic from "next/dynamic";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { calculateFare } from "@/components/Shared/fareCalculator";
-
-const MapPopup = dynamic(() => import("@/components/Shared/MapPopup"), {
-  ssr: false,
-});
-
-const BdtIcon = () => (
-  <span className="inline-block font-bold text-primary align-middle mr-1">
-    ৳
-  </span>
-);
-
-const rideOptions = [
-  {
-    type: "Bike",
-    icon: <Bike className="inline-block mr-1 text-primary" />,
-    price: 120,
-    driver: "John D.",
-    rating: 4.9,
-    vehicle: "Pulsar 150",
-    eta: "Arrives in 5 min",
-    rides: 500,
-  },
-  {
-    type: "Car",
-    icon: <Car className="inline-block mr-1 text-primary" />,
-    price: 350,
-    driver: "Amit H.",
-    rating: 4.7,
-    vehicle: "Toyota Aqua",
-    eta: "Arrives in 8 min",
-    rides: 320,
-  },
-  {
-    type: "CNG",
-    icon: <BusFront className="inline-block mr-1 text-primary" />,
-    price: 200,
-    driver: "Rahim U.",
-    rating: 4.8,
-    vehicle: "CNG",
-    eta: "Arrives in 7 min",
-    rides: 410,
-  },
-];
-
-const topRiders = [
-  {
-    name: "Akram Hosen",
-    type: "Bike",
-    rating: 4.9,
-    rides: 500,
-    vehicle: "Pulsar NS 150",
-  },
-  {
-    name: "Siam",
-    type: "CNG",
-    rating: 4.9,
-    rides: 500,
-    vehicle: "Bajaj",
-  },
-  {
-    name: "Asgor Ali",
-    type: "Bike",
-    rating: 4.9,
-    rides: 500,
-    vehicle: "Pulsar NS 150",
-  },
-  {
-    name: "Abdur Rahim",
-    type: "Car",
-    rating: 4.9,
-    rides: 500,
-    vehicle: "Corolla- 2000",
-  },
-  {
-    name: "Istiak",
-    type: "Bike",
-    rating: 4.9,
-    rides: 500,
-    vehicle: "Pulsar NS 150",
-  },
-];
+import ModeSelector from "./components/ModeSelector";
+import LocationInputs from "./components/LocationInputs";
+import PromoCodeSection from "./components/PromoCodeSection";
+import VehicleTypeSelector from "./components/VehicleTypeSelector";
+import ConsolidatedRideCard from "./components/ConsolidatedRideCard";
+import RideMap from "./components/RideMap";
+import { useAuth } from "@/app/hooks/AuthProvider";
 
 const BookARide = () => {
   const [pickup, setPickup] = useState("");
   const [drop, setDrop] = useState("");
+  const [pickupName, setPickupName] = useState("");
+  const [dropName, setDropName] = useState("");
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [isCurrentLocationActive, setIsCurrentLocationActive] = useState(false);
   const [selectedType, setSelectedType] = useState("Bike");
-  const [showPickupMap, setShowPickupMap] = useState(false);
-  const [showDropMap, setShowDropMap] = useState(false);
+  const [mode, setMode] = useState("auto");
+  const [promo, setPromo] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
+  const [promoError, setPromoError] = useState("");
   const [rideData, setRideData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [counter, setCounter] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rideId, setRideId] = useState(null);
+  const { user } = useAuth();
+  const router = useRouter();
 
+  // ✅ Get Current Location (with fallback + caching)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("pickup")) setPickup(params.get("pickup"));
-      if (params.get("drop")) setDrop(params.get("drop"));
-    }
+    const getCurrentLocation = async () => {
+      try {
+        const saved = localStorage.getItem("currentLocation");
+        if (saved) return setCurrentLocation(JSON.parse(saved));
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              const { latitude, longitude } = pos.coords;
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+              );
+              const data = await res.json();
+              const loc = {
+                coordinates: `${latitude},${longitude}`,
+                name: data?.display_name,
+                lat: latitude,
+                lng: longitude,
+              };
+              setCurrentLocation(loc);
+              localStorage.setItem("currentLocation", JSON.stringify(loc));
+            },
+            () => {
+              const def = {
+                coordinates: "23.8103,90.4125",
+                name: "Dhaka, Bangladesh",
+                lat: 23.8103,
+                lng: 90.4125,
+              };
+              setCurrentLocation(def);
+              localStorage.setItem("currentLocation", JSON.stringify(def));
+            }
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching location:", err);
+      }
+    };
+    getCurrentLocation();
   }, []);
 
+  // ✅ Counter animation for modal loader
   useEffect(() => {
-    const fetchDistance = async () => {
-      if (!pickup || !drop) return;
+    if (!isLoading || !isModalOpen) return;
+    const interval = setInterval(() => setCounter((prev) => prev + 1), 1000);
+    return () => clearInterval(interval);
+  }, [isLoading, isModalOpen]);
 
-      const type = selectedType.toLowerCase();
-      const result = await calculateFare(pickup, drop, type);
-      setRideData(result);
-      console.log("Ride Data:", result);
+  // ✅ Load route params from URL if available
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const p1 = params.get("pickup");
+    const p2 = params.get("drop");
+    const promoP = params.get("promo");
+    const typeP = params.get("type");
+    const modeP = params.get("mode");
+
+    if (p1) setPickup(p1);
+    if (p2) setDrop(p2);
+    if (promoP) {
+      setPromo(promoP);
+      setAppliedPromo(promoP);
+    }
+    if (typeP) setSelectedType(typeP);
+    if (modeP) setMode(modeP);
+
+    if (p1 || p2)
+      toast.success("Route loaded from URL", {
+        description: "Your route has been automatically filled from the link.",
+      });
+  }, []);
+
+  // ✅ Fare calculation effect (optimized)
+  useEffect(() => {
+    const isValidCoordinate = (str) => {
+      if (!str) return false;
+      const [lat, lng] = str.split(",").map(Number);
+      return (
+        !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
+      );
+    };
+
+    if (!pickup || !drop || !isValidCoordinate(pickup) || !isValidCoordinate(drop)) {
+      setRideData(null);
+      return;
+    }
+
+    const fetchDistance = async () => {
+      try {
+        const type = selectedType.toLowerCase();
+        const result = await calculateFare(pickup, drop, type, appliedPromo);
+        setRideData(result);
+      } catch (error) {
+        toast.error("Fare calculation failed");
+      }
     };
 
     fetchDistance();
-  }, [pickup, drop, selectedType]);
+  }, [pickup, drop, selectedType, appliedPromo]);
+
+  // ✅ Ride status polling (optimized)
+  useEffect(() => {
+    if (!rideId) return;
+    let hasPushed = false;
+    const fetchRideStatus = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${rideId}`);
+        const data = await res.json();
+        if (!hasPushed && data.status === "accepted" && data?.rideInfo) {
+          hasPushed = true;
+
+          const params = new URLSearchParams({
+            rideId,
+            userId: user?.id || "",
+            riderId: data?.rideInfo?.riderId || "",
+            amount: data?.rideInfo?.fare?.toString() || "",
+            pickup: pickupName || pickup,
+            drop: dropName || drop,
+            vehicleType: selectedType,
+            distance: rideData?.distanceKm?.toString() || "",
+            arrivalTime: rideData?.arrivalTime || "",
+            promo: appliedPromo || "",
+            baseFare: rideData?.baseFare?.toString() || "0",
+            distanceFare: rideData?.distanceFare?.toString() || "0",
+            timeFare: rideData?.timeFare?.toString() || "0",
+            tax: rideData?.tax?.toString() || "0",
+            total: data?.rideInfo?.fare?.toString() || "0",
+            riderName: data?.rideInfo?.riderInfo?.fullName || "",
+            riderEmail: data?.rideInfo?.riderInfo?.email || "",
+            vehicleModel: data?.rideInfo?.riderInfo?.vehicleModel || "",
+            vehicleRegisterNumber: data?.rideInfo?.riderInfo?.vehicleRegisterNumber || "",
+            ratings: data?.rideInfo?.riderInfo?.ratings?.toString() || "0",
+            completedRides: data?.rideInfo?.riderInfo?.completedRides?.toString() || "0",
+          }).toString();
+
+          router.push(`/dashboard/user/book-a-ride/accept-ride?${params}`);
+        }
+      } catch (err) {
+        console.error("Error fetching ride status:", err);
+      }
+    };
+
+    const interval = setInterval(fetchRideStatus, 1000);
+    return () => clearInterval(interval);
+  }, [rideId, user, rideData, pickup, drop, pickupName, dropName, selectedType, router]);
+
+  // ✅ Handle Ride Request
+  const handleRideRequest = useCallback(async () => {
+    if (!pickup || !drop || !selectedType || !rideData?.cost) {
+      toast.warning("Please complete all fields");
+      return;
+    }
+    setIsLoading(true);
+    setIsModalOpen(true);
+
+    try {
+      const parseCoords = (coord, fallback) => {
+        if (coord.includes(",")) {
+          const [lat, lng] = coord.split(",").map(Number);
+          return { type: "Point", coordinates: [lng, lat] };
+        }
+        return fallback;
+      };
+
+      const pickupCoords = parseCoords(
+        pickup,
+        currentLocation
+          ? { type: "Point", coordinates: [currentLocation.lng, currentLocation.lat] }
+          : { type: "Point", coordinates: [90.4125, 23.8103] }
+      );
+
+      const dropCoords = parseCoords(
+        drop,
+        { type: "Point", coordinates: [90.4125, 23.8103] }
+      );
+
+      const requestData = {
+        userId: user?.id,
+        pickup: pickupCoords,
+        drop: dropCoords,
+        vehicleType: selectedType,
+        fare: rideData.cost,
+        promoCode: appliedPromo || null,
+        distance: rideData.distanceKm || null,
+        pickupName: pickupName || pickup,
+        dropName: dropName || drop,
+      };
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) throw new Error("Server error");
+
+      const result = await response.json();
+      setRideId(result?.rideId);
+      toast.success("Ride request sent successfully!");
+    } catch (error) {
+      toast.error("Ride Request Failed");
+      setIsModalOpen(false);
+      setIsLoading(false);
+      console.error(error);
+    }
+  }, [
+    pickup,
+    drop,
+    selectedType,
+    rideData,
+    appliedPromo,
+    user,
+    currentLocation,
+    pickupName,
+    dropName,
+  ]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-accent/20 p-10 rounded-2xl">
-      <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-[1.1fr_1fr] gap-8">
-        {/* Left: Booking Form */}
-        <div className="bg-background rounded-2xl shadow-lg p-8 border border-accent flex flex-col gap-6">
-          <h2 className="text-3xl font-bold mb-2 flex items-center gap-2 text-foreground">
-            Book Your Ride Now <Bike className="inline-block text-primary" />
-          </h2>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-0 relative">
-              <div className="flex items-center gap-2 relative z-10">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary h-5 w-5" />
-                <Input
-                  type="text"
-                  value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
-                  onClick={() => setShowPickupMap(true)}
-                  className="pl-10 pr-3 py-2 bg-accent/10 border border-primary rounded-lg text-base font-medium focus:ring-2 focus:ring-primary placeholder:text-muted-foreground"
-                  placeholder="Pickup location"
-                />
-              </div>
-              {/* Vertical line */}
-              <div className="flex flex-col items-center relative">
-                <MoveVertical className="h-8 text-foreground/30 my-1" />
-              </div>
-              <div className="flex items-center gap-2 relative z-10">
-                <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 text-primary h-5 w-5" />
-                <Input
-                  type="text"
-                  value={drop}
-                  onChange={(e) => setDrop(e.target.value)}
-                  onClick={() => setShowDropMap(true)}
-                  className="pl-10 pr-3 py-2 bg-accent/10 border border-primary rounded-lg text-base font-medium focus:ring-2 focus:ring-primary placeholder:text-muted-foreground"
-                  placeholder="Where to go?"
-                />
-              </div>
-            </div>
-
-            {/* Popups */}
-            {showPickupMap && (
-              <MapPopup
-                title="Select Pickup Location"
-                onClose={() => setShowPickupMap(false)}
-                onSelect={(loc) => {
-                  setPickup(loc);
-                //   setShowPickupMap(false);
-                }}
-                defaultCurrent={true}
-              />
-            )}
-            {showDropMap && (
-              <MapPopup
-                title="Select Drop Location"
-                onClose={() => setShowDropMap(false)}
-                onSelect={(loc) => {
-                  setDrop(loc);
-                  setShowDropMap(false);
-                }}
-                // defaultCurrent={false}
-              />
-            )}
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+        <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
+          <ModeSelector mode={mode} setMode={setMode} />
+          <LocationInputs
+            pickup={pickup}
+            setPickup={setPickup}
+            drop={drop}
+            setDrop={setDrop}
+            onLocationChange={(location, type) => {
+              if (type === "pickup") {
+                setPickupName(location.name);
+                setIsCurrentLocationActive(
+                  currentLocation && location.coordinates === currentLocation.coordinates
+                );
+              } else {
+                setDropName(location.name);
+              }
+            }}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-3">
+            <VehicleTypeSelector selectedType={selectedType} setSelectedType={setSelectedType} />
+            <PromoCodeSection
+              promo={promo}
+              setPromo={setPromo}
+              appliedPromo={appliedPromo}
+              setAppliedPromo={setAppliedPromo}
+              promoError={promoError}
+              setPromoError={setPromoError}
+            />
           </div>
-
-          {/* Ride Type Tabs */}
-          <div className="flex gap-2 mb-2">
-            {["Bike", "CNG", "Car"].map((type) => (
-              <button
-                key={type}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all text-lg ${
-                  selectedType === type
-                    ? "bg-primary text-foreground"
-                    : "bg-accent text-foreground border-accent hover:bg-primary/50 hover:text-foreground"
-                }`}
-                onClick={() => setSelectedType(type)}
-                type="button"
-              >
-                {type === "Bike" && <Bike className="w-5 h-5" />}
-                {type === "CNG" && <BusFront className="w-5 h-5" />}
-                {type === "Car" && <Car className="w-5 h-5" />}
-                {type}
-              </button>
-            ))}
-          </div>
-
-          {/* Ride Option Cards */}
-          <div className="flex flex-col gap-4">
-            {rideOptions
-              .filter((opt) => opt.type === selectedType)
-              .map((opt) => (
-                <div
-                  key={opt.type}
-                  className="rounded-xl border-2 border-accent bg-accent/10 hover:bg-accent/50 hover:border-primary p-5 flex flex-col gap-2 shadow-sm"
-                >
-                  <div className="flex items-center gap-3 mb-1">
-                    {opt.icon}
-                    <span className="text-2xl font-bold text-primary">
-                      <BdtIcon />
-                      {rideData?.cost || opt.price}
-                    </span>
-                  </div>
-                  <div className="text-base text-foreground font-semibold flex items-center gap-2">
-                    {opt.driver} <Star className="w-4 h-4 text-yellow-400" />{" "}
-                    {opt.rating} <span className="mx-1 text-primary">•</span>{" "}
-                    {opt.vehicle}
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-2">
-                    {rideData?.distanceKm
-                      ? `${rideData.distanceKm} km • ${opt.eta}`
-                      : opt.eta}
-                  </div>
-                  <Button variant="primary" className=" ml-auto">
-                    Book Now
-                  </Button>
-                </div>
-              ))}
-
-            {/* Show other ride options */}
-            {rideOptions
-              .filter((opt) => opt.type !== selectedType)
-              .map((opt) => (
-                <div
-                  key={opt.type}
-                  className="rounded-xl border-2 border-accent bg-accent/10 hover:bg-accent/50 hover:border-primary p-5 flex flex-col gap-2 shadow-sm"
-                >
-                  <div className="flex items-center gap-3 mb-1">
-                    {opt.icon}
-                    <span className="text-2xl font-bold text-primary">
-                      <BdtIcon />
-                      {opt.price}
-                    </span>
-                  </div>
-                  <div className="text-base text-foreground font-semibold flex items-center gap-2">
-                    {opt.driver} <Star className="w-4 h-4 text-yellow-400" />{" "}
-                    {opt.rating} <span className="mx-1 text-primary">•</span>{" "}
-                    {opt.vehicle}
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-2">
-                    {opt.eta}
-                  </div>
-                  <Button variant="primary" className=" ml-auto">
-                    Book Now
-                  </Button>
-                </div>
-              ))}
-          </div>
+          <ConsolidatedRideCard
+            pickup={pickup}
+            drop={drop}
+            pickupName={pickupName}
+            dropName={dropName}
+            selectedType={selectedType}
+            rideData={rideData}
+            onRequestRide={handleRideRequest}
+            isLoading={isLoading}
+          />
         </div>
 
-        {/* Right: Top Rated Riders */}
-        <div className="bg-background rounded-2xl border border-accent p-6 flex flex-col gap-4 shadow-md h-max">
-          <h3 className="text-2xl font-bold text-center text-primary mb-2">
-            Top Rated - Popular Riders
-          </h3>
-          {topRiders.map((rider, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-4 border-2 border-accent bg-accent/10 hover:bg-accent/50 hover:border-primary rounded-xl px-4 py-3 mb-1 transition-colors"
-            >
-              <div className="flex-shrink-0">
-                <UserCircle2 className="w-10 h-10 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-foreground leading-tight">
-                  {rider.name}
-                </div>
-                <div className="text-xs text-primary font-medium">
-                  {rider.type}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {rider.rating} Ratings ({rider.rides} Rides)
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {rider.vehicle}
-                </div>
-              </div>
-              <Button variant="primary" className="px-4 py-1 text-sm ml-auto">
-                Ride Now
-              </Button>
-            </div>
-          ))}
+        <div className="h-full bg-white rounded-xl shadow-lg hidden md:block">
+          <RideMap
+            pickup={pickup}
+            drop={drop}
+            currentLocation={currentLocation}
+            isCurrentLocationActive={isCurrentLocationActive}
+            onLocationSelect={(location, type) => {
+              if (type === "pickup") {
+                setPickup(location.coordinates);
+                setPickupName(location.name);
+                setIsCurrentLocationActive(
+                  currentLocation && location.coordinates === currentLocation.coordinates
+                );
+              } else {
+                setDrop(location.coordinates);
+                setDropName(location.name);
+              }
+            }}
+            onCurrentLocationClick={() => {
+              if (currentLocation) {
+                setPickup(currentLocation.coordinates);
+                setPickupName(currentLocation.name);
+                setIsCurrentLocationActive(true);
+                toast.success("Current location set as pickup point");
+              }
+            }}
+          />
         </div>
       </div>
-    </div>
+
+      {/* ✅ Custom Loader Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+          <div className="relative bg-white rounded-full shadow-2xl h-20 w-20 flex items-center justify-center">
+            <div
+              className="absolute h-full w-full rounded-full border-6 border-t-primary border-r-primary border-b-primary/30 border-l-primary/30 animate-spin-slow"
+              style={{ animationDuration: "3s" }}
+            ></div>
+            <div className="text-center text-4xl font-bold text-primary">{counter}</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
