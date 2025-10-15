@@ -8,6 +8,13 @@ const RATE_TABLE = {
   car: 35,
 };
 
+// Average speed (km/h) for each vehicle type
+const SPEED_TABLE = {
+  bike: 40,  // Bike average speed in city
+  cng: 30,   // CNG average speed
+  car: 50,   // Car average speed
+};
+
 // Promo code logic
 const PROMO_CODES = {
   "EIDSPECIAL20%": 0.20,
@@ -84,9 +91,20 @@ export async function calculateFare(from, to, type = "bike", promo = "") {
   // Get route info (distance + time)
   const routeInfo = await getRouteInfo(fromCoords, toCoords, type);
   const distanceKm = routeInfo.distanceKm;
+  
+  // Calculate arrival time based on distance and vehicle speed
+  const avgSpeed = SPEED_TABLE[type] || 40; // km/h
+  const calculatedDurationMin = (distanceKm / avgSpeed) * 60; // Convert hours to minutes
+  
+  // Use OSRM duration if available, otherwise use calculated duration
   const durationMin = routeInfo.durationMin
     ? Number(routeInfo.durationMin.toFixed(0))
-    : Math.ceil(distanceKm / 0.5); // fallback: assume 30 km/h avg
+    : Math.ceil(calculatedDurationMin);
+
+  // Calculate arrival time in hours and minutes format (00h:30m)
+  const hours = Math.floor(durationMin / 60);
+  const minutes = durationMin % 60;
+  const formattedArrival = `${hours.toString().padStart(2, '0')}h:${minutes.toString().padStart(2, '0')}m`;
 
   // Calculate fare
   const perKm = RATE_TABLE[type];
@@ -104,7 +122,8 @@ export async function calculateFare(from, to, type = "bike", promo = "") {
     to: toCoords,
     distanceKm: Number(distanceKm.toFixed(2)),
     durationMin,
-    eta: `Arrives in ${durationMin} min`,
+    eta: `${durationMin} min`,
+    arrivalTime: formattedArrival,
     cost,
     vehicle: type.charAt(0).toUpperCase() + type.slice(1),
     promoApplied: promo && PROMO_CODES[promo] ? promo : null,

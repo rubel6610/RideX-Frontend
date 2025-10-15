@@ -7,9 +7,8 @@ import useHideLayout from "./hooks/useHideLayout";
 import { useAuth } from "./hooks/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeProvider } from "./hooks/themeContext";
-import Providers from "./hooks/Providers";
+import QueryClientProvider from "./Providers/ReactQueryProvider";
 import { Toaster } from "sonner";
-
 
 function LayoutContent({ children }) {
   const hideLayout = useHideLayout();
@@ -36,13 +35,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light">
       <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
-        <Providers>
-          <ThemeProvider>
-            <AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <QueryClientProvider>
               <LayoutContent>{children}</LayoutContent>
-            </AuthProvider>
-          </ThemeProvider>
-        </Providers>
+            </QueryClientProvider>
+          </AuthProvider>
+        </ThemeProvider>
+
         <Toaster position="bottom-right" />
       </body>
     </html>

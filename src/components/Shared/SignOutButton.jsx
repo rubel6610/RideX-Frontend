@@ -30,7 +30,7 @@ const SignOutButton = () => {
   return (
     <Button
       onClick={handleLogout}
-      variant="destructiveOutline"
+      variant="destructive"
       size="lg"
       className="w-full m-3 text-md ml-1 flex items-center gap-2 justify-center"
     >

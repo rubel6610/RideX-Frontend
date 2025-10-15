@@ -113,8 +113,8 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
   // Handle input change with debouncing
   const handleInputChange = (value, type) => {
     if (type === 'pickup') {
-      setPickup(value);
       setPickupDisplayName(value); // Show what user is typing
+      // Don't update pickup coordinates while typing
       // Clear previous timeout
       if (window.pickupTimeout) clearTimeout(window.pickupTimeout);
 
@@ -123,8 +123,8 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
         searchLocations(value, 'pickup');
       }, 500);
     } else {
-      setDrop(value);
       setDropDisplayName(value); // Show what user is typing
+      // Don't update drop coordinates while typing
       // Clear previous timeout
       if (window.dropTimeout) clearTimeout(window.dropTimeout);
 
