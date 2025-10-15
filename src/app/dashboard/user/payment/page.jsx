@@ -66,7 +66,7 @@ export default function PaymentPage() {
       username: name,
       userEmail: email,
       rideId: rideData.rideId,
-      userId: rideData.userId,
+      userId: user.id,
       riderId: rideData.riderId,
       totalNum: Number(rideData.total) || 0,
       baseFareNum: Number(rideData.baseFare) || 0,

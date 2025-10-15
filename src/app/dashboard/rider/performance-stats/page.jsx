@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function PerformanceStats() {
   const { user } = useAuth();
+
   const [performance, setPerformance] = useState({
     rating: 0,
     cancelledRate: 0,
@@ -49,6 +50,7 @@ export default function PerformanceStats() {
         
         const data = await response.json();
         setPerformance(data);
+      
       } catch (err) {
         console.error('Error fetching performance stats:', err);
         setError(err.message);

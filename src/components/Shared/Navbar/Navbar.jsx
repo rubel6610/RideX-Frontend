@@ -34,12 +34,12 @@ const Navbar = () => {
   const [rideByOpen, setRideByOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
 
-  const { data, isLoading } = useFetchData(
+  const { data,isLoading } = useFetchData(
     "users",
     "/user",
     { email: user?.email },
     {
-      enabled: !!user && !!user.email && typeof user.email === 'string' && user.email.trim() !== '', 
+      enabled: !!user?.email, 
     }
   );
 

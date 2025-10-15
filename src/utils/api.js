@@ -20,9 +20,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn("Unauthorized! Redirecting to sign in...");
-      localStorage.removeItem("token");
-      window.location.href = "/signIn";
+      console.warn("Unauthorized! Redirecting to login...");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
