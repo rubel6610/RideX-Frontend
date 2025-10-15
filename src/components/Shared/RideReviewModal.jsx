@@ -57,9 +57,6 @@ const RideReviewModal = ({
           comment: comment.trim(),
         }),
       });
-      console.log("rideId: ", rideId);
-      console.log("riderId: ", riderId);
-      console.log("userId: ", userId);
 
       const data = await response.json();
 
