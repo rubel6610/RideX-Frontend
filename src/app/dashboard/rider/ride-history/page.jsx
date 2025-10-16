@@ -1,123 +1,226 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Star, CheckCircle, DollarSign } from "lucide-react";
+import { Star, CheckCircle, DollarSign, User, Check } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RideHistory() {
-  // Dummy ride data
-  const [rideHistory, setRideHistory] = useState([
-    {
-      rideId: "RIDE-001",
-      date: "2025-09-20",
-      pickup: "Uttara",
-      dropoff: "Dhanmondi",
-      distance: "12 km",
-      fare: 150,
-      commission: 15,
-      rating: 4.5,
-      status: "Completed",
-    },
-    {
-      rideId: "RIDE-002",
-      date: "2025-09-21",
-      pickup: "Gulshan",
-      dropoff: "Banani",
-      distance: "8 km",
-      fare: 100,
-      commission: 10,
-      rating: 5,
-      status: "Pending",
-    },
-    {
-      rideId: "RIDE-003",
-      date: "2025-09-22",
-      pickup: "Mirpur",
-      dropoff: "Motijheel",
-      distance: "15 km",
-      fare: 200,
-      commission: 20,
-      rating: 4.8,
-      status: "Completed",
-    },
-  ]);
+  const [rideHistory, setRideHistory] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Calculate summary
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // 🧩 Ride History & Reviews fetch
+  useEffect(() => {
+    const fetchRideHistory = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/payment/all");
+        if (!res.ok) throw new Error("Failed to fetch ride history");
+        const data = await res.json();
+        setRideHistory(data);
+      } catch (err) {
+        console.error(" Ride History Error:", err);
+      }
+    };
+
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/ride-reviews");
+        if (!res.ok) throw new Error("Failed to fetch reviews");
+        const data = await res.json();
+        setReviews(data);
+      } catch (err) {
+        console.error("Reviews Error:", err);
+      }
+    };
+
+    Promise.all([fetchRideHistory(), fetchReviews()]).finally(() =>
+      setLoading(false)
+    );
+  }, []);
+
+  // 🧮 Summary
+  const completedRides = rideHistory.filter((ride) => ride.status === "Paid");
+  const avgRating =
+    reviews.length > 0
+      ? reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length
+      : 0;
+      
   const summary = {
     totalRides: rideHistory.length,
-    avgRating:
-      rideHistory.reduce((acc, ride) => acc + ride.rating, 0) /
-      rideHistory.length || 0,
+    totalCompletedRides: completedRides.length,
     totalCommission: rideHistory.reduce(
-      (acc, ride) => acc + ride.commission,
+      (acc, ride) => acc + (ride.rideDetails?.fareBreakdown?.totalAmount || 0),
       0
     ),
+    totalReviews: reviews.length,
+    avgRating,
+  };
+
+  // Pagination data
+  const totalPages = Math.ceil(rideHistory.length / itemsPerPage);
+  const paginatedRides = rideHistory.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // 🌟 Skeleton Loader for Table
+  const TableSkeleton = () => (
+    <tbody>
+      {[...Array(itemsPerPage)].map((_, i) => (
+        <tr key={i} className="border-t">
+          {[...Array(8)].map((_, j) => (
+            <td key={j} className="px-4 py-2">
+              <Skeleton className="h-4 w-full bg-accent/30 rounded" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  );
+
+  // 🌟 Star icon list generate
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star
+          key={i}
+          className={`w-5 h-5 ${i <= rating ? "text-primary" : "text-gray-300"}`}
+        />
+      );
+    }
+    return stars;
   };
 
   return (
-    <div className="p-4 space-y-6  max-w-5xl mx-auto">
+    <div className="p-4 space-y-6 max-w-screen mx-auto lg:w-full md:w-full">
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        {/* Total Rides */}
+        <div className="mr-10 p-6 shadow-lg bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+          <User className="w-8 h-8 text-primary mb-2" />
+          <h2 className="text-lg font-semibold md:text-[16px]">Total Rides</h2>
+          {loading ? (
+            <Skeleton className="h-6 w-12 mt-2 bg-amber-300" />
+          ) : (
+            <h2 className="text-2xl font-bold text-primary">{summary.totalRides}</h2>
+          )}
+        </div>
+
         {/* Completed Rides */}
-        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
-          <CheckCircle className="w-6 h-6 text-green-500" />
-          <h2 className="text-lg font-semibold">Completed Rides</h2>
-          <h2 className="text-2xl font-bold text-primary">
-            {summary.totalRides}
-          </h2>
+        <div className="mr-10 p-2 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+          <Check className="w-8 h-8 mt-2 text-primary mb-2" />
+          <h2 className="text-lg mt-2 font-semibold md:text-[16px]">Completed Rides</h2>
+          {loading ? (
+            <Skeleton className="h-6 w-12  bg-amber-300" />
+          ) : (
+            <h2 className="text-2xl font-bold text-primary">{summary.totalCompletedRides}</h2>
+          )}
         </div>
 
         {/* Average Rating */}
-        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
-          <Star className="w-6 h-6 text-yellow-500" />
-          <h2 className="text-lg font-semibold">Average Rating</h2>
-          <h2 className="text-2xl font-bold text-primary">
-            {summary.avgRating.toFixed(1)}/5
-          </h2>
+        <div className="mr-10 p-4 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+          <Star className="w-8 h-8 text-primary mb-2" />
+          <h2 className="text-lg font-semibold mt-2 md:text-[16px]">Average Rating</h2>
+          <div className="flex items-center space-x-0">
+            {loading ? (
+              <Skeleton className="h-5 w-16 mt-1 bg-amber-300" />
+            ) : (
+              <>
+                <span className="ml-2 text-primary md:text-[18px] font-bold">{summary.avgRating.toFixed(1)}/5</span>
+                {renderStars(Math.round(summary.avgRating))}
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Total Commission */}
-        <div className="p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center transition-all hover:-translate-y-1 duration-300 hover:border-primary group-hover:bg-accent cursor-pointer border border-border">
-          <DollarSign className="w-6 h-6 text-blue-500" />
-          <h2 className="text-lg font-semibold">Total Commission</h2>
-          <h2 className="text-2xl font-bold text-primary">
-            ${summary.totalCommission}
-          </h2>
+        {/* Total Amount */}
+        <div className="mr-10 p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+          <DollarSign className="w-8 h-8 text-blue-500 mb-2" />
+          <h2 className="text-lg font-semibold md:text-[16px]">Total Amount</h2>
+          {loading ? (
+            <Skeleton className="h-6 w-16 mt-2 bg-amber-300" />
+          ) : (
+            <h2 className="text-2xl font-bold text-primary">৳{summary.totalCommission.toFixed(2)}</h2>
+          )}
         </div>
       </div>
 
       {/* Ride Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border border-accent rounded-xl">
-          <thead className="bg-accent">
+      <div className="overflow-x-auto mr-10 border border-accent rounded-xl">
+        <table className="w-full text-sm">
+          <thead className="bg-accent text-left">
             <tr>
-              <th className="px-4 py-2 text-left">Date</th>
-              <th className="px-4 py-2 text-left">Pickup → Dropoff</th>
-              <th className="px-4 py-2 text-left">Distance</th>
-              <th className="px-4 py-2 text-left">Fare ($)</th>
-              <th className="px-4 py-2 text-left">Commission ($)</th>
-              <th className="px-4 py-2 text-left">Rating</th>
-              <th className="px-4 py-2 text-left">Status</th>
+              <th className="px-4 py-2">User Email</th>
+              <th className="px-4 py-2">Pickup → Drop</th>
+              <th className="px-4 py-2">Vehicle</th>
+              <th className="px-4 py-2">Distance (km)</th>
+              <th className="px-4 py-2">Fare (৳)</th>
+              <th className="px-4 py-2">Payment</th>
+              <th className="px-4 py-2">Status</th>
+              <th className="px-4 py-2">Payment Time</th>
             </tr>
           </thead>
-          <tbody>
-            {rideHistory.map((ride) => (
-              <tr key={ride.rideId} className="border-t border-accent">
-                <td className="px-4 py-2">{ride.date}</td>
-                <td className="px-4 py-2">{ride.pickup} → {ride.dropoff}</td>
-                <td className="px-4 py-2">{ride.distance}</td>
-                <td className="px-4 py-2 text-primary font-bold">${ride.fare}</td>
-                <td className="px-4 py-2 text-primary font-bold">${ride.commission}</td>
-                <td className="px-4 py-2 flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  {ride.rating}
+
+          {loading ? (
+            <TableSkeleton />
+          ) : paginatedRides.length === 0 ? (
+            <tbody>
+              <tr>
+                <td colSpan="8" className="text-center py-4 text-muted-foreground">
+                  No rides found
                 </td>
-                <td className="px-4 py-2">{ride.status}</td>
               </tr>
-            ))}
-          </tbody>
+            </tbody>
+          ) : (
+            <tbody>
+              {paginatedRides.map((ride) => (
+                <tr key={ride._id} className="border-t hover:bg-accent/20 transition">
+                  <td className="px-4 py-2">{ride.userEmail || "N/A"}</td>
+                  <td className="px-4 py-2">
+                    {ride.rideDetails?.pickup?.split(",")[0]} → {ride.rideDetails?.drop?.split(",")[0]}
+                  </td>
+                  <td className="px-4 py-2">{ride.rideDetails?.vehicleType || "N/A"}</td>
+                  <td className="px-4 py-2">{ride.rideDetails?.distance?.toFixed(2) || 0}</td>
+                  <td className="px-4 py-2 font-semibold text-primary">{ride.rideDetails?.fareBreakdown?.totalAmount?.toFixed(2)}</td>
+                  <td className="px-4 py-2">{ride.paymentMethod || "N/A"}</td>
+                  <td className={`px-4 py-2 font-semibold ${ride.status === "Paid" ? "text-green-600" : "text-yellow-600"}`}>
+                    {ride.status}
+                  </td>
+                  <td className="px-4 py-2">{ride.timestamps?.paymentInitiatedAt ? new Date(ride.timestamps.paymentInitiatedAt).toLocaleString() : "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          )}
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && rideHistory.length > itemsPerPage && (
+        <div className="flex justify-center items-center space-x-4 mt-4">
+          <button
+            className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          >
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }
