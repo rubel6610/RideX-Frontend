@@ -31,6 +31,7 @@
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "leaflet-geosearch": "^4.2.2",
+    "leaflet-routing-machine": "^3.2.12",
     "lottie-react": "^2.4.1",
     "lucide": "^0.544.0",
     "lucide-react": "^0.544.0",
