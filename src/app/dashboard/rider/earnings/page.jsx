@@ -21,19 +21,52 @@ const EarningPage = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  //  Fetch earnings data from backend
+  // ✅ Fetch payments from backend
   useEffect(() => {
     const fetchEarnings = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/payment/all");
-        const data = await res.json();
+        const res = await fetch("http://localhost:5000/api/payment/all"); // backend URL
+        const payments = await res.json();
 
-        // ধরো backend থেকে daily, weekly, monthly আলাদা করে আসবে
-        // যেমনঃ { daily: [..], weekly: [..], monthly: [..] }
+        const now = new Date();
+
+        // Daily: payments of today
+        const daily = payments.filter((p) => {
+          const date = new Date(
+            p.timestamps.paymentCompletedAt || p.timestamps.paymentInitiatedAt
+          );
+          return date.toDateString() === now.toDateString();
+        });
+
+        // Weekly: Sunday to Saturday
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - now.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const weekly = payments.filter((p) => {
+          const date = new Date(
+            p.timestamps.paymentCompletedAt || p.timestamps.paymentInitiatedAt
+          );
+          return date >= weekStart && date <= weekEnd;
+        });
+
+        // Monthly: current month
+        const monthly = payments.filter((p) => {
+          const date = new Date(
+            p.timestamps.paymentCompletedAt || p.timestamps.paymentInitiatedAt
+          );
+          return (
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+          );
+        });
+
+        // Map only totalAmount for chart
         setEarnings({
-          daily: data.daily || [],
-          weekly: data.weekly || [],
-          monthly: data.monthly || [],
+          daily: daily.map((d) => d.rideDetails.fareBreakdown.totalAmount),
+          weekly: weekly.map((d) => d.rideDetails.fareBreakdown.totalAmount),
+          monthly: monthly.map((d) => d.rideDetails.fareBreakdown.totalAmount),
         });
       } catch (err) {
         console.error("Error fetching earnings:", err);
@@ -41,6 +74,7 @@ const EarningPage = () => {
         setLoading(false);
       }
     };
+
     fetchEarnings();
   }, []);
 
@@ -71,10 +105,11 @@ const EarningPage = () => {
     value: currentEarnings[i] || 0,
   }));
 
+  // ✅ summary with 2 decimal places
   const summary = {
-    today: earnings.daily[earnings.daily.length - 1] || 0,
-    week: earnings.weekly.reduce((a, b) => a + b, 0),
-    month: earnings.monthly.reduce((a, b) => a + b, 0),
+    today: earnings.daily.reduce((a, b) => a + b, 0).toFixed(2),
+    week: earnings.weekly.reduce((a, b) => a + b, 0).toFixed(2),
+    month: earnings.monthly.reduce((a, b) => a + b, 0).toFixed(2),
   };
 
   if (loading) {
@@ -101,7 +136,9 @@ const EarningPage = () => {
             <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
               {item.title}
             </h2>
-            <h2 className="text-2xl font-bold text-blue-600">${item.value}</h2>
+            <h2 className="text-2xl font-bold text-blue-600">
+              ${item.value}
+            </h2>
           </div>
         ))}
       </div>
@@ -131,11 +168,18 @@ const EarningPage = () => {
 
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-            <XAxis dataKey="label" stroke="#888" />
-            <YAxis stroke="#888" />
-            <Tooltip />
-            <Legend />
+            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+            <XAxis dataKey="label" tick={{ fill: "#ccc", fontSize: 12 }} stroke="#ccc" />
+            <YAxis tick={{ fill: "#ccc", fontSize: 12 }} stroke="#ccc" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1f2937",
+                border: "1px solid #444",
+                color: "#fff",
+              }}
+              itemStyle={{ color: "#fff" }}
+            />
+            <Legend wrapperStyle={{ color: "#ccc" }} />
             <Bar dataKey="value" fill="#3b82f6" radius={[5, 5, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
