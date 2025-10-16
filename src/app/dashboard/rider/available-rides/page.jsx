@@ -20,8 +20,8 @@ function RideModal({ open, onClose, ride }) {
       <div className="bg-[var(--color-background)] text-[var(--color-card-foreground)] rounded-xl shadow-lg w-full max-w-md p-6">
         <h3 className="text-xl font-semibold mb-4">Ride Details</h3>
         <div className="space-y-2 text-sm">
-          <p><strong>Pickup:</strong> {ride.pickup.address || JSON.stringify(ride.pickup)}</p>
-          <p><strong>Drop:</strong> {ride.drop.address || JSON.stringify(ride.drop)}</p>
+          <p><strong>Pickup:</strong> {ride.pickupAddress || "Loading..."}</p>
+          <p><strong>Drop:</strong> {ride.dropAddress || "Loading..."}</p>
           <p><strong>Fare:</strong> {ride.fare} ৳</p>
           <p><strong>Vehicle:</strong> {ride.vehicleType}</p>
           <p><strong>Status:</strong> {ride.status}</p>
@@ -37,26 +37,62 @@ function RideModal({ open, onClose, ride }) {
 const AvailableRidesPage = () => {
   const { user } = useAuth();
   const [rides, setRides] = useState([]);
-  const [riderInfo, setRiderInfo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRide, setSelectedRide] = useState(null);
 
-  // fetch rides once we have token + user
+  // Fetch rides
   useEffect(() => {
     if (!user?.id) return;
 
     const fetchRides = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rides/${user.id}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rides/${user.id}`
+        );
         const data = await res.json();
 
-        setRides(data.rides);
-        setRiderInfo(data.riderInfo);
+        // 🟡 Initialize rides
+        const updatedRides = await Promise.all(
+          data.rides.map(async (ride) => {
+            try {
+              const pickup = ride.pickup?.coordinates || [];
+              const drop = ride.drop?.coordinates || [];
+
+              // reverse geocode pickup
+              const pickupRes = await fetch(
+                `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${pickup[1]}&lon=${pickup[0]}`
+              );
+              const pickupData = await pickupRes.json();
+
+              // reverse geocode drop
+              const dropRes = await fetch(
+                `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${drop[1]}&lon=${drop[0]}`
+              );
+              const dropData = await dropRes.json();
+
+              return {
+                ...ride,
+                pickupAddress:
+                  pickupData?.display_name || "Unknown pickup location",
+                dropAddress:
+                  dropData?.display_name || "Unknown drop location",
+              };
+            } catch (err) {
+              console.error("Reverse geocode error:", err);
+              return {
+                ...ride,
+                pickupAddress: "Failed to load pickup",
+                dropAddress: "Failed to load drop",
+              };
+            }
+          })
+        );
+
+        setRides(updatedRides);
       } catch (err) {
         console.error(err);
         setRides([]);
-        setRiderInfo([]);
       } finally {
         setLoading(false);
       }
@@ -65,64 +101,70 @@ const AvailableRidesPage = () => {
     fetchRides();
   }, [user]);
 
-  // accept handler
+  // Accept Ride
   const handleAccept = async (rideId, riderId) => {
-    console.log("🟡 Accept pressed:", rideId, riderId);
-
-    if (!rideId || !riderId) {
-      console.error("❌ Missing IDs");
-      return;
-    }
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rideId, riderId }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-accept`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rideId, riderId }),
+        }
+      );
 
       const data = await res.json();
-      console.log("✅ Server response:", data);
-
       if (data.success) {
         setRides((prev) =>
-          prev.map((r) => (r._id === rideId ? { ...r, status: "accepted" } : r))
+          prev.map((r) =>
+            r._id === rideId ? { ...r, status: "accepted" } : r
+          )
         );
-      } else {
-        console.error("❌ Ride accept failed:", data.message);
       }
     } catch (err) {
-      console.error("🔥 Fetch error:", err);
+      console.error("Ride accept error:", err);
     }
   };
 
-  // reject handler
+  // Reject Ride
   const handleReject = async (rideId, riderId) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-reject`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rideId, riderId }),
-      });
-      setRides((prev) => prev.filter(r => r._id !== rideId));
+      await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-reject`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rideId, riderId }),
+        }
+      );
+      setRides((prev) => prev.filter((r) => r._id !== rideId));
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Cancel Ride
   const handleCancel = async (rideId, riderId) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-cancel`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rideId, riderId }),
-      });
-      setRides((prev) => prev.map(r => r._id === rideId ? { ...r, status: "cancelled" } : r));
+      await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rideId, riderId }),
+        }
+      );
+      setRides((prev) =>
+        prev.map((r) =>
+          r._id === rideId ? { ...r, status: "cancelled" } : r
+        )
+      );
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Status Badge
   const getStatusBadge = (status) => {
     switch (status) {
       case "pending":
@@ -138,13 +180,8 @@ const AvailableRidesPage = () => {
     }
   };
 
-  if (loading) {
-    return <div className="p-6 text-center">Loading rides...</div>;
-  }
-
-  if (rides?.length == 0) {
-    return <NoRide />;
-  }
+  if (loading) return <div className="p-6 text-center">Loading rides...</div>;
+  if (!rides.length) return <NoRide />;
 
   return (
     <div className="p-4">
@@ -162,26 +199,61 @@ const AvailableRidesPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rides?.map((ride, idx) => (
+            {rides.map((ride, idx) => (
               <TableRow
                 key={ride._id}
-                className={`transition-colors hover:bg-[var(--color-card)] ${idx % 2 === 0 ? "bg-[var(--color-muted)]/30" : ""}`}
+                className={`transition-colors hover:bg-[var(--color-card)] ${
+                  idx % 2 === 0 ? "bg-[var(--color-muted)]/30" : ""
+                }`}
               >
-                <TableCell>{ride.pickup.address || JSON.stringify(ride.pickup)}</TableCell>
-                <TableCell>{ride.drop.address || JSON.stringify(ride.drop)}</TableCell>
+                <TableCell className="max-w-[220px] truncate">
+                  {ride.pickupAddress || "Loading..."}
+                </TableCell>
+                <TableCell className="max-w-[220px] truncate">
+                  {ride.dropAddress || "Loading..."}
+                </TableCell>
                 <TableCell>{ride.fare} ৳</TableCell>
                 <TableCell>{ride.vehicleType}</TableCell>
                 <TableCell>{getStatusBadge(ride.status)}</TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button size="sm" variant="secondary" onClick={() => setSelectedRide(ride)}>Details</Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setSelectedRide(ride)}
+                  >
+                    Details
+                  </Button>
                   {ride.status === "pending" && (
                     <>
-                      <Button size="sm" onClick={() => handleAccept(ride._id, ride.riderId)}>Accept</Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleReject(ride._id, ride.riderId)}>Reject</Button>
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          handleAccept(ride._id, ride.riderId)
+                        }
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          handleReject(ride._id, ride.riderId)
+                        }
+                      >
+                        Reject
+                      </Button>
                     </>
                   )}
                   {ride.status === "accepted" && (
-                    <Button size="sm" variant="outline" onClick={() => handleCancel(ride._id, ride.riderId)}>Cancel</Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        handleCancel(ride._id, ride.riderId)
+                      }
+                    >
+                      Cancel
+                    </Button>
                   )}
                 </TableCell>
               </TableRow>
@@ -189,7 +261,11 @@ const AvailableRidesPage = () => {
           </TableBody>
         </Table>
       </div>
-      <RideModal open={!!selectedRide} ride={selectedRide} onClose={() => setSelectedRide(null)} />
+      <RideModal
+        open={!!selectedRide}
+        ride={selectedRide}
+        onClose={() => setSelectedRide(null)}
+      />
     </div>
   );
 };

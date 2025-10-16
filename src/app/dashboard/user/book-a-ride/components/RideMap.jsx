@@ -6,6 +6,7 @@ import L from "leaflet";
 import { useMapEvents, useMap } from "react-leaflet";
 import "leaflet-routing-machine";
 
+
 // Dynamic import for Leaflet to avoid SSR issues
 const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), {
   ssr: false,

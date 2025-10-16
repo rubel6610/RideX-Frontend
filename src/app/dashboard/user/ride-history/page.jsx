@@ -109,7 +109,7 @@ const fetchLocationName = async (coordinates) => {
   const [lon, lat] = coordinates; // swap lon & lat for Nominatim
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
     );
     const data = await response.json();
     return data.display_name || "Unknown location";
