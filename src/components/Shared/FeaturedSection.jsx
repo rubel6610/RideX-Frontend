@@ -113,16 +113,16 @@ const FeaturedSection = () => {
             </div>
           </div>
 
-          {/* Right Side - Unchanged */}
+          {/* Right Side - Updated Titles & Description */}
           <div ref={rightContentRef} className="space-y-6 md:space-y-4 lg:space-y-6 xl:space-y-10">
             <div className="text-primary text-sm font-bold uppercase tracking-[0.2em]">
-              DRIVE YOUR DREAMS
+              RIDE WITH CONFIDENCE
             </div>
             <h2 className="text-4xl md:text-3xl lg:text-5xl xl:text-6xl ftext-foreground uppercase leading-8.5 md:leading-7 lg:leading-11 xl:leading-14 tracking-tight">
-              EXPERIENCE FREEDOM ON FOUR WHEELS
+              YOUR TRUSTED RIDE, ANYTIME ANYWHERE
             </h2>
             <p className="text-muted-foreground text-base sm:text-sm lg:text-lg max-w-xl leading-5 md:leading-4 lg:leading-5">
-              Aquatic Optio Amet Aqua Sampe Aliquid Volute Dicts Fuga Dolor Saerror Sed Earum Magni SolutQuam Minus Dolor Door Sedarum A Magni Soluta Automaior marmoriamMnus Sint Rom
+              RideX connects you to reliable rides across your city. From quick pickups to long drives, we make every trip smooth, affordable, and safe—so you can travel without limits and reach your destination with ease.
             </p>
 
             <div className="grid grid-cols-2 gap-8 md:gap-4 lg:gap-8">
@@ -165,10 +165,10 @@ const FeaturedSection = () => {
                       </>
                     ) : (
                       <>
-                          <div className="text-4xl md:text-xl lg:text-4xl text-foreground group-hover:text-white mb-2">
+                        <div className="text-4xl md:text-xl lg:text-4xl text-foreground group-hover:text-white mb-2">
                           {stat.number}
                         </div>
-                          <div className="text-foreground group-hover:text-white font-semibold text-lg md:text-sm lg:text-lg leading-4">
+                        <div className="text-foreground group-hover:text-white font-semibold text-lg md:text-sm lg:text-lg leading-4">
                           {stat.label}
                         </div>
                       </>
