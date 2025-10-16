@@ -51,7 +51,7 @@ const PaymentSuccessPage = () => {
         },
         body: JSON.stringify({
           riderId,
-          review: Number(rating), // Ensure rating is a number, not string
+          review: Number(rating),
         }),
       });
 
@@ -170,18 +170,20 @@ const PaymentSuccessPage = () => {
 
             {/* Leave a Review Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-foreground">Rate Your Ride Now</h3>
+              {!reviewSubmitted && (
+                <h3 className="text-lg font-bold text-foreground">Rate Your Ride Now</h3>
+              )}
              
               {!reviewSubmitted ? (
                 <>
                   {/* Rating Section */}
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-foreground">Rate your experience</p>
-                    <div className="flex items-center gap-1">
+                  <div className="space-y-4">
+                    <p className="text-sm font-medium text-foreground text-center">Rate your experience</p>
+                    <div className="flex items-center justify-center gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star 
                           key={star} 
-                          className={`w-6 h-6 cursor-pointer transition-colors ${
+                          className={`w-8 h-8 cursor-pointer transition-all duration-200 hover:scale-125 ${
                             star <= rating 
                               ? "text-yellow-400 fill-yellow-400" 
                               : "text-muted-foreground hover:text-yellow-400"
@@ -191,14 +193,16 @@ const PaymentSuccessPage = () => {
                       ))}
                     </div>
                     {rating > 0 && (
-                      <div className="inline-block px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-                        <p className="text-sm font-semibold text-primary">
-                          {rating === 5 && "⭐ Excellent!"}
-                          {rating === 4 && "😊 Very Good"}
-                          {rating === 3 && "👍 Good"}
-                          {rating === 2 && "😐 Fair"}
-                          {rating === 1 && "😞 Poor"}
-                        </p>
+                      <div className="flex justify-center">
+                        <div className="inline-block px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+                          <p className="text-sm font-semibold text-primary">
+                            {rating === 5 && "⭐ Excellent!"}
+                            {rating === 4 && "😊 Very Good"}
+                            {rating === 3 && "👍 Good"}
+                            {rating === 2 && "😐 Fair"}
+                            {rating === 1 && "😞 Poor"}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -225,7 +229,8 @@ const PaymentSuccessPage = () => {
                   <Button 
                     onClick={handleSubmitReview}
                     disabled={rating === 0 || isSubmitting}
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    variant="primary"
+                    className="w-full h-12 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Star className="w-5 h-5 mr-2" />
                     {isSubmitting ? "Submitting..." : "Submit Review"}
