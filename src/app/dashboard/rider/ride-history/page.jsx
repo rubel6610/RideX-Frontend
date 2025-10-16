@@ -74,7 +74,7 @@ export default function RideHistory() {
         <tr key={i} className="border-t">
           {[...Array(8)].map((_, j) => (
             <td key={j} className="px-4 py-2">
-              <Skeleton className="h-4 w-full bg-accent/30 rounded" />
+              <Skeleton className="h-4 w-full bg-accent/80 rounded" />
             </td>
           ))}
         </tr>
@@ -106,13 +106,12 @@ export default function RideHistory() {
         {/* Total Rides */}
 
         <div
-          className="
-       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary "
+          className="mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary "
         >
           <User className="w-8 h-8 text-primary mb-2" />
           <h2 className="text-lg font-semibold md:text-[16px]">Total Rides</h2>
           {loading ? (
-            <Skeleton className="h-6 w-12 mt-2 bg-accent/30" />
+            <Skeleton className="h-6 w-12 mt-2 bg-accent/80" />
           ) : (
             <h2 className="text-2xl font-bold text-primary">
               {summary.totalRides}
@@ -130,7 +129,7 @@ export default function RideHistory() {
             Completed Rides
           </h2>
           {loading ? (
-            <Skeleton className="h-6 w-12  bg-accent/30" />
+            <Skeleton className="h-6 w-12  bg-accent/80" />
           ) : (
             <h2 className="text-2xl font-bold text-primary">
               {summary.totalCompletedRides}
@@ -149,7 +148,7 @@ export default function RideHistory() {
           </h2>
           <div className="flex items-center space-x-0">
             {loading ? (
-              <Skeleton className="h-5 w-16 mt-1 bg-accent/30" />
+              <Skeleton className="h-5 w-16 mt-1 bg-accent/80" />
             ) : (
               <>
                 <span className="ml-2 text-primary md:text-[18px] font-bold">
@@ -168,10 +167,10 @@ export default function RideHistory() {
           className="
        mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary"
         >
-          <DollarSign className="w-8 h-8 text-blue-500 mb-2" />
+          <DollarSign className="w-8 h-8 text-primary mb-2" />
           <h2 className="text-lg font-semibold md:text-[16px]">Total Amount</h2>
           {loading ? (
-            <Skeleton className="h-6 w-16 mt-2 bg-accent/30" />
+            <Skeleton className="h-6 w-16 mt-2 bg-accent/80" />
           ) : (
             <h2 className="text-2xl font-bold text-primary">
               ৳{summary.totalCommission.toFixed(2)}
@@ -227,15 +226,15 @@ export default function RideHistory() {
                   <td className="px-4 py-2">
                     {ride.rideDetails?.distance?.toFixed(2) || 0}
                   </td>
-                  <td className="px-4 py-2 font-semibold text-primary">
+                  <td className="px-4 py-2 font-semibold hover:text-white">
                     {ride.rideDetails?.fareBreakdown?.totalAmount?.toFixed(2)}
                   </td>
                   <td className="px-4 py-2">{ride.paymentMethod || "N/A"}</td>
                   <td
-                    className={`px-4 py-2 font-semibold ${
+                    className={`px-4 py-2 hover:text-white font-semibold ${
                       ride.status === "Paid"
                         ? "text-green-600"
-                        : "text-yellow-600"
+                        : "text-primary"
                     }`}
                   >
                     {ride.status}
