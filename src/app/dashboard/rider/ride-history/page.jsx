@@ -74,7 +74,7 @@ export default function RideHistory() {
         <tr key={i} className="border-t">
           {[...Array(8)].map((_, j) => (
             <td key={j} className="px-4 py-2">
-              <Skeleton className="h-4 w-full bg-accent/80 rounded" />
+              <Skeleton className="h-4 w-full bg-accent/30 rounded" />
             </td>
           ))}
         </tr>
@@ -104,30 +104,15 @@ export default function RideHistory() {
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {/* Total Rides */}
-      {/*   <div className="mr-10 p-6  shadow-lg bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
-          <User className="w-8 h-8 text-primary mb-2" />
-          <h2 className="text-lg font-semibold md:text-[16px]">Total Rides</h2>
-          {loading ? (
-            <Skeleton className="h-6 w-12 mt-2 bg-accent/80" />
-          ) : (
-            <h2 className="text-2xl font-bold text-primary">
-              {summary.totalRides}
-            </h2>
-          )}
-        </div> */}
 
         <div
           className="
-    mr-10 p-6 shadow-lg
-    bg-[repeating-radial-gradient(circle,#568F87,#064232_20%)] 
-    dark:bg-[repeating-radial-gradient(circle,#0f0,#00ffff_20%)]
-    rounded-2xl flex flex-col items-center border border-primary
-  "
+       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary "
         >
           <User className="w-8 h-8 text-primary mb-2" />
           <h2 className="text-lg font-semibold md:text-[16px]">Total Rides</h2>
           {loading ? (
-            <Skeleton className="h-6 w-12 mt-2 bg-gray-600" />
+            <Skeleton className="h-6 w-12 mt-2 bg-accent/30" />
           ) : (
             <h2 className="text-2xl font-bold text-primary">
               {summary.totalRides}
@@ -136,15 +121,16 @@ export default function RideHistory() {
         </div>
 
         {/* Completed Rides */}
-        <div className=" bg-[repeating-linear-gradient(to_right,_#ff0000,_#0000ff_20%)] 
-        dark:bg-[repeating-linear-gradient(to_right,_#ff00,_#00ff_20%)]
-        mr-10 p-2 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+        <div
+          className="
+       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary"
+        >
           <Check className="w-8 h-8 mt-2 text-primary mb-2" />
           <h2 className="text-lg mt-2 font-semibold md:text-[16px]">
             Completed Rides
           </h2>
           {loading ? (
-            <Skeleton className="h-6 w-12  bg-accent/80" />
+            <Skeleton className="h-6 w-12  bg-accent/30" />
           ) : (
             <h2 className="text-2xl font-bold text-primary">
               {summary.totalCompletedRides}
@@ -153,17 +139,17 @@ export default function RideHistory() {
         </div>
 
         {/* Average Rating */}
-        <div className="
-        bg-[repeating-radial-gradient(circle,#ff0000,#0000ff_20%)] 
-    dark:bg-[repeating-radial-gradient(circle,#0f0,#00ffff_20%)]
-        mr-10 p-4 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+        <div
+           className="
+       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary"
+        >
           <Star className="w-8 h-8 text-primary mb-2" />
-          <h2 className="text-lg font-semibold mt-2 md:text-[16px]">
+          <h2 className="text-lg  font-semibold mt-2 md:text-[16px]">
             Average Rating
           </h2>
           <div className="flex items-center space-x-0">
             {loading ? (
-              <Skeleton className="h-5 w-16 mt-1 bg-accent/80" />
+              <Skeleton className="h-5 w-16 mt-1 bg-accent/30" />
             ) : (
               <>
                 <span className="ml-2 text-primary md:text-[18px] font-bold">
@@ -175,15 +161,17 @@ export default function RideHistory() {
           </div>
         </div>
 
+
+
         {/* Total Amount */}
-        <div className="
-        bg-[repeating-linear-gradient(to_right,_#ff0000,_#0000ff_20%)] 
-        dark:bg-[repeating-linear-gradient(to_right,_#ff00,_#00ff_20%)]
-        mr-10 p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+        <div
+          className="
+       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary"
+        >
           <DollarSign className="w-8 h-8 text-blue-500 mb-2" />
           <h2 className="text-lg font-semibold md:text-[16px]">Total Amount</h2>
           {loading ? (
-            <Skeleton className="h-6 w-16 mt-2 bg-gray-600" />
+            <Skeleton className="h-6 w-16 mt-2 bg-accent/30" />
           ) : (
             <h2 className="text-2xl font-bold text-primary">
               ৳{summary.totalCommission.toFixed(2)}
@@ -193,7 +181,7 @@ export default function RideHistory() {
       </div>
 
       {/* Ride Table */}
-      <div className="overflow-x-auto mr-10 border border-accent rounded-xl">
+      <div className="overflow-x-auto mr-10 border border-accent  mt-10 rounded-xl">
         <table className="w-full text-sm">
           <thead className="bg-accent text-left">
             <tr>
@@ -226,7 +214,7 @@ export default function RideHistory() {
               {paginatedRides.map((ride) => (
                 <tr
                   key={ride._id}
-                  className="border-t hover:bg-accent/20 transition"
+                  className="border-t hover:bg-primary "
                 >
                   <td className="px-4 py-2 ">{ride.userEmail || "N/A"}</td>
                   <td className="px-4 py-2">
