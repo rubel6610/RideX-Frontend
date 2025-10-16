@@ -48,7 +48,7 @@ export default function RideHistory() {
     reviews.length > 0
       ? reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length
       : 0;
-      
+
   const summary = {
     totalRides: rideHistory.length,
     totalCompletedRides: completedRides.length,
@@ -74,7 +74,7 @@ export default function RideHistory() {
         <tr key={i} className="border-t">
           {[...Array(8)].map((_, j) => (
             <td key={j} className="px-4 py-2">
-              <Skeleton className="h-4 w-full bg-accent/30 rounded" />
+              <Skeleton className="h-4 w-full bg-accent/80 rounded" />
             </td>
           ))}
         </tr>
@@ -89,7 +89,9 @@ export default function RideHistory() {
       stars.push(
         <Star
           key={i}
-          className={`w-5 h-5 ${i <= rating ? "text-primary" : "text-gray-300"}`}
+          className={`w-5 h-5 ${
+            i <= rating ? "text-primary" : "text-gray-300"
+          }`}
         />
       );
     }
@@ -97,41 +99,76 @@ export default function RideHistory() {
   };
 
   return (
-    <div className="p-4 space-y-6 max-w-screen mx-auto lg:w-full md:w-full">
+    <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
       {/* Summary cards */}
+
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {/* Total Rides */}
-        <div className="mr-10 p-6 shadow-lg bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+      {/*   <div className="mr-10 p-6  shadow-lg bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
           <User className="w-8 h-8 text-primary mb-2" />
           <h2 className="text-lg font-semibold md:text-[16px]">Total Rides</h2>
           {loading ? (
-            <Skeleton className="h-6 w-12 mt-2 bg-amber-300" />
+            <Skeleton className="h-6 w-12 mt-2 bg-accent/80" />
           ) : (
-            <h2 className="text-2xl font-bold text-primary">{summary.totalRides}</h2>
+            <h2 className="text-2xl font-bold text-primary">
+              {summary.totalRides}
+            </h2>
+          )}
+        </div> */}
+
+        <div
+          className="
+    mr-10 p-6 shadow-lg
+    bg-[repeating-radial-gradient(circle,#568F87,#064232_20%)] 
+    dark:bg-[repeating-radial-gradient(circle,#0f0,#00ffff_20%)]
+    rounded-2xl flex flex-col items-center border border-primary
+  "
+        >
+          <User className="w-8 h-8 text-primary mb-2" />
+          <h2 className="text-lg font-semibold md:text-[16px]">Total Rides</h2>
+          {loading ? (
+            <Skeleton className="h-6 w-12 mt-2 bg-gray-600" />
+          ) : (
+            <h2 className="text-2xl font-bold text-primary">
+              {summary.totalRides}
+            </h2>
           )}
         </div>
 
         {/* Completed Rides */}
-        <div className="mr-10 p-2 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+        <div className=" bg-[repeating-linear-gradient(to_right,_#ff0000,_#0000ff_20%)] 
+        dark:bg-[repeating-linear-gradient(to_right,_#ff00,_#00ff_20%)]
+        mr-10 p-2 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
           <Check className="w-8 h-8 mt-2 text-primary mb-2" />
-          <h2 className="text-lg mt-2 font-semibold md:text-[16px]">Completed Rides</h2>
+          <h2 className="text-lg mt-2 font-semibold md:text-[16px]">
+            Completed Rides
+          </h2>
           {loading ? (
-            <Skeleton className="h-6 w-12  bg-amber-300" />
+            <Skeleton className="h-6 w-12  bg-accent/80" />
           ) : (
-            <h2 className="text-2xl font-bold text-primary">{summary.totalCompletedRides}</h2>
+            <h2 className="text-2xl font-bold text-primary">
+              {summary.totalCompletedRides}
+            </h2>
           )}
         </div>
 
         {/* Average Rating */}
-        <div className="mr-10 p-4 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+        <div className="
+        bg-[repeating-radial-gradient(circle,#ff0000,#0000ff_20%)] 
+    dark:bg-[repeating-radial-gradient(circle,#0f0,#00ffff_20%)]
+        mr-10 p-4 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
           <Star className="w-8 h-8 text-primary mb-2" />
-          <h2 className="text-lg font-semibold mt-2 md:text-[16px]">Average Rating</h2>
+          <h2 className="text-lg font-semibold mt-2 md:text-[16px]">
+            Average Rating
+          </h2>
           <div className="flex items-center space-x-0">
             {loading ? (
-              <Skeleton className="h-5 w-16 mt-1 bg-amber-300" />
+              <Skeleton className="h-5 w-16 mt-1 bg-accent/80" />
             ) : (
               <>
-                <span className="ml-2 text-primary md:text-[18px] font-bold">{summary.avgRating.toFixed(1)}/5</span>
+                <span className="ml-2 text-primary md:text-[18px] font-bold">
+                  {summary.avgRating.toFixed(1)}/5
+                </span>
                 {renderStars(Math.round(summary.avgRating))}
               </>
             )}
@@ -139,13 +176,18 @@ export default function RideHistory() {
         </div>
 
         {/* Total Amount */}
-        <div className="mr-10 p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
+        <div className="
+        bg-[repeating-linear-gradient(to_right,_#ff0000,_#0000ff_20%)] 
+        dark:bg-[repeating-linear-gradient(to_right,_#ff00,_#00ff_20%)]
+        mr-10 p-6 shadow-md bg-accent/50 rounded-2xl flex flex-col items-center border border-primary">
           <DollarSign className="w-8 h-8 text-blue-500 mb-2" />
           <h2 className="text-lg font-semibold md:text-[16px]">Total Amount</h2>
           {loading ? (
-            <Skeleton className="h-6 w-16 mt-2 bg-amber-300" />
+            <Skeleton className="h-6 w-16 mt-2 bg-gray-600" />
           ) : (
-            <h2 className="text-2xl font-bold text-primary">৳{summary.totalCommission.toFixed(2)}</h2>
+            <h2 className="text-2xl font-bold text-primary">
+              ৳{summary.totalCommission.toFixed(2)}
+            </h2>
           )}
         </div>
       </div>
@@ -171,7 +213,10 @@ export default function RideHistory() {
           ) : paginatedRides.length === 0 ? (
             <tbody>
               <tr>
-                <td colSpan="8" className="text-center py-4 text-muted-foreground">
+                <td
+                  colSpan="8"
+                  className="text-center py-4 text-muted-foreground"
+                >
                   No rides found
                 </td>
               </tr>
@@ -179,19 +224,41 @@ export default function RideHistory() {
           ) : (
             <tbody>
               {paginatedRides.map((ride) => (
-                <tr key={ride._id} className="border-t hover:bg-accent/20 transition">
-                  <td className="px-4 py-2">{ride.userEmail || "N/A"}</td>
+                <tr
+                  key={ride._id}
+                  className="border-t hover:bg-accent/20 transition"
+                >
+                  <td className="px-4 py-2 ">{ride.userEmail || "N/A"}</td>
                   <td className="px-4 py-2">
-                    {ride.rideDetails?.pickup?.split(",")[0]} → {ride.rideDetails?.drop?.split(",")[0]}
+                    {ride.rideDetails?.pickup?.split(",")[0]} →{" "}
+                    {ride.rideDetails?.drop?.split(",")[0]}
                   </td>
-                  <td className="px-4 py-2">{ride.rideDetails?.vehicleType || "N/A"}</td>
-                  <td className="px-4 py-2">{ride.rideDetails?.distance?.toFixed(2) || 0}</td>
-                  <td className="px-4 py-2 font-semibold text-primary">{ride.rideDetails?.fareBreakdown?.totalAmount?.toFixed(2)}</td>
+                  <td className="px-4 py-2">
+                    {ride.rideDetails?.vehicleType || "N/A"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {ride.rideDetails?.distance?.toFixed(2) || 0}
+                  </td>
+                  <td className="px-4 py-2 font-semibold text-primary">
+                    {ride.rideDetails?.fareBreakdown?.totalAmount?.toFixed(2)}
+                  </td>
                   <td className="px-4 py-2">{ride.paymentMethod || "N/A"}</td>
-                  <td className={`px-4 py-2 font-semibold ${ride.status === "Paid" ? "text-green-600" : "text-yellow-600"}`}>
+                  <td
+                    className={`px-4 py-2 font-semibold ${
+                      ride.status === "Paid"
+                        ? "text-green-600"
+                        : "text-yellow-600"
+                    }`}
+                  >
                     {ride.status}
                   </td>
-                  <td className="px-4 py-2">{ride.timestamps?.paymentInitiatedAt ? new Date(ride.timestamps.paymentInitiatedAt).toLocaleString() : "N/A"}</td>
+                  <td className="px-4 py-2">
+                    {ride.timestamps?.paymentInitiatedAt
+                      ? new Date(
+                          ride.timestamps.paymentInitiatedAt
+                        ).toLocaleString()
+                      : "N/A"}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -205,7 +272,7 @@ export default function RideHistory() {
           <button
             className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           >
             Previous
           </button>
@@ -215,7 +282,9 @@ export default function RideHistory() {
           <button
             className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
             disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
           >
             Next
           </button>
