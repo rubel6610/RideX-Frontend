@@ -118,7 +118,7 @@ const FeaturedSection = () => {
             <div className="text-primary text-sm font-bold uppercase tracking-[0.2em]">
               RIDE WITH CONFIDENCE
             </div>
-            <h2 className="text-4xl md:text-3xl lg:text-5xl xl:text-6xl ftext-foreground uppercase leading-8.5 md:leading-7 lg:leading-11 xl:leading-14 tracking-tight">
+            <h2 className="text-4xl md:text-3xl lg:text-5xl xl:text-6xl text-foreground uppercase leading-8.5 md:leading-7 lg:leading-11 xl:leading-14 tracking-tight">
               YOUR TRUSTED RIDE, ANYTIME ANYWHERE
             </h2>
             <p className="text-muted-foreground text-base sm:text-sm lg:text-lg max-w-xl leading-5 md:leading-4 lg:leading-5">

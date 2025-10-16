@@ -133,7 +133,7 @@ const LuxuryCarsSection = () => {
           </div>
 
           <div ref={rightImageRef} className="relative">
-            <div className="relative w-full h-[400px] rounded-[30px] overflow-hidden shadow-2xl bg-primary">
+            <div className="relative w-full h-[300px] sm:h-[400px] rounded-[30px] overflow-hidden shadow-2xl bg-primary">
               {carouselSlides.map((slide, index) => (
                 <div
                   key={slide.id}
