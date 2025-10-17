@@ -183,7 +183,7 @@ const Navbar = () => {
 
       {/* ---------- MAIN NAVBAR ---------- */}
       <header
-        className={`fixed left-0 right-0 z-[90] bg-background transition-all duration-500 ${user
+        className={`fixed left-0 right-0 z-[90] bg-background transition-all duration-500 border-b-2 border-gray-100 dark:border-gray-700 ${user
             ? "top-0"
             : isScrolled
               ? "top-0 shadow-sm"

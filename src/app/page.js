@@ -1,10 +1,9 @@
-import BeRidersAndPassenger from '@/components/Shared/BeRidersAndPassenger';
 import FeaturedDrivers from '@/components/Shared/FeaturedDrivers';
 import FeaturedSection from '@/components/Shared/FeaturedSection';
 import LuxuryCarsSection from '@/components/Shared/LuxuryCarsSection';
-import PopularRides from '@/components/Shared/PopularRides';
 import React from 'react';
 import Hero from '@/components/Shared/Hero';
+import CategoryRides from '@/components/Shared/CategoryRides';
 
 const Home = () => {
   return (
@@ -14,8 +13,8 @@ const Home = () => {
       <LuxuryCarsSection />
       {/* <Banner/> */}
       <FeaturedDrivers />
-      <PopularRides />
-      <BeRidersAndPassenger />
+      <CategoryRides />
+      {/* <BeRidersAndPassenger /> */}
     </div>
   );
 };

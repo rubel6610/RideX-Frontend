@@ -187,7 +187,7 @@ const Hero = () => {
     };
 
     return (
-        <section ref={heroRef} className="bg-accent/30 py-12 sm:py-16 md:py-20 lg:py-22 xl:py-26 mt-20 sm:mt-24">
+        <section ref={heroRef} className="dark:bg-background primary/20 py-14 sm:py-18 md:py-20 lg:py-22 xl:py-26 mt-20 sm:mt-24">
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-10 items-center px-10 xllg:px-0 overflow-hidden">
                 {/* Left Content - UI only changes */}
                 <div ref={leftContentRef} className="w-full md:w-3/7">
@@ -199,7 +199,7 @@ const Hero = () => {
                     </p>
 
                     {/* Booking Form container styled like reference */}
-                    <div ref={formRef} className="relative mt-16 w-full max-w-sm pl-12">
+                    <div ref={formRef} className="relative mt-16 w-full max-w-sm pl-12 pb-2">
                         <form onSubmit={handleSubmit}>
                             {/* Pickup */}
                             <div className="relative flex items-center h-12" onClick={() => setShowPickupMap(true)}>
@@ -207,7 +207,7 @@ const Hero = () => {
                                 <Input
                                     type="text"
                                     placeholder="Pickup location"
-                                    className="px-8 h-14 rounded-lg border-none bg-white/70 dark:bg-background focus-visible:ring-0"
+                                    className="px-8 h-14 rounded-lg border-none bg-accent/30 dark:bg-primary/20 focus-visible:ring-0"
                                     readOnly
                                     value={pickup}
                                 />
@@ -227,7 +227,7 @@ const Hero = () => {
                                 <Input
                                     type="text"
                                     placeholder="Dropoff location"
-                                    className="px-8 h-14 rounded-lg border-none bg-white/70 dark:bg-background focus-visible:ring-0"
+                                    className="px-8 h-14 rounded-lg border-none bg-accent/30 dark:bg-primary/20 focus-visible:ring-0"
                                     readOnly
                                     value={drop}
                                 />
@@ -254,15 +254,15 @@ const Hero = () => {
                     {/* Background shapes to mimic the jagged/broken frame effect */}
                     <div className="absolute inset-0 z-0">
                         {/* Top-Left block */}
-                        <span ref={(el) => (shapesRef.current[0] = el)} className="absolute -top-10 -left-10 xl:top-0 xl:-left-14 h-16 w-16 bg-accent/70 transform rotate-12" />
+                        <span ref={(el) => (shapesRef.current[0] = el)} className="absolute -top-10 -left-10 xl:top-0 xl:-left-14 h-16 w-16 bg-accent/70 dark:bg-primary/60 transform rotate-12" />
                         {/* Top-Right block */}
-                        <span ref={(el) => (shapesRef.current[1] = el)} className="absolute top-0 right-0 md:right-6 lg:right-0 h-10 w-20 bg-accent/70 translate-x-1/2 -translate-y-1/2" />
+                        <span ref={(el) => (shapesRef.current[1] = el)} className="absolute top-0 right-0 md:right-6 lg:right-0 h-10 w-20 bg-accent/70 dark:bg-primary/60 translate-x-1/2 -translate-y-1/2" />
                         {/* Left-Center Block */}
-                        <span ref={(el) => (shapesRef.current[2] = el)} className="absolute top-2/4 -left-11 md:-left-5 lg:-left-11 h-16 w-10 bg-accent/70" />
+                        <span ref={(el) => (shapesRef.current[2] = el)} className="absolute top-2/4 -left-11 md:-left-5 lg:-left-11 h-16 w-10 bg-accent/70 dark:bg-primary/60" />
                         {/* Right-Center Block (thin strip) */}
-                        <span ref={(el) => (shapesRef.current[3] = el)} className="absolute top-1/2 -right-4 sm:-right-7 md:-right-3 h-10 w-4 bg-accent/70 translate-x-1/2" />
+                        <span ref={(el) => (shapesRef.current[3] = el)} className="absolute top-1/2 -right-4 sm:-right-7 md:-right-3 h-10 w-4 bg-accent/70 dark:bg-primary/60 translate-x-1/2" />
                         {/* Bottom-Right block (large) */}
-                        <span ref={(el) => (shapesRef.current[4] = el)} className="absolute -bottom-10 -right-10 md:-right-7 lg:-right-10 h-24 w-24 bg-accent/70 transform -rotate-12" />
+                        <span ref={(el) => (shapesRef.current[4] = el)} className="absolute -bottom-10 -right-10 md:-right-7 lg:-right-10 h-24 w-24 bg-accent/70 dark:bg-primary/60 transform -rotate-12" />
                     </div>
 
                     <div ref={imageRef} className="z-10 w-full pt-[75%]"> {/* Aspect ratio container for image */}

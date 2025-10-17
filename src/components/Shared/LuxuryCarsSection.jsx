@@ -5,8 +5,9 @@ import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Check } from 'lucide-react';
-import carImage1 from '../../Assets/car-carousel-1-1.png';
-import carImage2 from '../../Assets/car-carousel-1-2.png';
+import carImage from '../../Assets/car-transparent.png';
+import bikeImage from '../../Assets/bike-transparent.png';
+import cngImage from '../../Assets/cng-transparent.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,9 +19,9 @@ const LuxuryCarsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const carouselSlides = [
-    { id: 1, src: carImage1, alt: "RideX Car 1", width: 800, height: 400 },
-    { id: 2, src: carImage2, alt: "RideX Car 2", width: 800, height: 400 },
-    { id: 3, src: carImage1, alt: "RideX Car 3", width: 800, height: 400 },
+    { id: 1, src: carImage, alt: "RideX Car 1" },
+    { id: 2, src: bikeImage, alt: "RideX Car 2" },
+    { id: 3, src: cngImage, alt: "RideX Car 3" },
   ];
 
   useEffect(() => {
@@ -73,29 +74,29 @@ const LuxuryCarsSection = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-20 bg-background overflow-hidden">
+    <section ref={sectionRef} className="pb-24 sm:pb-28 md:pb-40 lg:pb-46 xl:pb-56 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-10 sm:gap-10 md:gap-6 lg:gap-16 items-center">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-10 md:gap-6 lg:gap-16 items-center">
 
-          <div ref={leftContentRef} className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="text-primary text-xs sm:text-sm font-bold uppercase tracking-[0.3em] sm:tracking-[0.2em]">
+          <div ref={leftContentRef} className="space-y-3 lg:space-y-6">
+            <div className="flex items-center space-x-2 mb-2 sm:mb-4">
+              <div className="text-primary text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-[0.3em] sm:tracking-[0.2em]">
                 RIDEX RIDES
               </div>
-              <div className="w-2 h-2 bg-primary rounded-full"></div>
+              <div className="w-2 h-2 bg-primary rounded-full" />
             </div>
 
-            <h2 className="text-3xl sm:text-5xl md:text-[36px] lg:text-[46px] font-black text-foreground uppercase leading-7.5 sm:leading-12.5 md:leading-9 lg:leading-12.5 text-left">
+            <h2 className="text-4xl sm:text-[50px] md:text-[28px] lg:text-[40px] xl:text-6xl text-foreground uppercase leading-8 sm:leading-11.5 md:leading-7.5 lg:leading-10 xl:leading-14 tracking-tight">
               ENJOY EVERY RIDE WITH SAFETY AND COMFORT
             </h2>
 
-            <p className="text-muted-foreground text-base sm:text-lg leading-5.5 max-w-xl text-left">
+            <p className="sm:mt-2 text-muted-foreground text-base sm:text-lg md:text-base lg:text-lg xl:text-xl leading-4.5 sm:leading-5 md:leading-4 lg:leading-5 xl:leading-6">
               Book your next ride in seconds with Ridex. We connect you to nearby drivers for quick, safe, and reliable trips anytime you need to go.
             </p>
 
-            <div className="w-full h-px bg-muted-foreground/30"></div>
+            <div className="w-full h-px bg-muted-foreground/30 mt-4"></div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div
                 ref={(el) => (featuresRef.current[0] = el)}
                 className="flex items-start space-x-4"
@@ -107,7 +108,7 @@ const LuxuryCarsSection = () => {
                   <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1">
                     Fast Booking
                   </h3>
-                  <p className="text-sm sm:text-base text-muted-foreground leading-5">
+                  <p className="text-sm sm:text-base md:text-sm lg:text-base text-muted-foreground leading-4 sm:leading-4.5">
                     Get matched with a nearby driver instantly and start your trip without waiting in long queues or facing delays.
                   </p>
                 </div>
@@ -124,7 +125,7 @@ const LuxuryCarsSection = () => {
                   <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1">
                     Trusted Quality
                   </h3>
-                  <p className="text-sm sm:text-base text-muted-foreground leading-5">
+                  <p className="text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-muted-foreground leading-4 sm:leading-4.5">
                     Clean vehicles, professional drivers, and a platform designed to give you a smooth and safe ride every time.
                   </p>
                 </div>
@@ -133,18 +134,18 @@ const LuxuryCarsSection = () => {
           </div>
 
           <div ref={rightImageRef} className="relative">
-            <div className="relative w-full h-[300px] sm:h-[400px] rounded-[30px] overflow-hidden shadow-2xl bg-primary">
+            <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[510px] rounded-[30px] overflow-hidden bg-primary">
               {carouselSlides.map((slide, index) => (
                 <div
                   key={slide.id}
-                  className={`absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${index === activeIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 ${index === activeIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
                   <Image
                     src={slide.src}
                     alt={slide.alt}
-                    width={800}
-                    height={400}
-                    className="w-[90%] h-1/2 object-contain mx-auto block"
+                    width={1000}
+                    height={1000}
+                    className="scale-140 w-[100%] -mt-16 h-full object-contain mx-auto block"
                     priority={index === 0}
                   />
                 </div>
