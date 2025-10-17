@@ -37,6 +37,8 @@ export default function OngoingRidePage() {
     const matchedRide = rideData?.find(ride => ride.riderId === currentRider) || [];
     console.log(matchedRide?.userId);
 
+
+    // when passender info come from server side then this useeffect open 
     // useEffect(() => {
     //     const fetchPassenger = async () => {
     //         try {
@@ -63,12 +65,7 @@ export default function OngoingRidePage() {
 
     if (error) return <p>Error: {error}</p>;
     if (!rideData) return <p>No ride found</p>;
-    if (!matchedRide) return <p className="text-center mt-10">No ride found</p>;
-
-    // Control button handlers
-    const handleStart = () => setRide({ ...ride, status: "on_the_way" });
-    const handleEnd = () => setRide({ ...ride, status: "completed" });
-    const handleCancel = () => setRide({ ...ride, status: "cancelled" });
+    if (!matchedRide) return <p>No ride found</p>;
 
     return (
         <div className="flex justify-center p-4">
@@ -102,7 +99,7 @@ export default function OngoingRidePage() {
                                 <strong>Completed Rides:</strong> {riderInfo.completedRides}
                             </li>
                             <li>
-                                <strong>Ratings:</strong> ⭐ {riderInfo.ratings}
+                                <strong>Ratings:</strong> {riderInfo.ratings} ⭐
                             </li>
                         </ul>
                     </div>
