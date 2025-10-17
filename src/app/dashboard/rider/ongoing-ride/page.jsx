@@ -7,7 +7,6 @@ export default function OngoingRidePage() {
 
 
     // Passenger Modal state
-    const [showPassenger, setShowPassenger] = useState(false);
     const { user } = useAuth();
     const [rideData, setRideData] = useState(null);
     const [users, setusers] = useState(null);
@@ -83,23 +82,23 @@ export default function OngoingRidePage() {
                         </h3>
                         <ul className="space-y-2">
                             <li>
-                                <strong>Name:</strong> {riderInfo.fullName}
+                                <strong>Name:</strong> {riderInfo?.fullName}
                             </li>
                             <li>
-                                <strong>Email:</strong> {riderInfo.email}
+                                <strong>Email:</strong> {riderInfo?.email}
                             </li>
                             <li>
-                                <strong>Vehicle:</strong> {riderInfo.vehicleModel} (
-                                {riderInfo.vehicleType})
+                                <strong>Vehicle:</strong> {riderInfo?.vehicleModel} (
+                                {riderInfo?.vehicleType})
                             </li>
                             <li>
-                                <strong>Register No:</strong> {riderInfo.vehicleRegisterNumber}
+                                <strong>Register No:</strong> {riderInfo?.vehicleRegisterNumber}
                             </li>
                             <li>
-                                <strong>Completed Rides:</strong> {riderInfo.completedRides}
+                                <strong>Completed Rides:</strong> {riderInfo?.completedRides}
                             </li>
                             <li>
-                                <strong>Ratings:</strong> {riderInfo.ratings} ⭐
+                                <strong>Ratings:</strong> {riderInfo?.ratings} ⭐
                             </li>
                         </ul>
                     </div>
@@ -111,7 +110,7 @@ export default function OngoingRidePage() {
                         </h3>
                         <ul className="space-y-2">
                             <li>
-                                <strong>Fare:</strong> ৳{fare.toFixed(2)}
+                                <strong>Fare:</strong> ৳{fare?.toFixed(2)}
                             </li>
                             <li>
                                 <strong>Vehicle Type:</strong> {vehicleType}
@@ -126,10 +125,10 @@ export default function OngoingRidePage() {
                             </li>
                             <li>
                                 <strong>Pickup Coordinates:</strong>{" "}
-                                {pickup.coordinates.join(", ")}
+                                {pickup?.coordinates.join(", ")}
                             </li>
                             <li>
-                                <strong>Drop Coordinates:</strong> {drop.coordinates.join(", ")}
+                                <strong>Drop Coordinates:</strong> {drop?.coordinates.join(", ")}
                             </li>
                             <li>
                                 <strong>Created At:</strong>{" "}
