@@ -1,27 +1,69 @@
 "use client"
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, PhoneCall, Play, StopCircle, XCircle, DollarSign } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/app/hooks/AuthProvider";
 
 export default function OngoingRidePage() {
 
-    // Dummy ride data (later API দিয়ে আনবেন)
-    const [ride, setRide] = useState({
-        id: "RIDE-2025",
-        pickup: "Uttara, Sector 10",
-        dropoff: "Dhanmondi, Road 11",
-        distance: 12,
-        estTime: 25,
-        fare: { base: 50, distance: 120, total: 170, commission: 10 },
-        passenger: { name: "Jahid", phone: "+8801712345678" },
-        status: "assigned",
-    });
 
     // Passenger Modal state
     const [showPassenger, setShowPassenger] = useState(false);
+    const { user } = useAuth();
+    const [rideData, setRideData] = useState(null);
+    const [users, setusers] = useState(null);
+    const [currentRider, setCurrentRider] = useState(null);
+    const [error, setError] = useState(null);
+    const riderId = user?.id;
+
+    useEffect(() => {
+        if (!riderId) return;
+
+        const fetchRide = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${riderId}`);
+                const data = await res.json();
+                // console.log(data);
+                setRideData(data?.rides);
+                setCurrentRider(data?.rider?._id)
+            }
+            catch (err) {
+                setError(err.message);
+            };
+        }
+        fetchRide();
+    }, [riderId]);
+
+    // this is current ride data so this data show in UI
+    const matchedRide = rideData?.find(ride => ride.riderId === currentRider) || [];
+    console.log(matchedRide?.userId);
+
+    // useEffect(() => {
+    //     const fetchPassenger = async () => {
+    //         try {
+    //             const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide?.userId}`);
+    //             const data = await res.json();
+    //             setusers(data)
+    //         }
+    //         catch (err) {
+    //             setError(err.message);
+    //         };
+    //     }
+    //     fetchPassenger()
+    // }, []);
+
+    const {
+        fare,
+        vehicleType,
+        status,
+        pickup,
+        drop,
+        createdAt,
+        riderInfo
+    } = matchedRide;
+
+    if (error) return <p>Error: {error}</p>;
+    if (!rideData) return <p>No ride found</p>;
+    if (!matchedRide) return <p className="text-center mt-10">No ride found</p>;
 
     // Control button handlers
     const handleStart = () => setRide({ ...ride, status: "on_the_way" });
@@ -29,135 +71,75 @@ export default function OngoingRidePage() {
     const handleCancel = () => setRide({ ...ride, status: "cancelled" });
 
     return (
-        <div className="p-4  max-w-4xl mx-auto space-y-4">
+        <div className="flex justify-center p-4">
+            <div className="w-full max-w-5xl rounded-2xl p-6 md:p-10">
+                <h2 className="text-3xl font-bold text-foreground text-center mb-10">
+                    Ride Details
+                </h2>
 
-            <div className="p-6 shadow-md rounded-2xl hover:border-primary border border-border bg-accent/50">
+                {/* Grid Layout for Left & Right Part */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* LEFT SIDE - Rider Info */}
+                    <div className="p-6 shadow-md bg-accent/50 hover:bg-accent/80 rounded-2xl flex flex-col transition-all hover:border-primary border border-border">
+                        <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
+                            Passenger Information
+                        </h3>
+                        <ul className="space-y-2">
+                            <li>
+                                <strong>Name:</strong> {riderInfo.fullName}
+                            </li>
+                            <li>
+                                <strong>Email:</strong> {riderInfo.email}
+                            </li>
+                            <li>
+                                <strong>Vehicle:</strong> {riderInfo.vehicleModel} (
+                                {riderInfo.vehicleType})
+                            </li>
+                            <li>
+                                <strong>Register No:</strong> {riderInfo.vehicleRegisterNumber}
+                            </li>
+                            <li>
+                                <strong>Completed Rides:</strong> {riderInfo.completedRides}
+                            </li>
+                            <li>
+                                <strong>Ratings:</strong> ⭐ {riderInfo.ratings}
+                            </li>
+                        </ul>
+                    </div>
 
-                {/* Current Trip Info */}
-                <CardHeader>
-                    <CardTitle className="text-lg">Current Trip Info</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                    <p>
-                        <span className="font-medium">Pickup:</span> {ride.pickup}
-                    </p>
-                    <p>
-                        <span className="font-medium">Dropoff:</span> {ride.dropoff}
-                    </p>
-                    <p>
-                        <span className="font-medium">Distance:</span> {ride.distance} km
-                    </p>
-                    <p>
-                        <span className="font-medium">Estimated Time:</span> {ride.estTime} min
-                    </p>
-                    <p>
-                        <span className="font-medium">Status:</span>{" "}
-                        <span
-                            className={`px-2 py-1 rounded text-xs ${ride.status === "completed"
-                                ? "bg-sidebar/40 text-primary"
-                                : ride.status === "cancelled"
-                                    ? "bg-destructive/40"
-                                    : "bg-secondary"
-                                }`}
-                        >
-                            {ride.status}
-                        </span>
-                    </p>
-                </CardContent>
-
-                <div className="border-t border-border"></div>
-                {/* Fare Details */}
-                <div>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Fare Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                        <p className="flex justify-between">
-                            <span>Base Fare</span>
-                            <span>${ride.fare.base}</span>
-                        </p>
-                        <p className="flex justify-between">
-                            <span>Distance Fare</span>
-                            <span>${ride.fare.distance}</span>
-                        </p>
-                        <p className="flex justify-between font-medium">
-                            <span>Total</span>
-                            <span>${ride.fare.total}</span>
-                        </p>
-                        <p className="flex justify-between text-red-600">
-                            <span>Commission</span>
-                            <span>-${ride.fare.commission}</span>
-                        </p>
-                        <p className="flex justify-between font-bold text-green-600">
-                            <span>Earning</span>
-                            <span>${ride.fare.total - ride.fare.commission}</span>
-                        </p>
-                    </CardContent>
-                </div>
-
-            </div>
-
-            {/* Passenger Info (Modal) */}
-            <div className="flex justify-between gap-2 md:gap-3 xl:gap-4">
-                {/* view passenger info  */}
-                <div>
-                    <Button variant="outline" onClick={() => setShowPassenger(true)}>
-                        View Passenger Info
-                    </Button>
-                    <Dialog open={showPassenger} onOpenChange={setShowPassenger}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Passenger Info</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-2 text-sm">
-                                <p>
-                                    <span className="font-medium">Name:</span> {ride.passenger.name}
-                                </p>
-                                <p>
-                                    <span className="font-medium">Phone:</span> {ride.passenger.phone}
-                                </p>
-                                <Button
-                                    variant="ghost"
-                                    className="flex items-center gap-2 mt-2"
-                                    onClick={() => window.open(`tel:${ride.passenger.phone}`, "_self")}
+                    {/* RIGHT SIDE - Ride Info */}
+                    <div className="p-6 shadow-md bg-accent/50 hover:bg-accent/80 rounded-2xl flex flex-col transition-all hover:border-primary border border-border">
+                        <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
+                            Ride Information
+                        </h3>
+                        <ul className="space-y-2">
+                            <li>
+                                <strong>Fare:</strong> ৳{fare.toFixed(2)}
+                            </li>
+                            <li>
+                                <strong>Vehicle Type:</strong> {vehicleType}
+                            </li>
+                            <li>
+                                <strong>Status:</strong>{" "}
+                                <span
+                                    className="px-2 py-1 rounded-md text-sm font-medium text-primary border"
                                 >
-                                    <PhoneCall className="w-4 h-4" /> Call Passenger
-                                </Button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-
-                {/* controls buttons  */}
-                <div className="flex gap-2 md:gap-3 xl:gap-4">
-                    {ride.status === "assigned" && (
-                        <Button onClick={handleStart} className="flex items-center gap-2 cursor-pointer">
-                            <Play className="w-4 h-4" /> Start Ride
-                        </Button>
-                    )}
-
-                    {ride.status === "on_the_way" && (
-                        <Button onClick={handleEnd} className="flex items-center gap-2  cursor-pointer">
-                            <StopCircle className="w-4 h-4" /> End Ride
-                        </Button>
-                    )}
-
-                    {ride.status !== "completed" && ride.status !== "cancelled" && (
-                        <Button
-                            onClick={handleCancel}
-                            variant="destructiveOutline"
-                        >
-                            <XCircle className="w-4 h-4" /> Cancel Ride
-                        </Button>
-                    )}
-
-                    {ride.status == "cancelled" && (
-                        <button
-                            className="bg-destructive flex gap-1 py-2 px-4 rounded-md items-center cursor-not-allowed"
-                        >
-                            <XCircle className="w-4 h-4" /> Cancelled
-                        </button>
-                    )}
+                                    {status}
+                                </span>
+                            </li>
+                            <li>
+                                <strong>Pickup Coordinates:</strong>{" "}
+                                {pickup.coordinates.join(", ")}
+                            </li>
+                            <li>
+                                <strong>Drop Coordinates:</strong> {drop.coordinates.join(", ")}
+                            </li>
+                            <li>
+                                <strong>Created At:</strong>{" "}
+                                {new Date(createdAt).toLocaleString()}
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
