@@ -46,7 +46,7 @@ const rideTypeIcon = {
   Car: Car,
 };
 
-export default function SearchingPage() {
+export default function AcceptRide() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -291,34 +291,26 @@ export default function SearchingPage() {
                <div className="space-y-3">
                  <Button 
                    onClick={() => setIsChatOpen(true)}
-                   className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                   variant="default"
+                   className="w-full h-12 text-base font-semibold"
                  >
                    <Phone className="w-5 h-5 mr-2" />
                    Chat with {riderInfo.fullName.split(" ")[0]}
                  </Button>
 
-                {/* ✅ Updated Gradient Cancel Button */}
                 <Button
                   onClick={handleCancelRide}
-                  className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                  variant="destructive"
+                  className="w-full h-12 text-base font-semibold"
                 >
                   <X className="w-5 h-5 mr-2" />
                   Cancel Ride
                 </Button>
 
-                {/* ✅ Updated Complete Button */}
                 <Button
                   onClick={handleCompleteRide}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
-                >
-                  <Check className="w-5 h-5 mr-2" />
-                  Complete Ride
-                </Button>
-
-                {/* ✅ Updated Complete Button */}
-                <Button
-                  onClick={handleCompleteRide}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:opacity-90 h-12 text-base font-semibold shadow-lg"
+                  variant="default"
+                  className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
                 >
                   <Check className="w-5 h-5 mr-2" />
                   Complete Ride

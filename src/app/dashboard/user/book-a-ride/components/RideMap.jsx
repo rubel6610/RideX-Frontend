@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { MapPin, Navigation } from "lucide-react";
 import L from "leaflet";
 import { useMapEvents, useMap } from "react-leaflet";
+import "leaflet-routing-machine";
 
 // Dynamic import for Leaflet to avoid SSR issues
 const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), {
@@ -16,9 +17,6 @@ const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), 
   ssr: false,
 });
 const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
-  ssr: false,
-});
-const Polyline = dynamic(() => import("react-leaflet").then((mod) => mod.Polyline), {
   ssr: false,
 });
 const ZoomControl = dynamic(() => import("react-leaflet").then((mod) => mod.ZoomControl), {
@@ -60,6 +58,94 @@ const ChangeView = ({ center, zoom }) => {
   useEffect(() => {
     if (center && zoom) map.setView(center, zoom);
   }, [map, center, zoom]);
+  return null;
+};
+
+// Road-following route component
+const Routing = ({ pickupCoords, dropCoords }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !pickupCoords || !dropCoords) return;
+
+    try {
+      // Remove existing routing controls
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Routing.Control) {
+          map.removeControl(layer);
+        }
+      });
+
+      // Check if L.Routing is available
+      if (typeof L.Routing === 'undefined') {
+        console.warn('Leaflet Routing Machine not loaded');
+        return;
+      }
+
+      const control = L.Routing.control({
+        waypoints: [
+          L.latLng(pickupCoords[0], pickupCoords[1]),
+          L.latLng(dropCoords[0], dropCoords[1]),
+        ],
+        lineOptions: {
+          styles: [
+            { 
+              color: "#3b82f6", 
+              weight: 6, 
+              opacity: 0.8,
+              lineCap: "round",
+              lineJoin: "round"
+            }
+          ],
+        },
+        addWaypoints: false,
+        routeWhileDragging: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: false,
+        show: false,
+        createMarker: () => null, // Hide default markers
+        router: L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1',
+          timeout: 30000,
+          profile: 'driving'
+        })
+      }).addTo(map);
+
+      return () => {
+        try {
+          if (control) {
+            map.removeControl(control);
+          }
+        } catch (cleanupError) {
+          console.warn('Error cleaning up routing control:', cleanupError);
+        }
+      };
+    } catch (error) {
+      console.warn('Routing machine error:', error);
+      // Fallback to simple polyline if routing fails
+      try {
+        const fallbackPolyline = L.polyline(
+          [pickupCoords, dropCoords],
+          {
+            color: "#3b82f6",
+            weight: 6,
+            opacity: 0.8,
+            lineCap: "round",
+            lineJoin: "round"
+          }
+        ).addTo(map);
+
+        return () => {
+          if (fallbackPolyline) {
+            map.removeLayer(fallbackPolyline);
+          }
+        };
+      } catch (fallbackError) {
+        console.warn('Fallback polyline also failed:', fallbackError);
+      }
+    }
+  }, [map, pickupCoords, dropCoords]);
+
   return null;
 };
 
@@ -206,6 +292,11 @@ const RideMap = ({
         <ChangeView center={center} zoom={zoom} />
         <MapClickHandler onMapClick={handleMapClick} />
 
+        {/* Road-following Route */}
+        {parsedPickupCoords && parsedDropCoords && (
+          <Routing pickupCoords={parsedPickupCoords} dropCoords={parsedDropCoords} />
+        )}
+
         {/* Pickup Marker */}
         {parsedPickupCoords && (
           <Marker position={parsedPickupCoords} icon={pickupIcon}>
@@ -230,28 +321,6 @@ const RideMap = ({
               </div>
             </Popup>
           </Marker>
-        )}
-
-        {/* Route Line */}
-        {parsedPickupCoords && parsedDropCoords && (
-          <>
-            <Polyline
-              positions={[parsedPickupCoords, parsedDropCoords]}
-              color="#3b82f6"
-              weight={6}
-              opacity={0.8}
-              lineCap="round"
-              lineJoin="round"
-            />
-            <Polyline
-              positions={[parsedPickupCoords, parsedDropCoords]}
-              color="#60a5fa"
-              weight={12}
-              opacity={0.3}
-              lineCap="round"
-              lineJoin="round"
-            />
-          </>
         )}
       </MapContainer>
 
