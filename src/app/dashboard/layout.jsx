@@ -22,7 +22,6 @@ export default function DashboardLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
 
@@ -124,15 +123,6 @@ export default function DashboardLayout({ children }) {
                 )}
               </button>
 
-              {/* Search (desktop) */}
-              <div className="hidden sm:block relative">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  className="pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none text-sm md:text-base"
-                />
-                <Search className="absolute left-2 top-2 w-5 h-5 text-muted-foreground" />
-              </div>
 
               {/* Mobile Search */}
               <button
@@ -170,16 +160,7 @@ export default function DashboardLayout({ children }) {
             </div>
           </header>
 
-          {/* Mobile search input */}
-          {showSearch && (
-            <div className="sm:hidden border-b border-border bg-background px-4 py-2">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none text-sm"
-              />
-            </div>
-          )}
+    
 
           {/* Dynamic Content */}
           <main className="flex-1 overflow-y-auto scrollbar-hidden px-4 md:px-6 py-6">
