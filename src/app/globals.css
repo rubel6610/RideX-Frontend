@@ -4,6 +4,7 @@
 @import "tw-animate-css";
 
 @import "leaflet/dist/leaflet.css";
+@import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
