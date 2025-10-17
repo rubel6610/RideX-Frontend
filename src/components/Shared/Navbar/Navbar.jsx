@@ -20,6 +20,7 @@ import {
   LogIn,
   UserPlus,
 } from "lucide-react";
+import defaultAvatar from '../../../Assets/default-avatar.png'
 import gsap from "gsap";
 import logo from "../../../Assets/ridex-logo.webp";
 import darkLogo from "../../../Assets/logo-dark.webp";
@@ -301,7 +302,7 @@ const Navbar = () => {
             {user && (
               <div className="relative h-full flex items-center">
                 <Image
-                  src={data?.photoUrl || "/default-avatar.png"}
+                  src={data?.photoUrl || defaultAvatar}
                   height={36}
                   width={36}
                   alt="User Photo"

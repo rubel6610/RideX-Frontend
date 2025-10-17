@@ -26,7 +26,6 @@ export default function CursorFollower() {
     };
 
     const animate = () => {
-      // Smoothly interpolate toward target
       const lerpFactor = 0.18;
       currentX += (targetX - currentX) * lerpFactor;
       currentY += (targetY - currentY) * lerpFactor;
@@ -50,21 +49,18 @@ export default function CursorFollower() {
     };
   }, []);
 
-  // Hidden on coarse pointer via utility classes
   return (
     <div
       ref={dotRef}
       className="fixed top-0 left-0 z-[9999] pointer-events-none hidden md:block"
       aria-hidden="true"
     >
-      <div className="relative -translate-x-1/2 -translate-y-1/2">
+      <div className="relative -translate-x-1/2 -translate-y-1/2 pointer-events-none">
         {/* Outer ring */}
-        <span className="block h-6 w-6 rounded-full border-2 border-primary/90 animate-none"></span>
+        <span className="block h-6 w-6 rounded-full border-2 border-primary/90 pointer-events-none"></span>
         {/* Inner dot */}
-        <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full  dark:bg-white/80 bg-black/60"></span>
+        <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full dark:bg-white/80 bg-black/60 pointer-events-none"></span>
       </div>
     </div>
   );
 }
-
-
