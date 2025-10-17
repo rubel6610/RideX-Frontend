@@ -1,14 +1,30 @@
-"use client";
-import "./globals.css";
-import Navbar from "@/components/Shared/Navbar/Navbar";
-import Footer from "@/components/Shared/Footer";
-import { AuthProvider } from "./hooks/AuthProvider";
-import useHideLayout from "./hooks/useHideLayout";
-import { useAuth } from "./hooks/AuthProvider";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeProvider } from "./hooks/themeContext";
-import QueryClientProvider from "./Providers/ReactQueryProvider";
-import { Toaster } from "sonner";
+'use client';
+import './globals.css';
+import Navbar from '@/components/Shared/Navbar/Navbar';
+import Footer from '@/components/Shared/Footer';
+import { AuthProvider } from './hooks/AuthProvider';
+import useHideLayout from './hooks/useHideLayout';
+import { useAuth } from './hooks/AuthProvider';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ThemeProvider } from './hooks/themeContext';
+import QueryClientProvider from './Providers/ReactQueryProvider';
+import Toaster from '@/components/ui/sonner';
+import { Roboto, Mulish } from 'next/font/google';
+import CursorFollower from '@/components/Shared/CursorFollower';
+import LenisProvider from '@/components/Shared/LenisProvider';
+
+// Load Mulish first
+const mulish = Mulish({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-mulish',
+});
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-roboto',
+});
 
 function LayoutContent({ children }) {
   const hideLayout = useHideLayout();
@@ -23,17 +39,21 @@ function LayoutContent({ children }) {
   }
 
   return (
-    <>
+    <LenisProvider>
       {!hideLayout && <Navbar />}
       <main className="min-h-screen">{children}</main>
       {!hideLayout && <Footer />}
-    </>
+    </LenisProvider>
   );
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="light">
+    <html
+      lang="en"
+      data-theme="light"
+      className={`${mulish.variable} ${roboto.variable}`}
+    >
       <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
         <ThemeProvider>
           <AuthProvider>
@@ -43,6 +63,7 @@ export default function RootLayout({ children }) {
           </AuthProvider>
         </ThemeProvider>
 
+        <CursorFollower />
         <Toaster position="bottom-right" />
       </body>
     </html>
