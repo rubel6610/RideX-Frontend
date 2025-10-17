@@ -27,6 +27,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash, Plus, Search } from "lucide-react";
 import axios from "axios";
+import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
+
 
 const API_URL = `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api`; 
 
@@ -151,9 +153,8 @@ const PromotionsDiscounts = () => {
     }
   }, [editingPromo, isModalOpen]);
 
-  if (loading) {
-    return <div className="p-6 text-center text-gray-500">Loading promotions...</div>;
-  }
+  if (loading) return <TableSkeleton />;
+
 
   return (
     <div className="p-6 space-y-6">
