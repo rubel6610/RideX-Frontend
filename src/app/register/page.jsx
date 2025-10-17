@@ -76,7 +76,30 @@ function RegisterPage() {
       console.error("Error submitting form:", error);
       toast.error("Something went wrong. Please try again later.");
     }
-  };
+
+    // নতুন অবজেক্ট বানাও image বাদ দিয়ে
+    const { image, ...rest } = data;
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rest), // ✅ এখানে আর circular হবে না
+      }
+    );
+
+    const userdata = await res.json();
+    if (res.ok) {
+      alert("Registered successfully!");
+    } else {
+      alert(userdata.message);
+    }
+  } catch (error) {
+    console.error("Error submitting form:", error);
+  }
+};
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
