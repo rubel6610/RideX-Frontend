@@ -10,7 +10,7 @@ export default function RideHistory() {
     {
       rideId: "RIDE-001",
       date: "2025-09-20",
-      pickup: "Uttara",
+      pickup: "Uttaradfsdfsdsd",
       dropoff: "Dhanmondi",
       distance: "12 km",
       fare: 150,
