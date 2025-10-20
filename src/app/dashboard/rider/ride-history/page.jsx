@@ -17,7 +17,7 @@ export default function RideHistory() {
   useEffect(() => {
     const fetchRideHistory = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/payment/all");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/payment/all`);
         if (!res.ok) throw new Error("Failed to fetch ride history");
         const data = await res.json();
         setRideHistory(data);
@@ -28,7 +28,7 @@ export default function RideHistory() {
 
     const fetchReviews = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/ride-reviews");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride-reviews`);
         if (!res.ok) throw new Error("Failed to fetch reviews");
         const data = await res.json();
         setReviews(data);

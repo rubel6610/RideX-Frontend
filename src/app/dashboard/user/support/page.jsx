@@ -62,7 +62,7 @@ export default function UserChat() {
     if (!user?.id) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/support/thread/${user.id}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/support/thread/${user.id}`);
       if (!res.ok) throw new Error("Failed to fetch thread");
       
       const data = await res.json();
@@ -93,7 +93,7 @@ export default function UserChat() {
     setText("");
 
     try {
-      const res = await fetch("http://localhost:5000/support/send", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/support/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

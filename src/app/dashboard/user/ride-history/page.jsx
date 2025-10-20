@@ -137,7 +137,7 @@ export default function RideHistoryPage() {
   useEffect(() => {
     const fetchRides = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/rides");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rides`);
         const data = await res.json();
 
         // Fetch real locations for pickup and drop

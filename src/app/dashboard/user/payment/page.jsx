@@ -12,7 +12,7 @@ export default function PaymentPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  // ✅ Extract data from URL and convert numeric values
+  //  Extract data from URL and convert numeric values
   useEffect(() => {
     const data = Object.fromEntries(params.entries());
 
@@ -35,10 +35,10 @@ export default function PaymentPage() {
     });
 
     setRideData(data);
-    console.log("✅ Ride Data (converted):", data);
+    console.log(" Ride Data (converted):", data);
   }, [params]);
 
-  // ✅ Prefill user email
+  // Prefill user email
   useEffect(() => {
     if (user?.email) setEmail(user.email);
   }, [user]);
@@ -52,7 +52,7 @@ export default function PaymentPage() {
     address: "93 B, New Eskaton Road, Dhaka-1000, Bangladesh.",
   };
 
-  // ✅ Submit handler
+  //  Submit handler
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
 
@@ -61,7 +61,7 @@ export default function PaymentPage() {
       return;
     }
 
-    // ✅ Build safe numeric payload for backend
+    //  Build safe numeric payload for backend
     const payData = {
       username: name,
       userEmail: email,
@@ -80,7 +80,7 @@ export default function PaymentPage() {
       drop: rideData.drop,
     };
 
-    console.log("💳 Sending payment data:", payData);
+    console.log(" Sending payment data:", payData);
 
     try {
       const response = await fetch(
