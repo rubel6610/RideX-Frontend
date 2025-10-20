@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <ProtectedRoute>
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex min-h-screen bg-background overflow-hidden">
         {/* Overlay only for mobile-md */}
         <div
           className={`fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"

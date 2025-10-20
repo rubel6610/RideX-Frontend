@@ -1,62 +1,96 @@
-"use client"
-import React, { useEffect, useState } from "react";
+"use client";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
-import { CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { SendHorizontal } from "lucide-react";
-import { getSocket, initSocket } from '@/app/hooks/socket/socket';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { SendHorizontal, MessageCircle } from "lucide-react";
+import { initSocket } from '@/app/hooks/socket/socket';
 
 export default function UserChat() {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [socket, setSocket] = useState(null);
   const [threadId, setThreadId] = useState(null);
-  const [isSending, setIsSending] = useState(false);
+  const [status, setStatus] = useState('waiting');
+  const [adminTyping, setAdminTyping] = useState(false);
+  const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, adminTyping]);
 
   useEffect(() => {
     if (!user?.id) return;
 
-    // Initialize socket
-    const socketInstance = initSocket(user.id, false);
-    setSocket(socketInstance);
+    socketRef.current = initSocket(user.id, false);
 
-    // Join user room
-    socketInstance.emit("join", `user_${user.id}`);
-
-    // Socket event listeners
-    socketInstance.on("support_reply", (msg) => {
-      setMessages(prev => [...prev, {
-        sender: 'admin',
-        text: msg.text,
-        createdAt: msg.createdAt || new Date()
-      }]);
+    socketRef.current.on("new_message", (data) => {
+      setMessages(prev => [...prev, data.message]);
+      setStatus('answered');
     });
 
-    socketInstance.on("message_sent_ack", (data) => {
-      setThreadId(data.threadId);
-      // Remove the optimistic message and add the confirmed one
-      setMessages(prev => {
-        const filtered = prev.filter(m => !m.isOptimistic);
-        return [...filtered, {
-          sender: 'user',
-          text: data.text,
-          createdAt: data.createdAt || new Date()
-        }];
-      });
+    socketRef.current.on("thread_updated", (data) => {
+      if (data.thread) {
+        setMessages(data.thread.messages || []);
+        setStatus(data.thread.status || 'waiting');
+        setThreadId(data.thread._id);
+      }
     });
 
-    // Fetch existing thread
+    // Admin typing indicators
+    socketRef.current.on("admin_typing_start", (data) => {
+      setAdminTyping(true);
+    });
+
+    socketRef.current.on("admin_typing_stop", (data) => {
+      setAdminTyping(false);
+    });
+
     fetchThread();
 
     return () => {
-      socketInstance.off("support_reply");
-      socketInstance.off("message_sent_ack");
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
   }, [user?.id]);
+
+  // Handle typing events
+  const handleTyping = () => {
+    if (!threadId) return;
+
+    // Emit typing start
+    socketRef.current.emit("user_typing_start", {
+      threadId,
+      userId: user.id
+    });
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      socketRef.current.emit("user_typing_stop", {
+        threadId,
+        userId: user.id
+      });
+    }, 1000);
+  };
 
   const fetchThread = async () => {
     if (!user?.id) return;
@@ -69,6 +103,7 @@ export default function UserChat() {
       if (data.thread) {
         setThreadId(data.thread._id);
         setMessages(data.thread.messages || []);
+        setStatus(data.thread.status || 'waiting');
       }
     } catch (err) {
       console.error("Error fetching thread:", err);
@@ -76,21 +111,19 @@ export default function UserChat() {
   };
 
   const sendMessage = async () => {
-    if (!text.trim() || !user?.id || isSending) return;
+    if (!text.trim() || !user?.id) return;
 
-    setIsSending(true);
     const messageText = text.trim();
-
-    // Optimistically add message to UI immediately
-    const optimisticMessage = {
-      sender: 'user',
-      text: messageText,
-      createdAt: new Date(),
-      isOptimistic: true // Flag to identify optimistic messages
-    };
-
-    setMessages(prev => [...prev, optimisticMessage]);
     setText("");
+
+    // Stop typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    socketRef.current.emit("user_typing_stop", {
+      threadId,
+      userId: user.id
+    });
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/support/send`, {
@@ -110,119 +143,125 @@ export default function UserChat() {
       }
 
       const data = await res.json();
-      if (data.thread) {
-        setThreadId(data.thread._id);
-      }
-
-      // The socket event will handle the final message update
-      // If socket event doesn't fire, we can fall back to API response
-      setTimeout(() => {
-        // Check if our optimistic message is still there (socket didn't handle it)
-        setMessages(prev => {
-          const hasOptimistic = prev.some(m => m.isOptimistic);
-          if (hasOptimistic) {
-            // Replace optimistic messages with confirmed ones from API
-            const filtered = prev.filter(m => !m.isOptimistic);
-            const confirmedMessages = data.thread?.messages || [];
-            return [...filtered, ...confirmedMessages.slice(-1)]; // Add last message from API
-          }
-          return prev;
-        });
-      }, 2000); // Fallback after 2 seconds
+      setMessages(data.thread.messages || []);
+      setStatus(data.thread.status || 'waiting');
 
     } catch (err) {
       console.error("Error sending message:", err);
-      
-      // Remove the optimistic message on error
-      setMessages(prev => prev.filter(m => !m.isOptimistic));
-      
-      // Optionally show error toast to user
-      alert("Failed to send message: " + err.message);
-    } finally {
-      setIsSending(false);
+      setText(messageText);
     }
   };
 
   const formatTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } catch (error) {
+      return 'Now';
+    }
   };
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    const scrollArea = document.querySelector('[data-radix-scroll-area-viewport]');
-    if (scrollArea) {
-      scrollArea.scrollTop = scrollArea.scrollHeight;
-    }
-  }, [messages]);
-
   return (
-    <Card className="w-full max-w-md mx-auto mt-6 shadow-lg rounded-2xl border border-border">
-      <CardContent className="p-4">
-        <h3 className="text-xl font-semibold mb-3 text-center text-primary">
-          💬 Support Chat
-        </h3>
+    <Card className="w-full max-w-2xl mx-auto mt-8 border-border bg-card text-white">
+      <CardHeader className="border-b border-border bg-card">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-white">
+            <MessageCircle className="h-6 w-6" />
+            Support Chat
+          </CardTitle>
+          <Badge variant={status === 'waiting' ? 'destructive' : 'secondary'} className="text-white">
+            {status}
+          </Badge>
+        </div>
+      </CardHeader>
 
-        {/* Messages Area */}
-        <ScrollArea className="h-64 mb-3 pr-2">
-          {messages.length === 0 ? (
-            <p className="text-gray-400 text-center mt-20">No messages yet. Start a conversation!</p>
-          ) : (
-            messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`max-w-[80%] p-3 my-2 rounded-lg text-sm shadow-sm transition-all ${
-                  msg.sender === 'user'
-                    ? "bg-blue-500 text-white ml-auto text-right rounded-br-none"
-                    : "bg-gray-100 text-gray-800 mr-auto text-left rounded-bl-none"
-                } ${msg.isOptimistic ? 'opacity-70' : ''}`}
-              >
-                <div className="text-xs opacity-75 mb-1">
-                  {msg.sender === 'user' ? 'You' : 'Support'} • {formatTime(msg.createdAt)}
-                  {msg.isOptimistic && ' • Sending...'}
-                </div>
-                <div>{msg.text}</div>
+      <CardContent className="p-0">
+        <ScrollArea className="h-96 p-4 bg-background custom-scrollbar">
+          <div className="space-y-4">
+            {messages.length === 0 ? (
+              <div className="text-center mt-20 text-white/70">
+                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-white/30" />
+                <p className="text-lg font-semibold text-white">No messages yet</p>
+                <p className="text-white/70">Start a conversation with our support team</p>
               </div>
-            ))
-          )}
+            ) : (
+              messages.map((msg, index) => (
+                <div
+                  key={msg._id || index}
+                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      msg.sender === 'user'
+                        ? "bg-primary text-white"
+                        : "bg-gray-700 text-white border border-border"
+                    }`}
+                  >
+                    <div className="text-sm whitespace-pre-wrap text-white">{msg.text}</div>
+                    <div
+                      className={`text-xs mt-1 ${
+                        msg.sender === 'user' ? 'text-white/80' : 'text-white'
+                      }`}
+                    >
+                      {formatTime(msg.createdAt)}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+            
+            {/* Admin Typing Indicator */}
+            {adminTyping && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-lg px-4 py-2 bg-card text-white border border-border">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
         </ScrollArea>
 
-        {/* Input + Button */}
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            sendMessage();
-          }}
-        >
-          <Input
-            placeholder="Type your message..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
+        <div className="border-t border-border bg-card p-4">
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendMessage();
             }}
-            className="flex-1"
-            disabled={isSending}
-          />
-          <Button 
-            type="submit" 
-            className="px-3"
-            disabled={!text.trim() || isSending}
           >
-            {isSending ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
+            <Input
+              placeholder="Type your message here..."
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                handleTyping();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              className="flex-1 bg-background border-border text-foreground placeholder-white/50"
+            />
+            <Button 
+              type="submit" 
+              disabled={!text.trim()}
+              variant="primary"
+            >
               <SendHorizontal size={18} />
-            )}
-          </Button>
-        </form>
+            </Button>
+          </form>
+        </div>
       </CardContent>
     </Card>
   );
