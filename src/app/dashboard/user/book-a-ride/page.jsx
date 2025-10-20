@@ -43,9 +43,10 @@ const BookARide = () => {
             async (pos) => {
               const { latitude, longitude } = pos.coords;
               const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+                `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${latitude}&lon=${longitude}`
               );
               const data = await res.json();
+              
               const loc = {
                 coordinates: `${latitude},${longitude}`,
                 name: data?.display_name,

@@ -43,7 +43,7 @@ const Navbar = () => {
 
   const topbarRef = useRef(null);
 
-  const { data } = useFetchData(
+  const { data,isLoading } = useFetchData(
     "users",
     "/user",
     { email: user?.email },

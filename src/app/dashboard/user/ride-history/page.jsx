@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useFetchData } from "@/app/hooks/useApi";
+import { apiRequest } from "@/utils/apiRequest";
 import {
   Table,
   TableBody,
@@ -19,14 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
+
+import axios from "axios";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -34,6 +30,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { TableSkeleton } from "@/components/Shared/Skeleton/CardSkeleton";
 
 // Type icon mapping
 const typeIcon = {
@@ -63,50 +60,10 @@ const statusBadge = (status) => {
   );
 };
 
-// Skeleton loader
-function TableSkeletonWrapper() {
-  return (
-    <div className="w-full max-w-6xl bg-background rounded-lg border border-accent shadow-sm mt-4 overflow-x-auto">
-      <Table className="min-w-[700px] md:min-w-full">
-        <TableHeader className="bg-accent/30">
-          <TableRow>
-            {[
-              "#",
-              "Date",
-              "From",
-              "To",
-              "Type",
-              "Fare",
-              "Driver",
-              "Rating",
-              "Status",
-            ].map((head, i) => (
-              <TableHead key={i} className="text-xs md:text-sm">
-                {head}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {[...Array(5)].map((_, i) => (
-            <TableRow key={i}>
-              {[...Array(9)].map((_, j) => (
-                <TableCell key={j}>
-                  <Skeleton className="h-4 w-20 rounded" />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
-// Function to convert coordinates to real location
+// Function to convert coordinates to real location (via backend proxy)
 const fetchLocationName = async (coordinates) => {
   if (!coordinates) return "Unknown location";
-  const [lon, lat] = coordinates; // swap lon & lat for Nominatim
+  const [lon, lat] = coordinates;
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
@@ -131,35 +88,56 @@ export default function RideHistoryPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedDate, setSelectedDate] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Loading state for fetching
+  const [processing, setProcessing] = useState(true); // Processing state for location resolution
+  
+  // Fetch rides via hook
+  const { data: ridesData = [], isLoading } = useFetchData("rides", "/rides", null);
 
-  // Fetch rides from API
+  // Enrich rides with human-readable locations
   useEffect(() => {
-    const fetchRides = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rides`);
-        const data = await res.json();
+    // Only update when the set of ride IDs changes to avoid infinite update loops
+    const lastSignatureRef = (useRef.__ridesSig ||= { ref: { current: "" } }).ref;
+    const ids = Array.isArray(ridesData) ? ridesData.map((r) => r?._id).filter(Boolean) : [];
+    const signature = ids.join(",");
 
-        // Fetch real locations for pickup and drop
+    if (!ids.length) {
+      if (lastSignatureRef.current !== "__empty__") {
+        lastSignatureRef.current = "__empty__";
+        setRides([]);
+        setLoading(false); // No rides found, stop loading
+        setProcessing(false); // Data processing is done
+      }
+      return;
+    }
+
+    if (lastSignatureRef.current === signature) {
+      return; // no change in data identity relevant to rendering
+    }
+
+    lastSignatureRef.current = signature;
+
+    const enrich = async () => {
+      try {
         const ridesWithLocations = await Promise.all(
-          data.map(async (ride) => {
-            const pickupName = await fetchLocationName(
-              ride.pickup?.coordinates
-            );
+          ridesData.map(async (ride) => {
+            const pickupName = await fetchLocationName(ride.pickup?.coordinates);
             const dropName = await fetchLocationName(ride.drop?.coordinates);
             return { ...ride, pickupName, dropName };
           })
         );
-
         setRides(ridesWithLocations);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching rides:", error);
-        setIsLoading(false);
+        setLoading(false); // Data loaded, stop loading
+        setProcessing(false); // Data processing is done
+      } catch (e) {
+        console.error("Failed to enrich rides:", e);
+        setRides(ridesData);
+        setLoading(false); // Data loaded, stop loading
+        setProcessing(false); // Data processing is done
       }
     };
-    fetchRides();
-  }, []);
+    enrich();
+  }, [ridesData]);
 
   // Filtering logic
   const filtered = rides.filter((ride) => {
@@ -180,6 +158,9 @@ export default function RideHistoryPage() {
 
     return matchesSearch && matchesStatus && matchesDate;
   });
+
+  // Check if data has been fully processed and fetched
+  const isDataReady = !loading || !processing;
 
   return (
     <TooltipProvider>
@@ -206,12 +187,12 @@ export default function RideHistoryPage() {
                 Search
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
-                  placeholder="Search by, location, driver, type, fare..."
+                  className="pr-12"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
+                  placeholder="Search rides"
                 />
               </div>
             </div>
@@ -264,24 +245,18 @@ export default function RideHistoryPage() {
               <label className="text-sm font-medium text-foreground mb-2 block text-left">
                 Status
               </label>
-              <Select
-                className="border border-primary w-full"
-                value={statusFilter}
-                onValueChange={setStatusFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Status" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
-                <SelectContent className="border border-primary">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
                   <SelectItem value="Cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-        </div>
 
         {/* Ride Table */}
         <div className="w-full max-w-6xl bg-background rounded-lg border border-accent shadow-sm mt-4 overflow-x-auto">
