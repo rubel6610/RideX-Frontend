@@ -102,107 +102,144 @@ const Routing = ({ pickupCoords, dropCoords }) => {
         return;
       }
 
-      const control = L.Routing.control({
-        waypoints: [
-          L.latLng(pickupCoords[0], pickupCoords[1]),
-          L.latLng(dropCoords[0], dropCoords[1]),
-        ],
-        lineOptions: {
-          styles: [
-            { 
-              color: "#3b82f6", 
-              weight: 6, 
-              opacity: 0.8,
-              lineCap: "round",
-              lineJoin: "round"
-            }
+      let control;
+      
+      try {
+        control = L.Routing.control({
+          waypoints: [
+            L.latLng(pickupCoords[0], pickupCoords[1]),
+            L.latLng(dropCoords[0], dropCoords[1]),
           ],
-        },
-        addWaypoints: false,
-        routeWhileDragging: false,
-        draggableWaypoints: false,
-        fitSelectedRoutes: false,
-        show: true, // Show the route line
-        createMarker: () => null, // Hide default markers
-        router: L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1',
-          timeout: 30000,
-          profile: 'driving'
-        })
-      });
+          lineOptions: {
+            styles: [
+              { 
+                color: "#3b82f6", 
+                weight: 6, 
+                opacity: 0.8,
+                lineCap: "round",
+                lineJoin: "round"
+              }
+            ],
+          },
+          addWaypoints: false,
+          routeWhileDragging: false,
+          draggableWaypoints: false,
+          fitSelectedRoutes: false,
+          show: false, // Don't show the instruction panel
+          createMarker: () => null, // Hide default markers
+          plan: L.Routing.plan([], {
+            createMarker: () => null,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            routeWhileDragging: false
+          }),
+          router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            timeout: 30000,
+            profile: 'driving'
+          })
+        });
 
-      // Add the control to map
-      control.addTo(map);
-
-      // Hide the instruction panel completely using MutationObserver
-      const hideInstructionPanel = () => {
-        const instructionPanel = document.querySelector('.leaflet-routing-container');
-        const altPanel = document.querySelector('.leaflet-routing-alt');
-        
-        let hidden = false;
-        
-        if (instructionPanel) {
-          instructionPanel.style.display = 'none';
-          instructionPanel.style.visibility = 'hidden';
-          instructionPanel.style.opacity = '0';
-          instructionPanel.style.pointerEvents = 'none';
-          instructionPanel.style.zIndex = '-1';
-          instructionPanel.style.position = 'absolute';
-          instructionPanel.style.left = '-9999px';
-          instructionPanel.style.top = '-9999px';
-          hidden = true;
-        }
-        
-        if (altPanel) {
-          altPanel.style.display = 'none';
-          altPanel.style.visibility = 'hidden';
-          altPanel.style.opacity = '0';
-          altPanel.style.pointerEvents = 'none';
-          altPanel.style.zIndex = '-1';
-          altPanel.style.position = 'absolute';
-          altPanel.style.left = '-9999px';
-          altPanel.style.top = '-9999px';
-          hidden = true;
-        }
-        
-        return hidden;
-      };
-
-      // Try to hide immediately
-      if (!hideInstructionPanel()) {
-        // Use MutationObserver to catch it when it's created
-        const observer = new MutationObserver(() => {
-          if (hideInstructionPanel()) {
-            observer.disconnect();
+        // Add the control to map
+        control.addTo(map);
+      } catch (routingError) {
+        console.warn('Routing control creation failed:', routingError);
+        // Fallback to simple polyline
+        const fallbackPolyline = L.polyline(
+          [pickupCoords, dropCoords],
+          {
+            color: "#3b82f6",
+            weight: 6,
+            opacity: 0.8,
+            lineCap: "round",
+            lineJoin: "round"
           }
-        });
+        ).addTo(map);
         
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
-
-        // Also try with setTimeout as fallback
-        setTimeout(() => {
-          hideInstructionPanel();
-          observer.disconnect();
-        }, 500);
+        setFallbackPolyline(fallbackPolyline);
+        return () => {
+          try {
+            if (fallbackPolyline && map.hasLayer(fallbackPolyline)) {
+              map.removeLayer(fallbackPolyline);
+            }
+          } catch (cleanupError) {
+            console.warn('Error cleaning up fallback polyline:', cleanupError);
+          }
+        };
       }
 
-      setRoutingControl(control);
-
-      return () => {
-        try {
-          if (control && map) {
-            // Check if control still exists and is attached to map
-            if (map.hasLayer && map.hasLayer(control)) {
-            map.removeControl(control);
-            }
+      // Only proceed if control was created successfully
+      if (control) {
+        // Hide the instruction panel completely using MutationObserver
+        const hideInstructionPanel = () => {
+          const instructionPanel = document.querySelector('.leaflet-routing-container');
+          const altPanel = document.querySelector('.leaflet-routing-alt');
+          
+          let hidden = false;
+          
+          if (instructionPanel) {
+            instructionPanel.style.display = 'none';
+            instructionPanel.style.visibility = 'hidden';
+            instructionPanel.style.opacity = '0';
+            instructionPanel.style.pointerEvents = 'none';
+            instructionPanel.style.zIndex = '-1';
+            instructionPanel.style.position = 'absolute';
+            instructionPanel.style.left = '-9999px';
+            instructionPanel.style.top = '-9999px';
+            hidden = true;
           }
-        } catch (cleanupError) {
-          console.warn('Error cleaning up routing control:', cleanupError);
+          
+          if (altPanel) {
+            altPanel.style.display = 'none';
+            altPanel.style.visibility = 'hidden';
+            altPanel.style.opacity = '0';
+            altPanel.style.pointerEvents = 'none';
+            altPanel.style.zIndex = '-1';
+            altPanel.style.position = 'absolute';
+            altPanel.style.left = '-9999px';
+            altPanel.style.top = '-9999px';
+            hidden = true;
+          }
+          
+          return hidden;
+        };
+
+        // Try to hide immediately
+        if (!hideInstructionPanel()) {
+          // Use MutationObserver to catch it when it's created
+          const observer = new MutationObserver(() => {
+            if (hideInstructionPanel()) {
+              observer.disconnect();
+            }
+          });
+          
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+
+          // Also try with setTimeout as fallback
+          setTimeout(() => {
+            hideInstructionPanel();
+            observer.disconnect();
+          }, 500);
         }
-      };
+
+        setRoutingControl(control);
+
+        return () => {
+          try {
+            if (control && map) {
+              // Check if control still exists and is attached to map
+              if (map.hasLayer && map.hasLayer(control)) {
+                map.removeControl(control);
+              }
+            }
+          } catch (cleanupError) {
+            console.warn('Error cleaning up routing control:', cleanupError);
+          }
+        };
+      }
     } catch (error) {
       console.warn('Routing machine error:', error);
       // Fallback to simple polyline if routing fails
