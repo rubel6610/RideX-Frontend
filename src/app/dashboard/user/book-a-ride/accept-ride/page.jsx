@@ -289,7 +289,7 @@ export default function AcceptRide() {
 
                {/* Buttons */}
                <div className="space-y-3">
-                 <Button 
+                 <Button
                    onClick={() => setIsChatOpen(true)}
                    variant="default"
                    className="w-full h-12 text-base font-semibold"

@@ -26,12 +26,12 @@ export default function DashboardLayout({ children }) {
   const { user } = useAuth();
 
    const {data}=useFetchData("users","/user", {email:user?.email})
-  const userRole = user?.role;   
- 
+  const userRole = user?.role;
+
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
         {/* Overlay only for mobile-md */}
         <div
           className={`fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }) {
 
         {/* Sidebar */}
         <aside
-          className={`fixed top-0 left-0 z-50 h-full flex flex-col justify-between transition-all duration-300 bg-accent border-r border-border py-4 px-4 text-foreground ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} lg:static ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
+          className={`fixed top-0 left-0 z-50 h-screen flex flex-col justify-between transition-all duration-300 bg-accent border-r border-border py-4 px-4 text-foreground ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} lg:static ${sidebarCollapsed ? "lg:hidden" : "lg:flex lg:translate-x-0 lg:w-64"}
 `}>
           <div>
             {/* Logo + Close btn */}
@@ -155,7 +155,7 @@ export default function DashboardLayout({ children }) {
 
              {data &&  <Link href="/dashboard/my-profile">
                   <Image src={data.photoUrl} height="120" width="120" alt="userPhoto" className="w-4 h-4 md:w-10 md:h-10 rounded-full object-cover hover:scale-110" />
-               
+
               </Link> }
             </div>
           </header>
