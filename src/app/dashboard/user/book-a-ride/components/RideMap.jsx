@@ -64,18 +64,38 @@ const ChangeView = ({ center, zoom }) => {
 // Road-following route component
 const Routing = ({ pickupCoords, dropCoords }) => {
   const map = useMap();
+  const [routingControl, setRoutingControl] = useState(null);
+  const [fallbackPolyline, setFallbackPolyline] = useState(null);
 
   useEffect(() => {
     if (!map || !pickupCoords || !dropCoords) return;
 
+    // Clean up existing controls and polylines
+    const cleanup = () => {
     try {
       // Remove existing routing controls
       map.eachLayer((layer) => {
         if (layer instanceof L.Routing.Control) {
+            try {
           map.removeControl(layer);
-        }
-      });
+            } catch (e) {
+              console.warn('Error removing routing control:', e);
+            }
+          }
+        });
 
+        // Remove existing polylines
+        if (fallbackPolyline && map.hasLayer(fallbackPolyline)) {
+          map.removeLayer(fallbackPolyline);
+        }
+      } catch (error) {
+        console.warn('Error during cleanup:', error);
+      }
+    };
+
+    cleanup();
+
+    try {
       // Check if L.Routing is available
       if (typeof L.Routing === 'undefined') {
         console.warn('Leaflet Routing Machine not loaded');
@@ -102,19 +122,82 @@ const Routing = ({ pickupCoords, dropCoords }) => {
         routeWhileDragging: false,
         draggableWaypoints: false,
         fitSelectedRoutes: false,
-        show: false,
+        show: true, // Show the route line
         createMarker: () => null, // Hide default markers
         router: L.Routing.osrmv1({
           serviceUrl: 'https://router.project-osrm.org/route/v1',
           timeout: 30000,
           profile: 'driving'
         })
-      }).addTo(map);
+      });
+
+      // Add the control to map
+      control.addTo(map);
+
+      // Hide the instruction panel completely using MutationObserver
+      const hideInstructionPanel = () => {
+        const instructionPanel = document.querySelector('.leaflet-routing-container');
+        const altPanel = document.querySelector('.leaflet-routing-alt');
+        
+        let hidden = false;
+        
+        if (instructionPanel) {
+          instructionPanel.style.display = 'none';
+          instructionPanel.style.visibility = 'hidden';
+          instructionPanel.style.opacity = '0';
+          instructionPanel.style.pointerEvents = 'none';
+          instructionPanel.style.zIndex = '-1';
+          instructionPanel.style.position = 'absolute';
+          instructionPanel.style.left = '-9999px';
+          instructionPanel.style.top = '-9999px';
+          hidden = true;
+        }
+        
+        if (altPanel) {
+          altPanel.style.display = 'none';
+          altPanel.style.visibility = 'hidden';
+          altPanel.style.opacity = '0';
+          altPanel.style.pointerEvents = 'none';
+          altPanel.style.zIndex = '-1';
+          altPanel.style.position = 'absolute';
+          altPanel.style.left = '-9999px';
+          altPanel.style.top = '-9999px';
+          hidden = true;
+        }
+        
+        return hidden;
+      };
+
+      // Try to hide immediately
+      if (!hideInstructionPanel()) {
+        // Use MutationObserver to catch it when it's created
+        const observer = new MutationObserver(() => {
+          if (hideInstructionPanel()) {
+            observer.disconnect();
+          }
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+
+        // Also try with setTimeout as fallback
+        setTimeout(() => {
+          hideInstructionPanel();
+          observer.disconnect();
+        }, 500);
+      }
+
+      setRoutingControl(control);
 
       return () => {
         try {
-          if (control) {
+          if (control && map) {
+            // Check if control still exists and is attached to map
+            if (map.hasLayer && map.hasLayer(control)) {
             map.removeControl(control);
+            }
           }
         } catch (cleanupError) {
           console.warn('Error cleaning up routing control:', cleanupError);
@@ -124,7 +207,7 @@ const Routing = ({ pickupCoords, dropCoords }) => {
       console.warn('Routing machine error:', error);
       // Fallback to simple polyline if routing fails
       try {
-        const fallbackPolyline = L.polyline(
+        const polyline = L.polyline(
           [pickupCoords, dropCoords],
           {
             color: "#3b82f6",
@@ -135,9 +218,15 @@ const Routing = ({ pickupCoords, dropCoords }) => {
           }
         ).addTo(map);
 
+        setFallbackPolyline(polyline);
+
         return () => {
-          if (fallbackPolyline) {
-            map.removeLayer(fallbackPolyline);
+          try {
+            if (polyline && map && map.hasLayer && map.hasLayer(polyline)) {
+              map.removeLayer(polyline);
+            }
+          } catch (fallbackError) {
+            console.warn('Error cleaning up fallback polyline:', fallbackError);
           }
         };
       } catch (fallbackError) {
@@ -145,6 +234,26 @@ const Routing = ({ pickupCoords, dropCoords }) => {
       }
     }
   }, [map, pickupCoords, dropCoords]);
+
+  // Additional cleanup on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        if (routingControl && map) {
+          if (map.hasLayer && map.hasLayer(routingControl)) {
+            map.removeControl(routingControl);
+          }
+        }
+        if (fallbackPolyline && map) {
+          if (map.hasLayer && map.hasLayer(fallbackPolyline)) {
+            map.removeLayer(fallbackPolyline);
+          }
+        }
+      } catch (error) {
+        console.warn('Error in final cleanup:', error);
+      }
+    };
+  }, [routingControl, fallbackPolyline, map]);
 
   return null;
 };
@@ -166,6 +275,20 @@ const RideMap = ({
 
   useEffect(() => {
     setIsClient(true);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Additional cleanup to prevent memory leaks
+      try {
+        if (typeof window !== 'undefined' && window.L && window.L.Routing) {
+          // Clear any global routing state if needed
+        }
+      } catch (error) {
+        console.warn('Error in component cleanup:', error);
+      }
+    };
   }, []);
 
   const parseCoordinates = (location) => {
@@ -272,8 +395,47 @@ const RideMap = ({
     );
   }
 
+  try {
   return (
     <div className="w-full h-full relative">
+      {/* Add CSS to hide instruction panel but keep route line */}
+      <style jsx>{`
+        .leaflet-routing-container {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          z-index: -1 !important;
+        }
+        .leaflet-routing-alt {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          z-index: -1 !important;
+        }
+        .leaflet-control-container .leaflet-routing-container {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          z-index: -1 !important;
+        }
+        /* Keep route line visible */
+        .leaflet-routing-line {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 1000 !important;
+        }
+        .leaflet-popup-content-wrapper {
+          z-index: 1000 !important;
+        }
+        .leaflet-popup-tip {
+          z-index: 1000 !important;
+        }
+      `}</style>
+      
       <MapContainer
         center={center}
         zoom={zoom}
@@ -373,6 +535,18 @@ const RideMap = ({
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('Error rendering map:', error);
+    return (
+      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+        <div className="text-center">
+          <MapPin className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-sm text-red-500">Map Error</p>
+          <p className="text-xs text-gray-500 mt-1">Please refresh the page</p>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default RideMap;
