@@ -95,10 +95,8 @@ function RegisterPage() {
     } else {
       alert(userdata.message);
     }
-  } catch (error) {
-    console.error("Error submitting form:", error);
-  }
-};
+  } 
+
 
 
   const handleImageChange = (e) => {
