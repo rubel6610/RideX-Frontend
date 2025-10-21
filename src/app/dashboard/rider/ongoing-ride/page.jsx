@@ -4,9 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/app/hooks/AuthProvider";
 
 export default function OngoingRidePage() {
-
-    // Passenger Modal state
-    const [showPassenger, setShowPassenger] = useState(false);
+    
     const { user } = useAuth();
     const [rideData, setRideData] = useState(null);
     const [users, setusers] = useState(null);
@@ -14,8 +12,10 @@ export default function OngoingRidePage() {
     const [error, setError] = useState(null);
     const riderId = user?.id;
 
+
     useEffect(() => {
         if (!riderId) return;
+
         const fetchRide = async () => {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${riderId}`);
@@ -35,21 +35,26 @@ export default function OngoingRidePage() {
     const matchedRide = rideData?.find(ride => ride.riderId === currentRider) || [];
     console.log(matchedRide?.userId);
 
-    // Current passenger info 
-    // useEffect(() => {
-    //     const fetchPassenger = async () => {
-    //         try {
-    //             const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide?.userId}`);
-    //             const data = await res.json();
-    //             setusers(data)
-    //         }
-    //         catch (err) {
-    //             setError(err.message);
-    //         };
-    //     }
-    //     fetchPassenger()
-    // }, []);
-    // console.log(users);
+
+    // passengger data fetch 
+    useEffect(() => {
+        if (!matchedRide?.userId) return;
+
+        const fetchPassenger = async () => {
+            try {
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide.userId}`
+                );
+                const data = await res.json();
+                setusers(data);
+            } catch (err) {
+                setError(err.message);
+            }
+        };
+
+        fetchPassenger();
+    }, [matchedRide?.userId]);
+    console.log(users);
 
     const {
         fare,
@@ -62,7 +67,7 @@ export default function OngoingRidePage() {
     } = matchedRide;
 
     if (error) return <p>Error: {error}</p>;
-    // if (!rideData) return <p className="max-w-full text-center">Loading . . .</p>;
+
     if (!matchedRide || !rideData) {
         return (
             <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
@@ -99,29 +104,37 @@ export default function OngoingRidePage() {
                 {/* Grid Layout for Left & Right Part */}
                 <div className="grid grid-cols-1 md:grid-cols-2 rounded-2xl">
                     {/* LEFT SIDE - Rider Info */}
-                    <div className="p-6 shadow-md bg-chart-2 flex flex-col">
+                    <div className="p-6 shadow-md bg-chart-2/80 flex flex-col">
                         <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
                             Passenger Information
                         </h3>
                         <ul className="space-y-2">
                             <li>
-                                <strong>Name:</strong> {riderInfo.fullName}
+                                <strong>Name:</strong> {users?.fullName}
                             </li>
                             <li>
-                                <strong>Email:</strong> {riderInfo.email}
+                                <strong>Email:</strong> {users?.email}
                             </li>
                             <li>
-                                <strong>Vehicle:</strong> {riderInfo.vehicleModel} (
-                                {riderInfo.vehicleType})
+                                <strong>gender:</strong> {users?.gender}
                             </li>
                             <li>
-                                <strong>Register No:</strong> {riderInfo.vehicleRegisterNumber}
+                                <strong>NID No:</strong> {users?.NIDno}
                             </li>
                             <li>
-                                <strong>Completed Rides:</strong> {riderInfo.completedRides}
+                                <strong>Phone Number:</strong> {users?.phoneNumber}
                             </li>
                             <li>
-                                <strong>Ratings:</strong> {riderInfo.ratings} ⭐
+                                <strong>User Id:</strong> {users?._id}
+                            </li>
+                            <li>
+                                <strong>Completed Rides:</strong> {users?.completedRides}
+                            </li>
+                            <li>
+                                <strong>Verifieds:</strong> {users?.isVerified}
+                            </li>
+                            <li>
+                                <strong>Ratings:</strong> {users?.ratings}
                             </li>
                         </ul>
                     </div>
