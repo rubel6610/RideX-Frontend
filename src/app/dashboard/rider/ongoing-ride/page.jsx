@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/app/hooks/AuthProvider";
 
 export default function OngoingRidePage() {
-    
+
     const { user } = useAuth();
     const [rideData, setRideData] = useState(null);
     const [users, setusers] = useState(null);
@@ -54,7 +54,6 @@ export default function OngoingRidePage() {
 
         fetchPassenger();
     }, [matchedRide?.userId]);
-    console.log(users);
 
     const {
         fare,
@@ -62,9 +61,12 @@ export default function OngoingRidePage() {
         status,
         pickup,
         drop,
+        acceptedAt,
         createdAt,
+        assignedAt,
         riderInfo
     } = matchedRide;
+    console.log(matchedRide);
 
     if (error) return <p>Error: {error}</p>;
 
@@ -97,7 +99,7 @@ export default function OngoingRidePage() {
     return (
         <div className="flex justify-center p-4">
             <div className="w-full max-w-5xl rounded-2xl p-6 md:p-10">
-                <h2 className="text-3xl font-bold text-foreground text-center mb-6">
+                <h2 className="text-3xl font-bold text-foreground  mb-6">
                     Ride Details
                 </h2>
 
@@ -105,10 +107,24 @@ export default function OngoingRidePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 rounded-2xl">
                     {/* LEFT SIDE - Rider Info */}
                     <div className="p-6 shadow-md bg-chart-2/80 flex flex-col">
-                        <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
+
+                        {/* Passenger Info */}
+                        <h3 className="text-lg md:text-xl font-semibold mb-4 border-b pb-2 w-full text-center">
                             Passenger Information
                         </h3>
-                        <ul className="space-y-2">
+
+                        {/* Profile Image */}
+                        <div className="flex text-start">
+                            <div className="w-16 h-16 rounded-full overflow-hidden shadow-lg mb-4">
+                                <img
+                                    src={users?.photoUrl || "/default-avatar.png"}
+                                    alt={users?.fullName || "User"}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        </div>
+
+                        <ul className="space-y-2 text-sm md:text-base w-full text-left">
                             <li>
                                 <strong>Name:</strong> {users?.fullName}
                             </li>
@@ -116,7 +132,13 @@ export default function OngoingRidePage() {
                                 <strong>Email:</strong> {users?.email}
                             </li>
                             <li>
-                                <strong>gender:</strong> {users?.gender}
+                                <strong>Gender:</strong> {users?.gender}
+                            </li>
+                            <li>
+                                <strong>Completed Rides:</strong> {users?.completedRides}
+                            </li>
+                            <li>
+                                <strong>Verifieds:</strong> {users?.isVerified}
                             </li>
                             <li>
                                 <strong>NID No:</strong> {users?.NIDno}
@@ -127,20 +149,11 @@ export default function OngoingRidePage() {
                             <li>
                                 <strong>User Id:</strong> {users?._id}
                             </li>
-                            <li>
-                                <strong>Completed Rides:</strong> {users?.completedRides}
-                            </li>
-                            <li>
-                                <strong>Verifieds:</strong> {users?.isVerified}
-                            </li>
-                            <li>
-                                <strong>Ratings:</strong> {users?.ratings}
-                            </li>
                         </ul>
                     </div>
 
                     {/* RIGHT SIDE - Ride Info */}
-                    <div className="p-6 shadow-md bg-accent/30 flex flex-col">
+                    <div className="p-6 shadow-md bg-accent/30 flex flex-col border border-border">
                         <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
                             Ride Information
                         </h3>
@@ -160,11 +173,12 @@ export default function OngoingRidePage() {
                                 </span>
                             </li>
                             <li>
-                                <strong>Pickup Coordinates:</strong>{" "}
-                                {pickup.coordinates.join(", ")}
+                                <strong>Accept At:</strong>{" "}
+                                {new Date(acceptedAt).toLocaleString()}
                             </li>
                             <li>
-                                <strong>Drop Coordinates:</strong> {drop.coordinates.join(", ")}
+                                <strong>Assigned At:</strong>{" "}
+                                {new Date(assignedAt).toLocaleString()}
                             </li>
                             <li>
                                 <strong>Created At:</strong>{" "}
