@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useAuth } from "@/app/hooks/AuthProvider";
+import { da } from "date-fns/locale";
+import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function PerformanceStats() {
+  const { user } = useAuth();
+  console.log(user?.id);
+  const [allRiders, setAllRiders] = useState();
+  const [error, setError] = useState(null);
   const [performance] = useState({
     rating: 4.5,
     cancelledRate: 8,
@@ -26,6 +32,22 @@ export default function PerformanceStats() {
     { icon: "❌", title: "Cancellation Rate", value: `${performance.cancelledRate}%` },
     { icon: "✅", title: "Acceptance Rate", value: `${performance.acceptanceRate}%` },
   ];
+
+
+  useEffect(() => {
+    const fetchRide = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
+        const data = await res.json();
+        // console.log(data);
+        setAllRiders(data)
+      }
+      catch (err) {
+        setError(err.message);
+      };
+    }
+    fetchRide();
+  }, []);
 
   return (
     <div className="p-4 space-y-6 max-w-5xl mx-auto">

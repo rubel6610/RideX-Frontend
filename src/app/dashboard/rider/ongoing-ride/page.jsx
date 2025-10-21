@@ -11,7 +11,7 @@ export default function OngoingRidePage() {
     const [currentRider, setCurrentRider] = useState(null);
     const [error, setError] = useState(null);
     const riderId = user?.id;
-
+    console.log(rideData);
 
     useEffect(() => {
         if (!riderId) return;
@@ -66,7 +66,6 @@ export default function OngoingRidePage() {
         assignedAt,
         riderInfo
     } = matchedRide;
-    console.log(matchedRide);
 
     if (error) return <p>Error: {error}</p>;
 
