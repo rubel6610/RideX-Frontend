@@ -5,7 +5,6 @@ import { useAuth } from "@/app/hooks/AuthProvider";
 
 export default function OngoingRidePage() {
 
-
     // Passenger Modal state
     const [showPassenger, setShowPassenger] = useState(false);
     const { user } = useAuth();
@@ -17,7 +16,6 @@ export default function OngoingRidePage() {
 
     useEffect(() => {
         if (!riderId) return;
-
         const fetchRide = async () => {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${riderId}`);
@@ -37,8 +35,7 @@ export default function OngoingRidePage() {
     const matchedRide = rideData?.find(ride => ride.riderId === currentRider) || [];
     console.log(matchedRide?.userId);
 
-
-    // when passender info come from server side then this useeffect open 
+    // Current passenger info 
     // useEffect(() => {
     //     const fetchPassenger = async () => {
     //         try {
@@ -52,6 +49,7 @@ export default function OngoingRidePage() {
     //     }
     //     fetchPassenger()
     // }, []);
+    // console.log(users);
 
     const {
         fare,
@@ -64,8 +62,33 @@ export default function OngoingRidePage() {
     } = matchedRide;
 
     if (error) return <p>Error: {error}</p>;
-    if (!rideData) return <p>No ride found</p>;
-    if (!matchedRide) return <p>No ride found</p>;
+    // if (!rideData) return <p className="max-w-full text-center">Loading . . .</p>;
+    if (!matchedRide || !rideData) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-24 h-24 mb-6 text-muted-foreground"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 17v-6h6v6m2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h5l2 2h5a2 2 0 012 2v10a2 2 0 01-2 2z"
+                    />
+                </svg>
+
+                <h2 className="text-2xl font-bold mb-2">No ongoing rides</h2>
+                <p className="text-center max-w-sm">
+                    You currently have no ongoing rides. Start a ride to see it listed here.
+                </p>
+            </div>
+        );
+    }
+
 
     return (
         <div className="flex justify-center p-4">
