@@ -131,7 +131,7 @@ const OffersPage = () => {
                 } text-white`}
                 onClick={() => handleCopyCode(offer.code)}
               >
-                {copiedCode === offer.code ? "Code Copied!" : "Copy Code"}
+                {copiedCode === offer.code ? "Code Copied" : "Copy Code"}
               </Button>
             </CardContent>
           </Card>
