@@ -89,18 +89,17 @@ export default function OngoingRidePage() {
         );
     }
 
-
     return (
         <div className="flex justify-center p-4">
             <div className="w-full max-w-5xl rounded-2xl p-6 md:p-10">
-                <h2 className="text-3xl font-bold text-foreground text-center mb-10">
+                <h2 className="text-3xl font-bold text-foreground text-center mb-6">
                     Ride Details
                 </h2>
 
                 {/* Grid Layout for Left & Right Part */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 rounded-2xl">
                     {/* LEFT SIDE - Rider Info */}
-                    <div className="p-6 shadow-md bg-accent/50 hover:bg-accent/80 rounded-2xl flex flex-col transition-all hover:border-primary border border-border">
+                    <div className="p-6 shadow-md bg-chart-2 flex flex-col">
                         <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
                             Passenger Information
                         </h3>
@@ -128,7 +127,7 @@ export default function OngoingRidePage() {
                     </div>
 
                     {/* RIGHT SIDE - Ride Info */}
-                    <div className="p-6 shadow-md bg-accent/50 hover:bg-accent/80 rounded-2xl flex flex-col transition-all hover:border-primary border border-border">
+                    <div className="p-6 shadow-md bg-accent/30 flex flex-col">
                         <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
                             Ride Information
                         </h3>
