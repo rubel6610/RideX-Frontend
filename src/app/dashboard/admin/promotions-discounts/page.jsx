@@ -371,7 +371,10 @@ const PromotionsDiscounts = () => {
               <Input
                 value={formData.code}
                 onChange={(e) =>
-                  setFormData({ ...formData, code: e.target.value.toUpperCase() })
+                  setFormData({
+                    ...formData,
+                    code: e.target.value.toUpperCase(),
+                  })
                 }
                 required
               />

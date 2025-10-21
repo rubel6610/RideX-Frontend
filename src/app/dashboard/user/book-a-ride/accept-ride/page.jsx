@@ -1,6 +1,30 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+// Simple Error Boundary component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
 import {
   Bike,
   BusFront,
@@ -46,11 +70,23 @@ const rideTypeIcon = {
   Car: Car,
 };
 
-export default function AcceptRide() {
+function AcceptRideContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Early return if searchParams is not available
+  if (!searchParams) {
+    return (
+      <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading ride details...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Extract ride details from URL query parameters
   const pickup = searchParams.get("pickup") || "";
@@ -96,36 +132,41 @@ export default function AcceptRide() {
 
   // ✅ Updated Complete Ride Handler
   const handleCompleteRide = () => {
+    try {
+      const params = new URLSearchParams();
+      
+      // Add parameters one by one to avoid duplicate key issues
+      if (rideId) params.append('rideId', rideId);
+      if (userId) params.append('userId', userId);
+      if (riderId) params.append('riderId', riderId);
+      if (ratings) params.append('ratings', ratings);
+      if (riderName) params.append('riderName', riderName);
+      if (riderEmail) params.append('riderEmail', riderEmail);
+      if (pickup) params.append('pickup', pickup);
+      if (drop) params.append('drop', drop);
+      if (type) params.append('vehicleType', type);
+      if (vehicleModel) params.append('vehicleModel', vehicleModel);
+      if (vehicleRegisterNumber) params.append('vehicleRegisterNumber', vehicleRegisterNumber);
+      if (distance) params.append('distance', distance);
+      if (baseFare) params.append('baseFare', baseFare);
+      if (distanceFare) params.append('distanceFare', distanceFare);
+      if (timeFare) params.append('timeFare', timeFare);
+      if (tax) params.append('tax', tax);
+      if (total) params.append('total', total);
+      if (promo) params.append('promo', promo);
+      if (fare) params.append('fare', fare);
+      if (eta) params.append('arrivalTime', eta);
+      if (completedRides) params.append('completedRides', completedRides);
+      if (mode) params.append('mode', mode);
 
-    const params = new URLSearchParams({
-      rideId,
-      userId,
-      riderId,
-      ratings,
-      riderName,
-      riderEmail,
-      pickup,
-      drop,
-      vehicleType,
-      vehicleModel,
-      vehicleRegisterNumber,
-      distance,
-      baseFare,
-      distanceFare,
-      timeFare,
-      tax,
-      total,
-      promo,
-      fare,
-      arrivalTime: eta,
-      vehicleType: type,
-      completedRides,
-      mode,
-    });
-
-    router.push(
-      `http://localhost:3000/dashboard/user/payment?${params.toString()}`
-    );
+      router.push(
+        `http://localhost:3000/dashboard/user/payment?${params.toString()}`
+      );
+    } catch (error) {
+      console.error('Error creating URL parameters:', error);
+      // Fallback navigation without parameters
+      router.push('/dashboard/user/payment');
+    }
   };
 
   // ✅ Updated Cancel Ride Handler
@@ -289,7 +330,7 @@ export default function AcceptRide() {
 
                {/* Buttons */}
                <div className="space-y-3">
-                 <Button 
+                 <Button
                    onClick={() => setIsChatOpen(true)}
                    variant="default"
                    className="w-full h-12 text-base font-semibold"
@@ -396,5 +437,28 @@ export default function AcceptRide() {
         riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
       />
     </div>
+  );
+}
+
+export default function AcceptRide() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading ride details...</p>
+        </div>
+      </div>
+    }>
+      <ErrorBoundary fallback={
+        <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+          <div className="text-center">
+            <p className="text-sm text-red-500">Error loading ride details. Please try again.</p>
+          </div>
+        </div>
+      }>
+        <AcceptRideContent />
+      </ErrorBoundary>
+    </Suspense>
   );
 }

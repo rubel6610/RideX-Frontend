@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { calculateFare } from "@/components/Shared/fareCalculator";
@@ -11,7 +11,7 @@ import ConsolidatedRideCard from "./components/ConsolidatedRideCard";
 import RideMap from "./components/RideMap";
 import { useAuth } from "@/app/hooks/AuthProvider";
 
-const BookARide = () => {
+const BookARideContent = () => {
   const [pickup, setPickup] = useState("");
   const [drop, setDrop] = useState("");
   const [pickupName, setPickupName] = useState("");
@@ -145,31 +145,32 @@ const BookARide = () => {
         if (!hasPushed && data.status === "accepted" && data?.rideInfo) {
           hasPushed = true;
 
-          const params = new URLSearchParams({
-            rideId,
-            userId: user?.id || "",
-            riderId: data?.rideInfo?.riderId || "",
-            amount: data?.rideInfo?.fare?.toString() || "",
-            pickup: pickupName || pickup,
-            drop: dropName || drop,
-            vehicleType: selectedType,
-            distance: rideData?.distanceKm?.toString() || "",
-            arrivalTime: rideData?.arrivalTime || "",
-            promo: appliedPromo || "",
-            baseFare: rideData?.baseFare?.toString() || "0",
-            distanceFare: rideData?.distanceFare?.toString() || "0",
-            timeFare: rideData?.timeFare?.toString() || "0",
-            tax: rideData?.tax?.toString() || "0",
-            total: data?.rideInfo?.fare?.toString() || "0",
-            riderName: data?.rideInfo?.riderInfo?.fullName || "",
-            riderEmail: data?.rideInfo?.riderInfo?.email || "",
-            vehicleModel: data?.rideInfo?.riderInfo?.vehicleModel || "",
-            vehicleRegisterNumber: data?.rideInfo?.riderInfo?.vehicleRegisterNumber || "",
-            ratings: data?.rideInfo?.riderInfo?.ratings?.toString() || "0",
-            completedRides: data?.rideInfo?.riderInfo?.completedRides?.toString() || "0",
-          }).toString();
+          const params = new URLSearchParams();
+          
+          // Add parameters safely
+          if (rideId) params.append('rideId', rideId);
+          if (user?.id) params.append('userId', user.id);
+          if (data?.rideInfo?.riderId) params.append('riderId', data.rideInfo.riderId);
+          if (data?.rideInfo?.fare) params.append('amount', data.rideInfo.fare.toString());
+          if (pickupName || pickup) params.append('pickup', pickupName || pickup);
+          if (dropName || drop) params.append('drop', dropName || drop);
+          if (selectedType) params.append('vehicleType', selectedType);
+          if (rideData?.distanceKm) params.append('distance', rideData.distanceKm.toString());
+          if (rideData?.arrivalTime) params.append('arrivalTime', rideData.arrivalTime);
+          if (appliedPromo) params.append('promo', appliedPromo);
+          if (rideData?.baseFare) params.append('baseFare', rideData.baseFare.toString());
+          if (rideData?.distanceFare) params.append('distanceFare', rideData.distanceFare.toString());
+          if (rideData?.timeFare) params.append('timeFare', rideData.timeFare.toString());
+          if (rideData?.tax) params.append('tax', rideData.tax.toString());
+          if (data?.rideInfo?.fare) params.append('total', data.rideInfo.fare.toString());
+          if (data?.rideInfo?.riderInfo?.fullName) params.append('riderName', data.rideInfo.riderInfo.fullName);
+          if (data?.rideInfo?.riderInfo?.email) params.append('riderEmail', data.rideInfo.riderInfo.email);
+          if (data?.rideInfo?.riderInfo?.vehicleModel) params.append('vehicleModel', data.rideInfo.riderInfo.vehicleModel);
+          if (data?.rideInfo?.riderInfo?.vehicleRegisterNumber) params.append('vehicleRegisterNumber', data.rideInfo.riderInfo.vehicleRegisterNumber);
+          if (data?.rideInfo?.riderInfo?.ratings) params.append('ratings', data.rideInfo.riderInfo.ratings.toString());
+          if (data?.rideInfo?.riderInfo?.completedRides) params.append('completedRides', data.rideInfo.riderInfo.completedRides.toString());
 
-          router.push(`/dashboard/user/book-a-ride/accept-ride?${params}`);
+          router.push(`/dashboard/user/book-a-ride/accept-ride?${params.toString()}`);
         }
       } catch (err) {
         console.error("Error fetching ride status:", err);
@@ -191,7 +192,7 @@ const BookARide = () => {
 
     try {
       const parseCoords = (coord, fallback) => {
-        if (coord.includes(",")) {
+        if (coord && coord.includes(",")) {
           const [lat, lng] = coord.split(",").map(Number);
           return { type: "Point", coordinates: [lng, lat] };
         }
@@ -341,4 +342,17 @@ const BookARide = () => {
   );
 };
 
-export default BookARide;
+export default function BookARide() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading ride booking...</p>
+        </div>
+      </div>
+    }>
+      <BookARideContent />
+    </Suspense>
+  );
+}

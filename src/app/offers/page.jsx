@@ -11,13 +11,16 @@ const API_URL = `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api`;
 const OffersPage = () => {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState(null); // ✅ track which code is copied
 
   // Fetch Active Offers
   useEffect(() => {
     const fetchOffers = async () => {
       try {
         const res = await axios.get(`${API_URL}/promotions`);
-        const activeOffers = res.data.filter((offer) => offer.status === "Active");
+        const activeOffers = res.data.filter(
+          (offer) => offer.status === "Active"
+        );
         setOffers(activeOffers);
       } catch (error) {
         console.error("❌ Error fetching offers:", error);
@@ -27,6 +30,13 @@ const OffersPage = () => {
     };
     fetchOffers();
   }, []);
+
+  // ✅ Copy handler with temporary feedback
+  const handleCopyCode = (code) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000); // reset after 2s
+  };
 
   if (loading) {
     return (
@@ -52,7 +62,8 @@ const OffersPage = () => {
           RideX Exclusive Offers
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          💸 Save more on every ride — unlock special discounts, ride credits, and seasonal offers before they expire!
+          💸 Save more on every ride — unlock special discounts, ride credits,
+          and seasonal offers before they expire!
         </p>
       </div>
 
@@ -78,12 +89,14 @@ const OffersPage = () => {
 
             <CardContent className="space-y-3">
               <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                {offer.description || "Enjoy seamless rides at discounted rates!"}
+                {offer.description ||
+                  "Enjoy seamless rides at discounted rates!"}
               </p>
 
               <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-2 flex justify-between items-center">
                 <p className="text-sm font-mono">
-                  Code: <span className="font-bold text-primary">{offer.code}</span>
+                  Code:{" "}
+                  <span className="font-bold text-primary">{offer.code}</span>
                 </p>
                 <Badge
                   className={`${
@@ -108,12 +121,17 @@ const OffersPage = () => {
                 </span>
               </div>
 
+              {/* ✅ Copy Button with feedback */}
               <Button
                 variant="default"
-                className="w-full mt-3 bg-primary text-white hover:bg-primary/90 rounded-lg"
-                onClick={() => navigator.clipboard.writeText(offer.code)}
+                className={`w-full mt-3 rounded-lg transition ${
+                  copiedCode === offer.code
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-primary hover:bg-primary/90"
+                } text-white`}
+                onClick={() => handleCopyCode(offer.code)}
               >
-                Copy Code
+                {copiedCode === offer.code ? "Code Copied!" : "Copy Code"}
               </Button>
             </CardContent>
           </Card>

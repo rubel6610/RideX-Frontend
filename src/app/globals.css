@@ -1,20 +1,59 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @plugin "tailwindcss-animate";
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
-@import "leaflet/dist/leaflet.css";
-@import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+@import 'leaflet/dist/leaflet.css';
+
+/* Hide Leaflet Routing Machine instruction panel completely but keep route line */
+.leaflet-routing-container,
+.leaflet-routing-alt,
+.leaflet-control-container .leaflet-routing-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
+
+/* Keep the route line visible */
+.leaflet-routing-line {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+}
+
+/* Ensure popups stay on top */
+.leaflet-popup-content-wrapper {
+  z-index: 1000 !important;
+}
+
+.leaflet-popup-tip {
+  z-index: 1000 !important;
+}
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .animate-spin-slow {
   animation: spin-slow 4s linear infinite;
 }
 
 @custom-variant dark (&:is(.dark *));
+
+* {
+  font-family: var(--font-mulish), var(--font-roboto), sans-serif;
+  font-weight: 600;
+}
 
 /* 🌞 Light Mode */
 :root {
@@ -24,7 +63,7 @@
   --card-foreground: #09090b;
   --popover: #ffffff;
   --popover-foreground: #09090b;
-  --primary: #2B7FFF;
+  --primary: #2b7fff;
   --primary-foreground: #1a3a05;
   --secondary: lab(79.78% -41.19 48.42);
   --secondary-foreground: #09090b;
@@ -36,7 +75,7 @@
   --destructive-foreground: #f8fafc;
   --border: #2b80ff86;
   --input: #e4e4e7;
-  --ring: #2B7FFF;
+  --ring: #2b7fff;
   --chart-1: #2b80ffc2;
   --chart-2: #2b80ffa1;
   --chart-3: #398212;
@@ -44,37 +83,41 @@
   --chart-5: #8114ca;
   --sidebar: #dbf7c9;
   --sidebar-foreground: #09090b;
-  --sidebar-primary: #2B7FFF;
+  --sidebar-primary: #2b7fff;
   --sidebar-primary-foreground: #1a3a05;
-  --sidebar-accent: #2B7FFF;
+  --sidebar-accent: #2b7fff;
   --sidebar-accent-foreground: #09090b;
   --sidebar-border: #e4e4e7;
-  --sidebar-ring: #2B7FFF;
-  --font-sans: Roboto, ui-sans-serif, sans-serif, system-ui;
-  --font-serif: serif;
-  --font-mono: monospace;
+  --sidebar-ring: #2b7fff;
+  --topbar-bg: #f5f9ff;
+  --topbar-border: #cbd5e1;
   --radius: 0.5rem;
   --shadow-2xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.03);
   --shadow-xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.03);
-  --shadow-sm: 0px 2px 1px -1px hsl(0 0% 0% / 0.05), 0px 1px 2px -2px hsl(0 0% 0% / 0.05);
-  --shadow: 0px 2px 1px -1px hsl(0 0% 0% / 0.05), 0px 1px 2px -2px hsl(0 0% 0% / 0.05);
-  --shadow-md: 0px 2px 1px -1px hsl(0 0% 0% / 0.05), 0px 2px 4px -2px hsl(0 0% 0% / 0.05);
-  --shadow-lg: 0px 2px 1px -1px hsl(0 0% 0% / 0.05), 0px 4px 6px -2px hsl(0 0% 0% / 0.05);
-  --shadow-xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.05), 0px 8px 10px -2px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0px 2px 1px -1px hsl(0 0% 0% / 0.05),
+    0px 1px 2px -2px hsl(0 0% 0% / 0.05);
+  --shadow: 0px 2px 1px -1px hsl(0 0% 0% / 0.05),
+    0px 1px 2px -2px hsl(0 0% 0% / 0.05);
+  --shadow-md: 0px 2px 1px -1px hsl(0 0% 0% / 0.05),
+    0px 2px 4px -2px hsl(0 0% 0% / 0.05);
+  --shadow-lg: 0px 2px 1px -1px hsl(0 0% 0% / 0.05),
+    0px 4px 6px -2px hsl(0 0% 0% / 0.05);
+  --shadow-xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.05),
+    0px 8px 10px -2px hsl(0 0% 0% / 0.05);
   --shadow-2xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.13);
   --tracking-normal: 0px;
   --spacing: 0.25rem;
 }
 
 .dark {
-  --background: #02131C;
+  --background: #02131c;
   --foreground: #f5f6f7;
   --card: rgb(0, 182, 166, 0.05);
   --card-foreground: #fafafa;
   --popover: #09090b;
   --popover-foreground: #fafafa;
-  --primary: #00B6A6;
-  --primary-foreground: #00B6A6;
+  --primary: #00b6a6;
+  --primary-foreground: #00b6a6;
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
   --muted: #27272a;
@@ -85,7 +128,7 @@
   --destructive-foreground: #f8fafc;
   --border: rgb(0, 182, 166, 0.09);
   --input: #27272a;
-  --ring: #00B6A6;
+  --ring: #00b6a6;
   --chart-1: #12d3c3;
   --chart-2: #1ee6d5;
   --chart-3: #7f1d1d;
@@ -93,23 +136,27 @@
   --chart-5: #a1a1aa;
   --sidebar: #9797b8;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #00B6A6;
+  --sidebar-primary: #00b6a6;
   --sidebar-primary-foreground: #1a3a05;
   --sidebar-accent: #27272a;
   --sidebar-accent-foreground: #fafafa;
   --sidebar-border: #27272a;
-  --sidebar-ring: #00B6A6;
-  --font-sans: Roboto, ui-sans-serif, sans-serif, system-ui;
-  --font-serif: serif;
-  --font-mono: monospace;
+  --sidebar-ring: #00b6a6;
+  --topbar-bg: #03232e;
+  --topbar-border: #005d52;
   --radius: 0.5rem;
   --shadow-2xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0px 2px 1px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
-  --shadow: 0px 2px 1px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0px 2px 1px -1px hsl(0 0% 0% / 0.10), 0px 2px 4px -2px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0px 2px 1px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
+  --shadow-sm: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
+    0px 1px 2px -2px hsl(0 0% 0% / 0.1);
+  --shadow: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
+    0px 1px 2px -2px hsl(0 0% 0% / 0.1);
+  --shadow-md: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
+    0px 2px 4px -2px hsl(0 0% 0% / 0.1);
+  --shadow-lg: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
+    0px 4px 6px -2px hsl(0 0% 0% / 0.1);
+  --shadow-xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
+    0px 8px 10px -2px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.25);
 }
 
@@ -176,6 +223,11 @@
 body {
   letter-spacing: var(--tracking-normal);
 }
+
+/* Lenis Smooth Scrolling - Disable default smooth scroll */
+html {
+  scroll-behavior: auto;
+}
 /* Hide scrollbar for Chrome, Safari and Opera */
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
@@ -211,11 +263,41 @@ body {
   background: var(--primary);
   opacity: 0.8;
 }
-/* @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-} */
+
+/* ===== Global Scrollbar Style for Whole Window ===== */
+
+/* Chrome, Edge, Safari */
+html::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: 3px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  opacity: 0.8;
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background);
+}
+
+/* Optional: Hide scrollbar completely (when needed) */
+html.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+html.scrollbar-hidden {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
