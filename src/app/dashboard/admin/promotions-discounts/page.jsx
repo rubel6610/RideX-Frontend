@@ -29,8 +29,7 @@ import { Pencil, Trash, Plus, Search } from "lucide-react";
 import axios from "axios";
 import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
 
-
-const API_URL = `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api`; 
+const API_URL = `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api`;
 
 const PromotionsDiscounts = () => {
   const [promotions, setPromotions] = useState([]);
@@ -155,14 +154,17 @@ const PromotionsDiscounts = () => {
 
   if (loading) return <TableSkeleton />;
 
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Promotions & Discounts</h1>
-          <p className="text-gray-500">Manage promotional offers</p>
+          <h1 className="text-3xl font-bold text-primary">
+            Promotions & Discounts
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Manage promotional offers
+          </p>
         </div>
         <Button
           onClick={() => {
@@ -177,7 +179,7 @@ const PromotionsDiscounts = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-background rounded-lg border border-accent p-4">
+      <div className="bg-background rounded-lg border border-accent p-4 dark:border-gray-700">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1">
             <label className="text-sm font-medium mb-1 block">Search</label>
@@ -204,17 +206,20 @@ const PromotionsDiscounts = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" onClick={() => {
-            setSearchTerm("");
-            setStatusFilter("all");
-          }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("all");
+            }}
+          >
             Clear Filters
           </Button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-background rounded-lg border border-accent shadow-sm overflow-x-auto">
+      <div className="bg-background rounded-lg border border-accent shadow-sm overflow-x-auto dark:border-gray-700">
         <Table>
           <TableHeader>
             <TableRow>
@@ -231,17 +236,27 @@ const PromotionsDiscounts = () => {
               <TableRow key={promotion._id}>
                 <TableCell>{promotion.title}</TableCell>
                 <TableCell>
-                  <code className="bg-gray-100 px-2 py-1 rounded">{promotion.code}</code>
+                  <code
+                    className="px-2 py-1 rounded font-mono 
+                               bg-gray-100 text-gray-800 
+                               dark:bg-gray-800 dark:text-gray-100"
+                  >
+                    {promotion.code}
+                  </code>
                 </TableCell>
                 <TableCell>{promotion.discount}%</TableCell>
-                <TableCell>{promotion.startDate} - {promotion.endDate}</TableCell>
+                <TableCell>
+                  {promotion.startDate} - {promotion.endDate}
+                </TableCell>
                 <TableCell>
                   <Badge
-                    variant={promotion.status === "Active" ? "default" : "secondary"}
+                    variant={
+                      promotion.status === "Active" ? "default" : "secondary"
+                    }
                     className={
                       promotion.status === "Active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                        : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
                     }
                   >
                     {promotion.status}
@@ -263,7 +278,7 @@ const PromotionsDiscounts = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePromotion(promotion._id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/40"
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
@@ -275,7 +290,7 @@ const PromotionsDiscounts = () => {
         </Table>
 
         {filteredPromotions.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             No promotions found.
           </div>
         )}
@@ -301,7 +316,9 @@ const PromotionsDiscounts = () => {
               <label className="text-sm font-medium">Promotion Title</label>
               <Input
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 required
               />
             </div>

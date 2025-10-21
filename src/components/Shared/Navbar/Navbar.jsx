@@ -141,14 +141,15 @@ const Navbar = () => {
               </div>
             </div>
 
-            <Link
-              href="/offers"
-              className={`h-full flex items-center hover:text-primary ${activeStyle(
-                "/offers"
-              )}`}
-            >
-              Offers
-            </Link>
+<Link
+        href="/offers"
+        className={`h-full flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
+          activeStyle("/offers")
+        } hover:text-primary hover:bg-primary/10`}
+      >
+         Offers
+      </Link>
+
             <Link
               href="/contact"
               className={`h-full flex items-center hover:text-primary ${activeStyle(
