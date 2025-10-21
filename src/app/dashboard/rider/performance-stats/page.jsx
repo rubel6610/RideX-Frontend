@@ -7,16 +7,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function PerformanceStats() {
   const { user } = useAuth();
-  console.log(user?.id);
-  const [allRiders, setAllRiders] = useState();
+  // console.log(user?.id);
+  const [allRiders, setAllRiders] = useState([]);
   const [error, setError] = useState(null);
+
+
   const [performance] = useState({
     rating: 4.5,
     cancelledRate: 8,
     acceptanceRate: 92,
     trend: [5, 4, 4.5, 4, 4.8, 5, 4.7],
   });
-
   const chartData = [
     { week: "Week 1", rating: performance.trend[0] },
     { week: "Week 2", rating: performance.trend[1] },
@@ -27,27 +28,34 @@ export default function PerformanceStats() {
     { week: "Week 7", rating: performance.trend[6] },
   ];
 
-  const stats = [
-    { icon: "⭐", title: "Rating", value: `${performance.rating}/5` },
-    { icon: "❌", title: "Cancellation Rate", value: `${performance.cancelledRate}%` },
-    { icon: "✅", title: "Acceptance Rate", value: `${performance.acceptanceRate}%` },
-  ];
-
-
   useEffect(() => {
-    const fetchRide = async () => {
+    const fetchRiders = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
         const data = await res.json();
-        // console.log(data);
-        setAllRiders(data)
-      }
-      catch (err) {
+
+        // server থেকে আসা riders array ধরে রাখা
+        setAllRiders(Array.isArray(data.riders) ? data.riders : []);
+      } catch (err) {
         setError(err.message);
-      };
-    }
-    fetchRide();
+      }
+    };
+
+    fetchRiders();
   }, []);
+
+  const matchedRider = allRiders.find(rider => rider.userId === user?.id);
+  console.log("Matched Rider:", matchedRider);
+
+  const reviewOutOfFive = matchedRider?.reviews / 13;
+  const formattedReview = reviewOutOfFive?.toFixed(1);
+  console.log(formattedReview);
+
+  const stats = [
+    { icon: "⭐", title: "Rating", value: `${formattedReview}/5` },
+    { icon: "❌", title: "Cancellation Rate", value: `${performance.cancelledRate}%` },
+    { icon: "✅", title: "Acceptance Rate", value: `${performance.acceptanceRate}%` },
+  ];
 
   return (
     <div className="p-4 space-y-6 max-w-5xl mx-auto">
