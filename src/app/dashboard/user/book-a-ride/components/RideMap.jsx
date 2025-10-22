@@ -61,6 +61,346 @@ const ChangeView = ({ center, zoom }) => {
   return null;
 };
 
+// Road-following polyline component using OSRM routing
+const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
+  const map = useMap();
+  const [polyline, setPolyline] = useState(null);
+
+  useEffect(() => {
+    if (!map || !pickupCoords || !dropCoords) {
+      console.log('Missing requirements - map:', !!map, 'pickupCoords:', !!pickupCoords, 'dropCoords:', !!dropCoords);
+      return;
+    }
+
+    // Clean up existing polyline
+    if (polyline && map.hasLayer(polyline)) {
+      map.removeLayer(polyline);
+    }
+
+    // Fetch route from OSRM for street following
+    const fetchRoute = async () => {
+      try {
+        const startLng = pickupCoords[1];
+        const startLat = pickupCoords[0];
+        const endLng = dropCoords[1];
+        const endLat = dropCoords[0];
+
+        console.log('Fetching route from', startLat, startLng, 'to', endLat, endLng);
+        
+        // Test basic polyline creation first
+        try {
+          const testPolyline = L.polyline([[startLat, startLng], [endLat, endLng]], {
+            color: "#ff0000",
+            weight: 2
+          });
+          console.log('Test polyline created successfully:', !!testPolyline);
+          if (testPolyline) {
+            testPolyline.addTo(map);
+            setTimeout(() => {
+              if (map.hasLayer(testPolyline)) {
+                map.removeLayer(testPolyline);
+                console.log('Test polyline removed');
+              }
+            }, 1000);
+          }
+        } catch (testError) {
+          console.error('Test polyline creation failed:', testError);
+        }
+
+        // Try OSRM routing service
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+        console.log('OSRM URL:', osrmUrl);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        
+        const response = await fetch(osrmUrl, {
+          signal: controller.signal,
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        }).catch(fetchError => {
+          console.warn('Fetch error (likely CORS or network):', fetchError.message);
+          throw fetchError;
+        });
+        
+        clearTimeout(timeoutId);
+        console.log('OSRM Response status:', response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('OSRM Response data:', data);
+
+          if (data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            console.log('Route found with', route.geometry.coordinates.length, 'points');
+
+            if (route.geometry && route.geometry.coordinates && route.geometry.coordinates.length > 2) {
+              // Convert coordinates from [lng, lat] to [lat, lng] for Leaflet
+              const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+              console.log('Converted coordinates:', coordinates.length, 'points');
+
+              // Validate coordinates before creating polyline
+              if (coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])) {
+                // Additional coordinate validation
+                const validCoords = coordinates.filter(coord => 
+                  Array.isArray(coord) && 
+                  coord.length === 2 && 
+                  typeof coord[0] === 'number' && 
+                  typeof coord[1] === 'number' &&
+                  !isNaN(coord[0]) && 
+                  !isNaN(coord[1])
+                );
+                
+                console.log('Valid coordinates count:', validCoords.length, 'out of', coordinates.length);
+                
+                if (validCoords.length > 1) {
+                  try {
+                    // Check if Leaflet is available
+                    if (typeof L === 'undefined' || !L.polyline) {
+                      console.error('Leaflet library not available or polyline method missing');
+                      return;
+                    }
+                    
+                    console.log('Creating polyline with', validCoords.length, 'valid coordinates');
+                    
+                    // Create polyline with road-following coordinates
+                    const newPolyline = L.polyline(
+                      validCoords,
+                      {
+                        color: "#3b82f6",
+                        weight: 6,
+                        opacity: 0.8,
+                        lineCap: "round",
+                        lineJoin: "round",
+                        className: "route-polyline"
+                      }
+                    );
+
+                    console.log('Polyline object created:', !!newPolyline, newPolyline);
+
+                    if (newPolyline && typeof newPolyline.addTo === 'function' && map) {
+                      newPolyline.addTo(map);
+                      setPolyline(newPolyline);
+                      console.log('Street-following polyline created successfully');
+                      return;
+                    } else {
+                      console.error('Failed to create polyline or map is not available', {
+                        polyline: !!newPolyline,
+                        addToMethod: typeof newPolyline?.addTo,
+                        map: !!map
+                      });
+                    }
+                  } catch (polylineError) {
+                    console.error('Error creating polyline:', polylineError);
+                  }
+                } else {
+                  console.error('Not enough valid coordinates:', validCoords.length);
+                }
+              } else {
+                console.error('Invalid coordinates format:', coordinates);
+              }
+            }
+          }
+        } else {
+          console.warn('OSRM request failed with status:', response.status);
+          
+          // Try GraphHopper as fallback
+          try {
+            console.log('Trying GraphHopper as fallback...');
+            const graphhopperUrl = `https://graphhopper.com/api/1/route?point=${startLat},${startLng}&point=${endLat},${endLng}&vehicle=car&key=demo&instructions=false&calc_points=true&points_encoded=false`;
+            
+            const ghResponse = await fetch(graphhopperUrl, {
+              method: 'GET',
+              mode: 'cors',
+              headers: {
+                'Accept': 'application/json',
+              }
+            });
+            
+            if (ghResponse.ok) {
+              const ghData = await ghResponse.json();
+              console.log('GraphHopper response:', ghData);
+              
+              if (ghData.paths && ghData.paths.length > 0) {
+                const path = ghData.paths[0];
+                if (path.points && path.points.coordinates && path.points.coordinates.length > 2) {
+                  const coordinates = path.points.coordinates.map(coord => [coord[1], coord[0]]); // Convert [lng, lat] to [lat, lng]
+                  
+                  // Validate coordinates before creating polyline
+                  if (coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])) {
+                    try {
+                      const newPolyline = L.polyline(
+                        coordinates,
+                        {
+                          color: "#3b82f6",
+                          weight: 6,
+                          opacity: 0.8,
+                          lineCap: "round",
+                          lineJoin: "round",
+                          className: "route-polyline"
+                        }
+                      );
+
+                      if (newPolyline && map) {
+                        newPolyline.addTo(map);
+                        setPolyline(newPolyline);
+                        console.log('GraphHopper route created successfully');
+                        return;
+                      } else {
+                        console.error('Failed to create GraphHopper polyline or map is not available');
+                      }
+                    } catch (polylineError) {
+                      console.error('Error creating GraphHopper polyline:', polylineError);
+                    }
+                  } else {
+                    console.error('Invalid GraphHopper coordinates format:', coordinates);
+                  }
+                }
+              }
+            }
+          } catch (ghError) {
+            console.warn('GraphHopper also failed:', ghError);
+          }
+        }
+
+        // Fallback: Create a simple polyline first, then try complex one
+        console.log('Creating simple fallback polyline');
+        
+        try {
+          // First try a simple straight line
+          const simplePolyline = L.polyline(
+            [pickupCoords, dropCoords],
+            {
+              color: "#3b82f6",
+              weight: 6,
+              opacity: 0.8,
+              lineCap: "round",
+              lineJoin: "round",
+              className: "route-polyline"
+            }
+          );
+
+          if (simplePolyline && map) {
+            simplePolyline.addTo(map);
+            setPolyline(simplePolyline);
+            console.log('Simple fallback polyline created successfully');
+            return;
+          } else {
+            console.error('Failed to create simple polyline');
+          }
+        } catch (simpleError) {
+          console.error('Error creating simple polyline:', simpleError);
+        }
+        
+        // If simple polyline fails, try creating a realistic road-like path
+        console.log('Creating realistic road-like fallback path');
+        const intermediatePoints = [];
+        const steps = 50; // Fewer points to reduce complexity
+        
+        // Calculate distance for more realistic routing
+        const distance = Math.sqrt(
+          Math.pow(dropCoords[0] - pickupCoords[0], 2) + 
+          Math.pow(dropCoords[1] - pickupCoords[1], 2)
+        );
+        
+        for (let i = 0; i <= steps; i++) {
+          const ratio = i / steps;
+          const lat = pickupCoords[0] + (dropCoords[0] - pickupCoords[0]) * ratio;
+          const lng = pickupCoords[1] + (dropCoords[1] - pickupCoords[1]) * ratio;
+          
+          // Create a more realistic road path with multiple curves
+          let curveOffset = 0;
+          
+          // Add multiple sine waves for more realistic road curves
+          if (distance > 0.01) { // Only add curves for longer distances
+            curveOffset += Math.sin(ratio * Math.PI * 2) * 0.0005; // Primary curve
+            curveOffset += Math.sin(ratio * Math.PI * 4) * 0.0002; // Secondary curve
+          }
+          
+          // Add perpendicular offset for more realistic road following
+          const perpendicularOffset = Math.cos(ratio * Math.PI * 3) * 0.0003;
+          
+          intermediatePoints.push([
+            lat + curveOffset, 
+            lng + perpendicularOffset
+          ]);
+        }
+        
+        // Validate intermediate points before creating polyline
+        if (intermediatePoints && intermediatePoints.length > 0 && Array.isArray(intermediatePoints[0])) {
+          try {
+            const fallbackPolyline = L.polyline(
+              intermediatePoints,
+              {
+                color: "#3b82f6",
+                weight: 6,
+                opacity: 0.8,
+                lineCap: "round",
+                lineJoin: "round",
+                className: "route-polyline"
+              }
+            );
+
+            if (fallbackPolyline && map) {
+              fallbackPolyline.addTo(map);
+              setPolyline(fallbackPolyline);
+              console.log('Realistic road-like fallback polyline created');
+            } else {
+              console.error('Failed to create fallback polyline or map is not available');
+            }
+          } catch (polylineError) {
+            console.error('Error creating fallback polyline:', polylineError);
+          }
+        } else {
+          console.error('Invalid intermediate points format:', intermediatePoints);
+        }
+
+      } catch (error) {
+        console.error('Error fetching route:', error);
+        
+        // Final fallback to straight line
+        try {
+          const fallbackPolyline = L.polyline(
+            [pickupCoords, dropCoords],
+            {
+              color: "#3b82f6",
+              weight: 6,
+              opacity: 0.8,
+              lineCap: "round",
+              lineJoin: "round",
+              className: "route-polyline"
+            }
+          );
+
+          if (fallbackPolyline && map) {
+            fallbackPolyline.addTo(map);
+            setPolyline(fallbackPolyline);
+            console.log('Straight line fallback created');
+          } else {
+            console.error('Failed to create final fallback polyline or map is not available');
+          }
+        } catch (polylineError) {
+          console.error('Error creating final fallback polyline:', polylineError);
+        }
+      }
+    };
+
+    fetchRoute();
+
+    return () => {
+      if (polyline && map.hasLayer(polyline)) {
+        map.removeLayer(polyline);
+      }
+    };
+  }, [map, pickupCoords, dropCoords]);
+
+  return null;
+};
+
 // Road-following route component
 const Routing = ({ pickupCoords, dropCoords }) => {
   const map = useMap();
@@ -72,12 +412,12 @@ const Routing = ({ pickupCoords, dropCoords }) => {
 
     // Clean up existing controls and polylines
     const cleanup = () => {
-    try {
-      // Remove existing routing controls
-      map.eachLayer((layer) => {
-        if (layer instanceof L.Routing.Control) {
+      try {
+        // Remove existing routing controls
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Routing.Control) {
             try {
-          map.removeControl(layer);
+              map.removeControl(layer);
             } catch (e) {
               console.warn('Error removing routing control:', e);
             }
@@ -95,122 +435,103 @@ const Routing = ({ pickupCoords, dropCoords }) => {
 
     cleanup();
 
+    // Create a simple polyline first as fallback
+    const createSimplePolyline = () => {
+      return L.polyline(
+        [pickupCoords, dropCoords],
+        {
+          color: "#3b82f6",
+          weight: 6,
+          opacity: 0.8,
+          lineCap: "round",
+          lineJoin: "round"
+        }
+      ).addTo(map);
+    };
+
+    // Always create a simple polyline first
+    const simplePolyline = createSimplePolyline();
+    setFallbackPolyline(simplePolyline);
+
+    // Try to create routing control for better route following
     try {
       // Check if L.Routing is available
-      if (typeof L.Routing === 'undefined') {
-        console.warn('Leaflet Routing Machine not loaded');
-        return;
-      }
-
-      let control;
-      
-      try {
-        control = L.Routing.control({
-          waypoints: [
-            L.latLng(pickupCoords[0], pickupCoords[1]),
-            L.latLng(dropCoords[0], dropCoords[1]),
-          ],
-          lineOptions: {
-            styles: [
-              { 
-                color: "#3b82f6", 
-                weight: 6, 
-                opacity: 0.8,
-                lineCap: "round",
-                lineJoin: "round"
-              }
-            ],
-          },
-          addWaypoints: false,
-          routeWhileDragging: false,
-          draggableWaypoints: false,
-          fitSelectedRoutes: false,
-          show: false, // Don't show the instruction panel
-          createMarker: () => null, // Hide default markers
-          plan: L.Routing.plan([], {
-            createMarker: () => null,
-            addWaypoints: false,
-            draggableWaypoints: false,
-            routeWhileDragging: false
-          }),
-          router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1',
-            timeout: 30000,
-            profile: 'driving'
-          })
-        });
-
-        // Add the control to map
-        control.addTo(map);
-      } catch (routingError) {
-        console.warn('Routing control creation failed:', routingError);
-        // Fallback to simple polyline
-        const fallbackPolyline = L.polyline(
-          [pickupCoords, dropCoords],
-          {
-            color: "#3b82f6",
-            weight: 6,
-            opacity: 0.8,
-            lineCap: "round",
-            lineJoin: "round"
-          }
-        ).addTo(map);
+      if (typeof L.Routing !== 'undefined') {
+        let control;
         
-        setFallbackPolyline(fallbackPolyline);
-        return () => {
-          try {
-            if (fallbackPolyline && map.hasLayer(fallbackPolyline)) {
-              map.removeLayer(fallbackPolyline);
+        try {
+          control = L.Routing.control({
+            waypoints: [
+              L.latLng(pickupCoords[0], pickupCoords[1]),
+              L.latLng(dropCoords[0], dropCoords[1]),
+            ],
+            lineOptions: {
+              styles: [
+                { 
+                  color: "#3b82f6", 
+                  weight: 6, 
+                  opacity: 0.8,
+                  lineCap: "round",
+                  lineJoin: "round"
+                }
+              ],
+            },
+            addWaypoints: false,
+            routeWhileDragging: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: false,
+            show: false, // Don't show the instruction panel
+            createMarker: () => null, // Hide default markers
+            plan: L.Routing.plan([], {
+              createMarker: () => null,
+              addWaypoints: false,
+              draggableWaypoints: false,
+              routeWhileDragging: false
+            }),
+            router: L.Routing.osrmv1({
+              serviceUrl: 'https://router.project-osrm.org/route/v1',
+              timeout: 10000,
+              profile: 'driving'
+            })
+          });
+
+          // Add the control to map
+          control.addTo(map);
+          setRoutingControl(control);
+
+          // Hide the instruction panel
+          const hideInstructionPanel = () => {
+            const instructionPanel = document.querySelector('.leaflet-routing-container');
+            const altPanel = document.querySelector('.leaflet-routing-alt');
+            
+            if (instructionPanel) {
+              instructionPanel.style.display = 'none';
+              instructionPanel.style.visibility = 'hidden';
+              instructionPanel.style.opacity = '0';
+              instructionPanel.style.pointerEvents = 'none';
+              instructionPanel.style.zIndex = '-1';
+              instructionPanel.style.position = 'absolute';
+              instructionPanel.style.left = '-9999px';
+              instructionPanel.style.top = '-9999px';
             }
-          } catch (cleanupError) {
-            console.warn('Error cleaning up fallback polyline:', cleanupError);
-          }
-        };
-      }
+            
+            if (altPanel) {
+              altPanel.style.display = 'none';
+              altPanel.style.visibility = 'hidden';
+              altPanel.style.opacity = '0';
+              altPanel.style.pointerEvents = 'none';
+              altPanel.style.zIndex = '-1';
+              altPanel.style.position = 'absolute';
+              altPanel.style.left = '-9999px';
+              altPanel.style.top = '-9999px';
+            }
+          };
 
-      // Only proceed if control was created successfully
-      if (control) {
-        // Hide the instruction panel completely using MutationObserver
-        const hideInstructionPanel = () => {
-          const instructionPanel = document.querySelector('.leaflet-routing-container');
-          const altPanel = document.querySelector('.leaflet-routing-alt');
+          // Try to hide immediately and with observer
+          hideInstructionPanel();
           
-          let hidden = false;
-          
-          if (instructionPanel) {
-            instructionPanel.style.display = 'none';
-            instructionPanel.style.visibility = 'hidden';
-            instructionPanel.style.opacity = '0';
-            instructionPanel.style.pointerEvents = 'none';
-            instructionPanel.style.zIndex = '-1';
-            instructionPanel.style.position = 'absolute';
-            instructionPanel.style.left = '-9999px';
-            instructionPanel.style.top = '-9999px';
-            hidden = true;
-          }
-          
-          if (altPanel) {
-            altPanel.style.display = 'none';
-            altPanel.style.visibility = 'hidden';
-            altPanel.style.opacity = '0';
-            altPanel.style.pointerEvents = 'none';
-            altPanel.style.zIndex = '-1';
-            altPanel.style.position = 'absolute';
-            altPanel.style.left = '-9999px';
-            altPanel.style.top = '-9999px';
-            hidden = true;
-          }
-          
-          return hidden;
-        };
-
-        // Try to hide immediately
-        if (!hideInstructionPanel()) {
-          // Use MutationObserver to catch it when it's created
           const observer = new MutationObserver(() => {
-            if (hideInstructionPanel()) {
-              observer.disconnect();
-            }
+            hideInstructionPanel();
           });
           
           observer.observe(document.body, {
@@ -218,62 +539,21 @@ const Routing = ({ pickupCoords, dropCoords }) => {
             subtree: true
           });
 
-          // Also try with setTimeout as fallback
+          // Cleanup observer after 2 seconds
           setTimeout(() => {
-            hideInstructionPanel();
             observer.disconnect();
-          }, 500);
+          }, 2000);
+
+        } catch (routingError) {
+          console.warn('Routing control creation failed:', routingError);
+          // Keep the simple polyline as fallback
         }
-
-        setRoutingControl(control);
-
-        return () => {
-          try {
-            if (control && map) {
-              // Check if control still exists and is attached to map
-              if (map.hasLayer && map.hasLayer(control)) {
-                map.removeControl(control);
-              }
-            }
-          } catch (cleanupError) {
-            console.warn('Error cleaning up routing control:', cleanupError);
-          }
-        };
       }
     } catch (error) {
       console.warn('Routing machine error:', error);
-      // Fallback to simple polyline if routing fails
-      try {
-        const polyline = L.polyline(
-          [pickupCoords, dropCoords],
-          {
-            color: "#3b82f6",
-            weight: 6,
-            opacity: 0.8,
-            lineCap: "round",
-            lineJoin: "round"
-          }
-        ).addTo(map);
-
-        setFallbackPolyline(polyline);
-
-        return () => {
-          try {
-            if (polyline && map && map.hasLayer && map.hasLayer(polyline)) {
-              map.removeLayer(polyline);
-            }
-          } catch (fallbackError) {
-            console.warn('Error cleaning up fallback polyline:', fallbackError);
-          }
-        };
-      } catch (fallbackError) {
-        console.warn('Fallback polyline also failed:', fallbackError);
-      }
+      // Keep the simple polyline as fallback
     }
-  }, [map, pickupCoords, dropCoords]);
 
-  // Additional cleanup on unmount
-  useEffect(() => {
     return () => {
       try {
         if (routingControl && map) {
@@ -287,10 +567,10 @@ const Routing = ({ pickupCoords, dropCoords }) => {
           }
         }
       } catch (error) {
-        console.warn('Error in final cleanup:', error);
+        console.warn('Error in cleanup:', error);
       }
     };
-  }, [routingControl, fallbackPolyline, map]);
+  }, [map, pickupCoords, dropCoords]);
 
   return null;
 };
@@ -308,7 +588,6 @@ const RideMap = ({
   const [isClient, setIsClient] = useState(false);
   const [center, setCenter] = useState([23.8103, 90.4125]);
   const [zoom, setZoom] = useState(12);
-  const [selectedType, setSelectedType] = useState("pickup");
 
   useEffect(() => {
     setIsClient(true);
@@ -409,7 +688,8 @@ const RideMap = ({
         lat,
         lng,
       };
-      onLocationSelect(locationData, selectedType);
+      // Default to pickup type since we removed the selector
+      onLocationSelect(locationData, "pickup");
     } catch (error) {
       const fallbackLocation = {
         name: `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`,
@@ -417,7 +697,8 @@ const RideMap = ({
         lat: latlng.lat,
         lng: latlng.lng,
       };
-      onLocationSelect(fallbackLocation, selectedType);
+      // Default to pickup type since we removed the selector
+      onLocationSelect(fallbackLocation, "pickup");
     }
   };
 
@@ -431,6 +712,10 @@ const RideMap = ({
       </div>
     );
   }
+
+  // Debug logging
+  console.log('RideMap render - pickup:', pickup, 'drop:', drop);
+  console.log('Parsed coords - pickup:', parsedPickupCoords, 'drop:', parsedDropCoords);
 
   try {
   return (
@@ -465,11 +750,48 @@ const RideMap = ({
           opacity: 1 !important;
           z-index: 1000 !important;
         }
+        /* Ensure polyline is always visible */
+        .leaflet-interactive {
+          stroke: #3b82f6 !important;
+          stroke-width: 6px !important;
+          stroke-opacity: 0.8 !important;
+          stroke-linecap: round !important;
+          stroke-linejoin: round !important;
+        }
+        /* Specific styling for route polyline */
+        .route-polyline {
+          stroke: #3b82f6 !important;
+          stroke-width: 6px !important;
+          stroke-opacity: 0.8 !important;
+          stroke-linecap: round !important;
+          stroke-linejoin: round !important;
+          z-index: 1000 !important;
+          fill: none !important;
+        }
+        /* Ensure all polylines are visible */
+        .leaflet-pane svg path {
+          stroke: #3b82f6 !important;
+          stroke-width: 6px !important;
+          stroke-opacity: 0.8 !important;
+          stroke-linecap: round !important;
+          stroke-linejoin: round !important;
+        }
+        /* Make sure route lines are always on top */
+        .leaflet-overlay-pane svg {
+          z-index: 1000 !important;
+        }
+        .leaflet-overlay-pane svg path {
+          z-index: 1000 !important;
+        }
         .leaflet-popup-content-wrapper {
           z-index: 1000 !important;
         }
         .leaflet-popup-tip {
           z-index: 1000 !important;
+        }
+        /* Ensure markers are visible */
+        .leaflet-marker-icon {
+          z-index: 1001 !important;
         }
       `}</style>
       
@@ -491,9 +813,9 @@ const RideMap = ({
         <ChangeView center={center} zoom={zoom} />
         <MapClickHandler onMapClick={handleMapClick} />
 
-        {/* Road-following Route */}
+        {/* Road-following Polyline - Uses OSRM routing service */}
         {parsedPickupCoords && parsedDropCoords && (
-          <Routing pickupCoords={parsedPickupCoords} dropCoords={parsedDropCoords} />
+          <RoadFollowingPolyline pickupCoords={parsedPickupCoords} dropCoords={parsedDropCoords} />
         )}
 
         {/* Pickup Marker */}
@@ -523,39 +845,7 @@ const RideMap = ({
         )}
       </MapContainer>
 
-      {/* Location Type Selector */}
-      <div className="absolute top-4 left-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setSelectedType("pickup")}
-            className={`px-3 py-2 rounded-md text-sm font-semibold flex items-center gap-1 ${selectedType === "pickup"
-                ? "bg-red-500 text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-          >
-            <MapPin className="w-4 h-4" />
-            Pickup
-          </button>
-          <button
-            onClick={() => setSelectedType("drop")}
-            className={`px-3 py-2 rounded-md text-sm font-semibold flex items-center gap-1 ${selectedType === "drop"
-                ? "bg-blue-500 text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-          >
-            <Navigation className="w-4 h-4" />
-            Drop
-          </button>
-        </div>
-      </div>
 
-      {/* Instructions */}
-      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50 max-w-xs">
-        <p className="text-xs text-gray-600 font-medium">
-          Click on the map to set your{" "}
-          <span className="font-semibold text-gray-800">{selectedType}</span> location
-        </p>
-      </div>
 
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">

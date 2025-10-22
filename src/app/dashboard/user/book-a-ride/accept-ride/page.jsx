@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 // Simple Error Boundary component
@@ -75,6 +75,30 @@ function AcceptRideContent() {
   const router = useRouter();
   const { user } = useAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [dropLocation, setDropLocation] = useState(null);
+
+  // Parse pickup and drop locations from URL parameters
+  useEffect(() => {
+    const pickup = searchParams.get("pickup") || "";
+    const drop = searchParams.get("drop") || "";
+    
+    // Parse pickup location
+    if (pickup && pickup.includes(",")) {
+      const [lat, lng] = pickup.split(",").map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setPickupLocation({ lat, lng });
+      }
+    }
+    
+    // Parse drop location
+    if (drop && drop.includes(",")) {
+      const [lat, lng] = drop.split(",").map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setDropLocation({ lat, lng });
+      }
+    }
+  }, [searchParams]);
 
   // Early return if searchParams is not available
   if (!searchParams) {
@@ -370,6 +394,8 @@ function AcceptRideContent() {
                   rideId={rideId}
                   riderInfo={riderInfo}
                   vehicleType={type}
+                  pickupLocation={pickupLocation}
+                  dropLocation={dropLocation}
                 />
               </div>
 
