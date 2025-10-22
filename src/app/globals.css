@@ -57,40 +57,40 @@
 
 /* 🌞 Light Mode */
 :root {
-  --background: #ffffff;
-  --foreground: #09090b;
-  --card: rgb(43, 127, 255, 0.05);
-  --card-foreground: #09090b;
+  --background: #fffaf6;
+  --foreground: #1a1a1a;
+  --card: rgba(255, 149, 84, 0.05);
+  --card-foreground: #1a1a1a;
   --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #2b7fff;
-  --primary-foreground: #1a3a05;
-  --secondary: lab(79.78% -41.19 48.42);
-  --secondary-foreground: #09090b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --accent: #2b80ff86;
-  --accent-foreground: #09090b;
-  --destructive: #ef4444;
-  --destructive-foreground: #f8fafc;
-  --border: #2b80ff86;
-  --input: #e4e4e7;
-  --ring: #2b7fff;
-  --chart-1: #2b80ffc2;
-  --chart-2: #2b80ffa1;
-  --chart-3: #398212;
-  --chart-4: #7533f0;
-  --chart-5: #8114ca;
-  --sidebar: #dbf7c9;
-  --sidebar-foreground: #09090b;
-  --sidebar-primary: #2b7fff;
-  --sidebar-primary-foreground: #1a3a05;
-  --sidebar-accent: #2b7fff;
-  --sidebar-accent-foreground: #09090b;
-  --sidebar-border: #e4e4e7;
-  --sidebar-ring: #2b7fff;
-  --topbar-bg: #f5f9ff;
-  --topbar-border: #cbd5e1;
+  --popover-foreground: #1a1a1a;
+  --primary: #ff9554;
+  --primary-foreground: #ffffff;
+  --secondary: #ffe0cc;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f5f5f5;
+  --muted-foreground: #6b6b6b;
+  --accent: rgba(255, 149, 84, 0.15);
+  --accent-foreground: #1a1a1a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 149, 84, 0.2);
+  --input: #e5e5e5;
+  --ring: #ff9554;
+  --chart-1: #ffb98a;
+  --chart-2: #ffcda8;
+  --chart-3: #4caf50;
+  --chart-4: #8b5cf6;
+  --chart-5: #c084fc;
+  --sidebar: #fff3eb;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #ff9554;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffd8c2;
+  --sidebar-accent-foreground: #1a1a1a;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #ff9554;
+  --topbar-bg: #fff7f2;
+  --topbar-border: #e2e8f0;
   --radius: 0.5rem;
   --shadow-2xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.03);
   --shadow-xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.03);
@@ -109,55 +109,56 @@
   --spacing: 0.25rem;
 }
 
+/* 🌚 Dark Mode */
 .dark {
-  --background: #02131c;
-  --foreground: #f5f6f7;
-  --card: rgb(0, 182, 166, 0.05);
-  --card-foreground: #fafafa;
-  --popover: #09090b;
-  --popover-foreground: #fafafa;
+  --background: #0d1414;
+  --foreground: #e8f6f5;
+  --card: rgba(0, 182, 166, 0.05);
+  --card-foreground: #e8f6f5;
+  --popover: #101818;
+  --popover-foreground: #f0fdfa;
   --primary: #00b6a6;
-  --primary-foreground: #00b6a6;
-  --secondary: #27272a;
-  --secondary-foreground: #fafafa;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --accent: #00b6a711;
-  --accent-foreground: #fafafa;
+  --primary-foreground: #0d1414;
+  --secondary: #152121;
+  --secondary-foreground: #e8f6f5;
+  --muted: #1a2424;
+  --muted-foreground: #a5bcb9;
+  --accent: rgba(0, 182, 166, 0.12);
+  --accent-foreground: #e8f6f5;
   --destructive: #7f1d1d;
   --destructive-foreground: #f8fafc;
-  --border: rgb(0, 182, 166, 0.09);
-  --input: #27272a;
+  --border: rgba(0, 182, 166, 0.25);
+  --input: #162222;
   --ring: #00b6a6;
-  --chart-1: #12d3c3;
-  --chart-2: #1ee6d5;
-  --chart-3: #7f1d1d;
-  --chart-4: #ac3131;
-  --chart-5: #a1a1aa;
-  --sidebar: #9797b8;
-  --sidebar-foreground: #fafafa;
+  --chart-1: #4fd1c5;
+  --chart-2: #5eead4;
+  --chart-3: #22c55e;
+  --chart-4: #0ea5e9;
+  --chart-5: #2dd4bf;
+  --sidebar: #101a1a;
+  --sidebar-foreground: #eafaf9;
   --sidebar-primary: #00b6a6;
-  --sidebar-primary-foreground: #1a3a05;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #27272a;
+  --sidebar-primary-foreground: #0d1414;
+  --sidebar-accent: #12201f;
+  --sidebar-accent-foreground: #eafaf9;
+  --sidebar-border: #1a2424;
   --sidebar-ring: #00b6a6;
-  --topbar-bg: #03232e;
-  --topbar-border: #005d52;
+  --topbar-bg: #101a1a;
+  --topbar-border: #1e2a2a;
   --radius: 0.5rem;
   --shadow-2xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 2px 1px -1px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
-    0px 1px 2px -2px hsl(0 0% 0% / 0.1);
-  --shadow: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
-    0px 1px 2px -2px hsl(0 0% 0% / 0.1);
-  --shadow-md: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
-    0px 2px 4px -2px hsl(0 0% 0% / 0.1);
+  --shadow-sm: 0px 2px 1px -1px hsl(0 0% 0% / 0.08),
+    0px 1px 2px -2px hsl(0 0% 0% / 0.08);
+  --shadow: 0px 2px 1px -1px hsl(0 0% 0% / 0.08),
+    0px 1px 2px -2px hsl(0 0% 0% / 0.08);
+  --shadow-md: 0px 2px 1px -1px hsl(0 0% 0% / 0.08),
+    0px 2px 4px -2px hsl(0 0% 0% / 0.08);
   --shadow-lg: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
     0px 4px 6px -2px hsl(0 0% 0% / 0.1);
   --shadow-xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.1),
     0px 8px 10px -2px hsl(0 0% 0% / 0.1);
-  --shadow-2xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.25);
+  --shadow-2xl: 0px 2px 1px -1px hsl(0 0% 0% / 0.2);
 }
 
 @theme inline {
@@ -235,8 +236,8 @@ html {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hidden {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom scrollbar styling with dark/light mode support */
@@ -266,7 +267,6 @@ html {
 
 /* ===== Global Scrollbar Style for Whole Window ===== */
 
-/* Chrome, Edge, Safari */
 html::-webkit-scrollbar {
   width: 6px;
 }
@@ -286,18 +286,16 @@ html::-webkit-scrollbar-thumb:hover {
   opacity: 0.8;
 }
 
-/* Firefox */
 html {
   scrollbar-width: thin;
   scrollbar-color: var(--primary) var(--background);
 }
 
-/* Optional: Hide scrollbar completely (when needed) */
 html.scrollbar-hidden::-webkit-scrollbar {
   display: none;
 }
 
 html.scrollbar-hidden {
-  -ms-overflow-style: none; /* IE/Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

@@ -6,9 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SendHorizontal, MessageCircle } from "lucide-react";
-import { initSocket } from '@/app/hooks/socket/socket';
+import { initSocket } from '@/components/Shared/socket/socket';
 
 export default function UserChat() {
   const { user } = useAuth();

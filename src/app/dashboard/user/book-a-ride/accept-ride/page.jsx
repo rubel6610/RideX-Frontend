@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // Simple Error Boundary component
 class ErrorBoundary extends React.Component {
@@ -170,9 +171,35 @@ function AcceptRideContent() {
   };
 
   // ✅ Updated Cancel Ride Handler
-  const handleCancelRide = () => {
-    console.log("Ride cancelled:", rideId);
-    // You can add cancel ride logic here (API call, etc.)
+  const handleCancelRide = async () => {
+    if (!rideId || !userId) {
+      toast.error("Missing ride information");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rideId, userId }),
+        }
+      );
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Ride cancelled successfully");
+        // Redirect back to book a ride
+        router.push("/dashboard/user/book-a-ride");
+      } else {
+        toast.error(result.message || "Failed to cancel ride");
+      }
+    } catch (error) {
+      console.error("Error cancelling ride:", error);
+      toast.error("Failed to cancel ride. Please try again.");
+    }
   };
 
   return (
@@ -435,6 +462,8 @@ function AcceptRideContent() {
         onClose={() => setIsChatOpen(false)}
         riderName={riderInfo.fullName}
         riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
+        rideId={rideId}
+        riderId={riderId}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/app/hooks/AuthProvider";
-import { initSocket } from "@/app/hooks/socket/socket";
+import { initSocket } from "@/components/Shared/socket/socket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";

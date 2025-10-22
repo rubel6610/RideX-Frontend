@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import NoRide from "./components/NoRide";
 import { useAuth } from "@/app/hooks/AuthProvider";
+import { initSocket } from "@/components/Shared/socket/socket";
+import { toast } from "sonner";
 
 function RideModal({ open, onClose, ride }) {
   if (!open || !ride) return null;
@@ -39,6 +41,106 @@ const AvailableRidesPage = () => {
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRide, setSelectedRide] = useState(null);
+  const [riderId, setRiderId] = useState(null);
+
+  // Fetch rider profile to get riderId
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchRiderProfile = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${user.id}`
+        );
+        const data = await res.json();
+        if (data.rider?._id) {
+          setRiderId(data.rider._id);
+        }
+      } catch (err) {
+        console.error("Error fetching rider profile:", err);
+      }
+    };
+
+    fetchRiderProfile();
+  }, [user]);
+
+  // Initialize Socket.IO for real-time ride requests
+  useEffect(() => {
+    if (!riderId) return;
+
+    const socket = initSocket(user?.id, false);
+    
+    // Join rider-specific room
+    socket.emit('join_rider', riderId);
+    console.log('Rider joined room:', riderId);
+
+    // Listen for new ride requests
+    socket.on('new_ride_request', async (data) => {
+      console.log('✅ New ride request received:', data);
+      toast.success('New ride request!', {
+        description: 'A passenger nearby needs a ride',
+      });
+
+      // Fetch addresses for the new ride
+      const enrichedRide = await enrichRideWithAddresses(data.ride);
+      setRides((prev) => [enrichedRide, ...prev]);
+    });
+
+    // Listen for auto-rejection notifications
+    socket.on('ride_auto_rejected', (data) => {
+      console.log('Ride auto-rejected:', data.rideId);
+      toast.info('Ride request expired');
+      setRides((prev) => prev.filter((r) => r._id !== data.rideId));
+    });
+
+    // Listen for user cancellations
+    socket.on('ride_cancelled_by_user', (data) => {
+      console.log('Ride cancelled by user:', data.rideId);
+      toast.info('Passenger cancelled the ride');
+      setRides((prev) => prev.filter((r) => r._id !== data.rideId));
+    });
+
+    return () => {
+      socket.off('new_ride_request');
+      socket.off('ride_auto_rejected');
+      socket.off('ride_cancelled_by_user');
+    };
+  }, [riderId, user]);
+
+  // Helper function to enrich ride with addresses
+  const enrichRideWithAddresses = async (ride) => {
+    try {
+      const pickup = ride.pickup?.coordinates || [];
+      const drop = ride.drop?.coordinates || [];
+
+      const [pickupRes, dropRes] = await Promise.all([
+        fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${pickup[1]}&lon=${pickup[0]}`
+        ),
+        fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${drop[1]}&lon=${drop[0]}`
+        ),
+      ]);
+
+      const [pickupData, dropData] = await Promise.all([
+        pickupRes.json(),
+        dropRes.json(),
+      ]);
+
+      return {
+        ...ride,
+        pickupAddress: pickupData?.display_name || "Unknown pickup location",
+        dropAddress: dropData?.display_name || "Unknown drop location",
+      };
+    } catch (err) {
+      console.error("Error enriching ride:", err);
+      return {
+        ...ride,
+        pickupAddress: "Failed to load pickup",
+        dropAddress: "Failed to load drop",
+      };
+    }
+  };
 
   // Fetch rides
   useEffect(() => {
@@ -102,39 +204,68 @@ const AvailableRidesPage = () => {
   }, [user]);
 
   // Accept Ride
-  const handleAccept = async (rideId, riderId) => {
+  const handleAccept = async (rideId, rideRiderId) => {
     try {
+      // Use the riderId from state (fetched rider profile) instead of ride.riderId
+      const actualRiderId = riderId || rideRiderId;
+      
+      console.log('Accepting ride:', { rideId, actualRiderId });
+      
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-accept`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rideId, riderId }),
+          body: JSON.stringify({ rideId, riderId: actualRiderId }),
         }
       );
 
       const data = await res.json();
+      
       if (data.success) {
         setRides((prev) =>
           prev.map((r) =>
             r._id === rideId ? { ...r, status: "accepted" } : r
           )
         );
+        toast.success('Ride accepted successfully!');
+      } else {
+        // Handle specific error cases
+        if (data.requiresOnline) {
+          toast.error('You must be online to accept rides', {
+            description: 'Please set your status to online first'
+          });
+        } else if (data.hasActiveRide) {
+          toast.error('Active ride in progress', {
+            description: 'Complete your current ride before accepting another'
+          });
+        } else if (data.currentStatus) {
+          toast.error(`Ride is already ${data.currentStatus}`, {
+            description: 'This ride is no longer available'
+          });
+        } else {
+          toast.error(data.message || 'Failed to accept ride');
+        }
       }
     } catch (err) {
       console.error("Ride accept error:", err);
+      toast.error('Network error', {
+        description: 'Failed to accept ride. Please try again.'
+      });
     }
   };
 
   // Reject Ride
-  const handleReject = async (rideId, riderId) => {
+  const handleReject = async (rideId, rideRiderId) => {
     try {
+      const actualRiderId = riderId || rideRiderId;
+      
       await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-reject`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rideId, riderId }),
+          body: JSON.stringify({ rideId, riderId: actualRiderId }),
         }
       );
       setRides((prev) => prev.filter((r) => r._id !== rideId));
@@ -144,14 +275,16 @@ const AvailableRidesPage = () => {
   };
 
   // Cancel Ride
-  const handleCancel = async (rideId, riderId) => {
+  const handleCancel = async (rideId, rideRiderId) => {
     try {
+      const actualRiderId = riderId || rideRiderId;
+      
       await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-cancel`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rideId, riderId }),
+          body: JSON.stringify({ rideId, riderId: actualRiderId }),
         }
       );
       setRides((prev) =>

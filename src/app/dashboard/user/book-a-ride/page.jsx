@@ -10,6 +10,8 @@ import VehicleTypeSelector from "./components/VehicleTypeSelector";
 import ConsolidatedRideCard from "./components/ConsolidatedRideCard";
 import RideMap from "./components/RideMap";
 import { useAuth } from "@/app/hooks/AuthProvider";
+import { initSocket } from "@/components/Shared/socket/socket";
+import { Button } from "@/components/ui/button";
 
 const BookARideContent = () => {
   const [pickup, setPickup] = useState("");
@@ -26,6 +28,7 @@ const BookARideContent = () => {
   const [rideData, setRideData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [counter, setCounter] = useState(0);
+  const [countdown, setCountdown] = useState(60);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rideId, setRideId] = useState(null);
   const { user } = useAuth();
@@ -77,8 +80,15 @@ const BookARideContent = () => {
 
   // ✅ Counter animation for modal loader
   useEffect(() => {
-    if (!isLoading || !isModalOpen) return;
-    const interval = setInterval(() => setCounter((prev) => prev + 1), 1000);
+    if (!isLoading || !isModalOpen) {
+      setCounter(0);
+      setCountdown(60);
+      return;
+    }
+    const interval = setInterval(() => {
+      setCounter((prev) => prev + 1);
+      setCountdown((prev) => Math.max(0, prev - 1));
+    }, 1000);
     return () => clearInterval(interval);
   }, [isLoading, isModalOpen]);
 
@@ -134,6 +144,32 @@ const BookARideContent = () => {
 
     fetchDistance();
   }, [pickup, drop, selectedType, appliedPromo]);
+
+  // ✅ Auto-cancel after 60 seconds
+  useEffect(() => {
+    if (!rideId || !isLoading) return;
+    
+    const timeout = setTimeout(async () => {
+      // Check if ride is still pending
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${rideId}`);
+        const data = await res.json();
+        
+        if (data.status === 'pending' || data.status === 'auto-rejected' || data.status === 'no_riders_available') {
+          toast.error("No riders available", {
+            description: "Your ride request timed out. Please try again."
+          });
+          setIsLoading(false);
+          setIsModalOpen(false);
+          setRideId(null);
+        }
+      } catch (err) {
+        console.error("Error checking ride status:", err);
+      }
+    }, 60000); // 60 seconds
+
+    return () => clearTimeout(timeout);
+  }, [rideId, isLoading]);
 
   // ✅ Ride status polling (optimized)
   useEffect(() => {
@@ -235,6 +271,17 @@ const BookARideContent = () => {
       const result = await response.json();
       setRideId(result?.rideId);
       toast.success("Ride request sent successfully!");
+      
+      // Initialize socket for real-time updates
+      const socket = initSocket(user?.id, false);
+      
+      // Listen for ride status updates (optional: already using polling)
+      socket.on('ride_accepted', (data) => {
+        if (data.rideId === result?.rideId) {
+          toast.success("Rider accepted your request!");
+        }
+      });
+      
     } catch (error) {
       toast.error("Ride Request Failed");
       setIsModalOpen(false);
@@ -252,6 +299,33 @@ const BookARideContent = () => {
     pickupName,
     dropName,
   ]);
+
+  // ✅ Handle Cancel Ride Request
+  const handleCancelRequest = useCallback(async () => {
+    if (!rideId || !user?.id) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rideId, userId: user.id }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Ride request cancelled");
+        setIsLoading(false);
+        setIsModalOpen(false);
+        setRideId(null);
+      } else {
+        toast.error(result.message || "Failed to cancel ride");
+      }
+    } catch (error) {
+      toast.error("Failed to cancel ride request");
+      console.error(error);
+    }
+  }, [rideId, user]);
 
   return (
     <>
@@ -327,15 +401,34 @@ const BookARideContent = () => {
         </div>
       </div>
 
-      {/* ✅ Custom Loader Modal */}
+      {/* ✅ Custom Loader Modal with Cancel Button */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
-          <div className="relative bg-white rounded-full shadow-2xl h-20 w-20 flex items-center justify-center">
-            <div
-              className="absolute h-full w-full rounded-full border-6 border-t-primary border-r-primary border-b-primary/30 border-l-primary/30 animate-spin-slow"
-              style={{ animationDuration: "3s" }}
-            ></div>
-            <div className="text-center text-4xl font-bold text-primary">{counter}</div>
+          <div className="bg-white dark:bg-card rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              {/* Spinning Loader */}
+              <div className="relative inline-flex items-center justify-center mb-6">
+                <div className="h-24 w-24 rounded-full border-6 border-t-primary border-r-primary border-b-primary/30 border-l-primary/30 animate-spin" />
+                <div className="absolute text-3xl font-bold text-primary">{counter}</div>
+              </div>
+              
+              {/* Status Text */}
+              <h3 className="text-2xl font-bold text-foreground mb-2">
+                Finding Nearby Riders
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Auto-cancel in <span className="font-bold text-destructive">{countdown}s</span>
+              </p>
+              
+              {/* Cancel Button */}
+              <Button
+                onClick={handleCancelRequest}
+                variant="destructive"
+                className="w-full h-12 text-base font-semibold"
+              >
+                Cancel Request
+              </Button>
+            </div>
           </div>
         </div>
       )}
