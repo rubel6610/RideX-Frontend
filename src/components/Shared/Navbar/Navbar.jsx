@@ -233,7 +233,7 @@ const Navbar = () => {
                   <div
                     id="rideby-panel"
                     role="menu"
-                    className={`absolute top-full right-0 mt-2 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${rideByOpen
+                    className={`absolute top-full right-0 mt-3 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${rideByOpen
                         ? "opacity-100 translate-y-0 pointer-events-auto"
                         : "opacity-0 -translate-y-3 pointer-events-none"
                       }`}
@@ -313,12 +313,12 @@ const Navbar = () => {
                 <div
                   id="account-panel"
                   role="menu"
-                  className={`absolute top-full right-0 my-2 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${accountOpen
+                  className={`absolute top-full right-0 mt-5.5 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${accountOpen
                       ? "opacity-100 translate-y-0 pointer-events-auto"
                       : "opacity-0 -translate-y-3 pointer-events-none"
                     }`}
                 >
-                  {["/dashboard/my-profile", "/dashboard"].map((path, i) => {
+                  {["/dashboard/my-profile", `/dashboard/${user?.role}`].map((path, i) => {
                     const icons = [User, ChartColumnDecreasing];
                     const labels = ["Profile", "Dashboard"];
                     const Icon = icons[i];
