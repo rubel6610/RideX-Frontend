@@ -124,7 +124,7 @@ export default function AcceptRide() {
     });
 
     router.push(
-      `http://localhost:3000/dashboard/user/payment?${params.toString()}`
+      `/dashboard/user/payment?${params.toString()}`
     );
   };
 
