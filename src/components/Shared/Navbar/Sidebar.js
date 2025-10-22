@@ -20,8 +20,10 @@ import Lottie from 'lottie-react';
 import logo from '../../../Assets/ridex-logo.webp';
 import darkLogo from '../../../Assets/logo-dark.webp';
 import sidebarCar from '../../../Assets/sidebar-car.json';
+import { useAuth } from '@/app/hooks/AuthProvider';
 
 const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
+    const {user} = useAuth();
   const overlayRef = useRef(null);
   const [rideByOpen, setRideByOpen] = useState(false);
 
@@ -63,11 +65,13 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
       }`}
     >
       <div className="relative h-screen w-full flex justify-end">
-        <aside
-          className={`w-[360px] h-screen bg-background text-foreground shadow-lg p-8 relative flex flex-col overflow-y-auto custom-scrollbar transition-all duration-300 ${
-            sidebarOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
+     <aside
+  onWheel={(e) => e.stopPropagation()} 
+  className={`w-[360px] h-screen bg-background text-foreground shadow-lg p-8 relative flex flex-col overflow-y-auto custom-scrollbar transition-all duration-300 ${
+    sidebarOpen ? 'translate-x-0' : 'translate-x-full'
+  }`}
+>
+
           {/* Close button */}
           <button
             className="absolute right-6 top-6 w-8 h-8 flex flex-col items-center justify-center bg-primary text-white cursor-pointer transition-transform duration-300 ease-in-out rotate-45 hover:rotate-[130deg] hover:text-black"
@@ -90,7 +94,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
               <Image src={darkLogo} alt="RideX Logo" width={140} height={56} />
             </Link>
 
-            <p className="text-sm leading-relaxed text-muted-foreground mt-4">
+            <p className="text-base leading-4.5 text-muted-foreground mt-4">
               RideX makes your travel easy, fast, and safe — whether you choose
               a bike, car, or CNG, you can enjoy a smooth and reliable ride
               anytime, anywhere.
@@ -111,7 +115,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
 
           {/* Links for smaller devices */}
           {!isDesktop && (
-            <div className="flex flex-col font-medium my-4">
+            <div className="flex flex-col font-medium uppercase my-4">
               <Link
                 href="/"
                 className="py-2 font-semibold hover:text-primary"
@@ -124,7 +128,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
               <div>
                 <button
                   onClick={() => setRideByOpen(!rideByOpen)}
-                  className="flex justify-between items-center w-full py-2 font-semibold hover:text-primary"
+                  className="flex justify-between items-center w-full py-2 font-semibold uppercase hover:text-primary"
                 >
                   <span>Ride By</span>
                   <ChevronDown
@@ -185,12 +189,21 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
                 About
               </Link>
               <Link
+                href="/blogs"
+                className="py-2 font-semibold hover:text-primary"
+                onClick={toggleSidebar}
+              >
+                Blogs
+              </Link>
+              {user?.role === 'user' && (
+    <Link
                 href="/become-rider"
                 className="py-2 font-semibold hover:text-primary"
                 onClick={toggleSidebar}
               >
                 Become a Rider
               </Link>
+              )}
             </div>
           )}
 
