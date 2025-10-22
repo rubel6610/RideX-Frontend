@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Send, MoreVertical, ChatBubbleLeftRight, Phone } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { getSocket } from "@/app/hooks/socket/socket";
 const ChatModal = ({ open, onClose, riderName, riderVehicle }) => {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([
@@ -34,11 +34,9 @@ const ChatModal = ({ open, onClose, riderName, riderVehicle }) => {
             time: "2:31 PM",
         },
     ]);
-
     // Send message
     const handleSend = () => {
         if (!message.trim()) return;
-
         const now = new Date();
         const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} ${now.getHours() >= 12 ? 'PM' : 'AM'}`;
 
