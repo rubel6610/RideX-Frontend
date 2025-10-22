@@ -5,6 +5,37 @@
 
 @import 'leaflet/dist/leaflet.css';
 
+/* Hide Leaflet Routing Machine instruction panel completely but keep route line */
+.leaflet-routing-container,
+.leaflet-routing-alt,
+.leaflet-control-container .leaflet-routing-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
+
+/* Keep the route line visible */
+.leaflet-routing-line {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+}
+
+/* Ensure popups stay on top */
+.leaflet-popup-content-wrapper {
+  z-index: 1000 !important;
+}
+
+.leaflet-popup-tip {
+  z-index: 1000 !important;
+}
+
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);

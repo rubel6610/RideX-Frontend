@@ -12,13 +12,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Bike" }) => {
-  // Demo location - Dhaka, Bangladesh
-  const [riderLocation, setRiderLocation] = useState({
-    lat: 23.8103,
-    lng: 90.4125
-  });
+const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Bike", pickupLocation, dropLocation }) => {
+  const [riderLocation, setRiderLocation] = useState(null);
   const [isClient, setIsClient] = useState(false);
+  const [eta, setEta] = useState(null);
+  const [distance, setDistance] = useState(null);
+
+  // Debug logging
+  console.log('LiveTrackingMap Props:', {
+    rideId,
+    riderInfo,
+    vehicleType,
+    pickupLocation,
+    dropLocation
+  });
 
   // Get vehicle icon
   const getVehicleIcon = () => {
@@ -39,107 +46,164 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Bike" }) => {
     setIsClient(true);
   }, []);
 
-  // Fetch rider location every 5 seconds (commented for demo)
-  // useEffect(() => {
-  //   if (!rideId || !isClient) return;
+  // Calculate distance between two points
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
-  //   const fetchRiderLocation = async () => {
-  //     try {
-  //       const res = await fetch(
-  //         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/location/${rideId}`
-  //       );
-  //       const data = await res.json();
-  //       if (data.location && data.location.coordinates) {
-  //         // MongoDB stores as [lng, lat], Leaflet needs [lat, lng]
-  //         setRiderLocation({
-  //           lat: data.location.coordinates[1],
-  //           lng: data.location.coordinates[0],
-  //         });
-  //       }
-  //     } catch (err) {
-  //       console.error("Error fetching rider location:", err);
-  //     }
-  //   };
-
-  //   // প্রথমবার call করা
-  //   fetchRiderLocation();
-
-  //   // প্রতি 5 সেকেন্ডে একবার call হবে
-  //   const interval = setInterval(fetchRiderLocation, 5000);
-
-  //   // cleanup
-  //   return () => clearInterval(interval);
-  // }, [rideId, isClient]);
-
-  // Create custom icon for rider based on vehicle type
-  const createCustomIcon = () => {
-    // Different SVG icons for different vehicle types
-    const getVehicleSVG = () => {
+  // Calculate ETA based on distance and vehicle type
+  const calculateETA = (distance) => {
+    if (!distance) return null;
+    
+    let averageSpeed; // km/h
       switch (vehicleType) {
         case "Bike":
-          return `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="5.5" cy="17.5" r="3.5"/>
-              <circle cx="18.5" cy="17.5" r="3.5"/>
-              <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-              <path d="m12 17.5 1.5-5.5 2-3h-5"/>
-              <path d="M12 12l-2 3"/>
-            </svg>
-          `;
+        averageSpeed = 25; // Average bike speed in city
+        break;
         case "Car":
-          return `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="12" x="3" y="8" rx="2"/>
-              <path d="M10 8V5c0-1.1.9-2 2-2h2"/>
-              <circle cx="7" cy="15.5" r="1.5"/>
-              <circle cx="17" cy="15.5" r="1.5"/>
-            </svg>
-          `;
+        averageSpeed = 20; // Average car speed in city traffic
+        break;
         case "Cng":
-          return `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8 6v6"/>
-              <path d="M15 6v6"/>
-              <path d="M2 12h19.6"/>
-              <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/>
-              <circle cx="7" cy="18" r="2"/>
-              <circle cx="17" cy="18" r="2"/>
-            </svg>
-          `;
+        averageSpeed = 18; // Average CNG speed
+        break;
         default:
-          return `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="5.5" cy="17.5" r="3.5"/>
-              <circle cx="18.5" cy="17.5" r="3.5"/>
-              <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-              <path d="m12 17.5 1.5-5.5 2-3h-5"/>
-              <path d="M12 12l-2 3"/>
-            </svg>
-          `;
+        averageSpeed = 22;
+    }
+    
+    const timeInHours = distance / averageSpeed;
+    const timeInMinutes = Math.round(timeInHours * 60);
+    
+    if (timeInMinutes < 60) {
+      return `${timeInMinutes} min`;
+    } else {
+      const hours = Math.floor(timeInMinutes / 60);
+      const minutes = timeInMinutes % 60;
+      return `${hours}h ${minutes}m`;
+    }
+  };
+
+  // Fetch rider location every 5 seconds
+  useEffect(() => {
+    if (!rideId || !isClient) return;
+
+    const fetchRiderLocation = async () => {
+      try {
+        // Check if API URL is configured
+        const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+        if (!apiUrl) {
+          console.warn("NEXT_PUBLIC_SERVER_BASE_URL is not configured, using demo location");
+          useDemoLocation();
+          return;
+        }
+
+        const res = await fetch(
+          `${apiUrl}/api/rider/location/${rideId}`
+        );
+        
+        // Check if response is ok
+        if (!res.ok) {
+          console.warn(`API response not ok: ${res.status} ${res.statusText}`);
+          // Use demo location as fallback
+          useDemoLocation();
+          return;
+        }
+        
+        // Check if response is JSON
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.warn("Response is not JSON, got:", contentType);
+          // Use demo location as fallback
+          useDemoLocation();
+          return;
+        }
+        
+        const data = await res.json();
+        if (data.location && data.location.coordinates) {
+          // MongoDB stores as [lng, lat], Leaflet needs [lat, lng]
+          const newLocation = {
+            lat: data.location.coordinates[1],
+            lng: data.location.coordinates[0],
+          };
+          setRiderLocation(newLocation);
+
+          // Calculate distance and ETA if pickup location is available
+          if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
+            const dist = calculateDistance(
+              newLocation.lat, 
+              newLocation.lng, 
+              pickupLocation.lat, 
+              pickupLocation.lng
+            );
+            setDistance(dist);
+            setEta(calculateETA(dist));
+          }
+        } else {
+          // No location data, use demo location
+          useDemoLocation();
+        }
+      } catch (err) {
+        console.error("Error fetching rider location:", err);
+        // If it's a JSON parsing error, show more details
+        if (err instanceof SyntaxError) {
+          console.error("JSON parsing failed - server might be returning HTML instead of JSON");
+        }
+        // Use demo location as fallback
+        useDemoLocation();
       }
     };
 
-    return L.divIcon({
-      className: "custom-marker",
-      html: `
-        <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 0 0 4px white; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">
-          ${getVehicleSVG()}
-        </div>
-        <style>
-          @keyframes pulse {
-            0%, 100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: .8;
-            }
-          }
-        </style>
-      `,
-      iconSize: [48, 48],
-      iconAnchor: [24, 48],
-    });
-  };
+    // Demo location fallback function
+    const useDemoLocation = () => {
+      console.log('Using demo location - current riderLocation:', riderLocation);
+      console.log('Pickup location for demo:', pickupLocation);
+      
+      if (!riderLocation) {
+        // Use pickup location with slight offset for demo
+        const demoLocation = pickupLocation ? {
+          lat: pickupLocation.lat + (Math.random() - 0.5) * 0.01,
+          lng: pickupLocation.lng + (Math.random() - 0.5) * 0.01
+        } : {
+          lat: 23.8103 + (Math.random() - 0.5) * 0.01,
+          lng: 90.4125 + (Math.random() - 0.5) * 0.01
+        };
+        
+        console.log('Generated demo location:', demoLocation);
+        setRiderLocation(demoLocation);
+        
+        // Calculate distance and ETA if pickup location is available
+        if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
+          const dist = calculateDistance(
+            demoLocation.lat, 
+            demoLocation.lng, 
+            pickupLocation.lat, 
+            pickupLocation.lng
+          );
+          console.log('Calculated distance:', dist, 'km');
+          setDistance(dist);
+          setEta(calculateETA(dist));
+        }
+      } else {
+        console.log('Rider location already exists, not setting demo location');
+      }
+    };
+
+    // প্রথমবার call করা
+    fetchRiderLocation();
+
+    // প্রতি 5 সেকেন্ডে একবার call হবে
+    const interval = setInterval(fetchRiderLocation, 5000);
+
+    // cleanup
+    return () => clearInterval(interval);
+  }, [rideId, isClient, pickupLocation, vehicleType]);
+
 
   if (!isClient) {
     return (
@@ -156,10 +220,46 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Bike" }) => {
     );
   }
 
+  // Smart map center calculation to show all markers
+  const calculateMapCenter = () => {
+    const locations = [];
+    
+    if (riderLocation) {
+      locations.push([riderLocation.lat, riderLocation.lng]);
+    }
+    if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
+      locations.push([pickupLocation.lat, pickupLocation.lng]);
+    }
+    if (dropLocation && dropLocation.lat && dropLocation.lng) {
+      locations.push([dropLocation.lat, dropLocation.lng]);
+    }
+    
+    if (locations.length === 0) {
+      return [23.8103, 90.4125]; // Default Dhaka
+    } else if (locations.length === 1) {
+      return locations[0];
+    } else {
+      // Calculate center of all locations
+      const avgLat = locations.reduce((sum, loc) => sum + loc[0], 0) / locations.length;
+      const avgLng = locations.reduce((sum, loc) => sum + loc[1], 0) / locations.length;
+      return [avgLat, avgLng];
+    }
+  };
+
+  const mapCenter = calculateMapCenter();
+  
+  console.log('Map center calculation:', {
+    riderLocation,
+    pickupLocation,
+    dropLocation,
+    mapCenter,
+    locationsCount: [riderLocation, pickupLocation, dropLocation].filter(Boolean).length
+  });
+
   return (
     <div className="w-full h-[380px] rounded-xl overflow-hidden border border-border shadow-lg">
       <MapContainer
-        center={[riderLocation.lat, riderLocation.lng]}
+        center={mapCenter}
         zoom={15}
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
@@ -168,22 +268,66 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Bike" }) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        <Marker
-          position={[riderLocation.lat, riderLocation.lng]}
-          icon={createCustomIcon()}
-        >
-          <Popup>
-            <div className="p-2">
-              <p className="font-bold text-sm">{riderInfo?.fullName || "Rider"}</p>
-              <p className="text-xs text-gray-600">
-                {riderInfo?.vehicleType || "Bike"} - {riderInfo?.vehicleRegisterNumber || "N/A"}
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                {vehicleType === "Bike" ? "🏍️" : vehicleType === "Car" ? "🚗" : "🚕"} On the way
-              </p>
-            </div>
-          </Popup>
-        </Marker>
+        
+        {/* Rider Marker */}
+        {riderLocation && (
+          <Marker position={[riderLocation.lat, riderLocation.lng]}>
+            <Popup>
+              <div className="p-2">
+                <p className="font-bold text-sm">{riderInfo?.fullName || "Rider"}</p>
+                <p className="text-xs text-gray-600">
+                  {riderInfo?.vehicleType || vehicleType} - {riderInfo?.vehicleRegisterNumber || "N/A"}
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  {vehicleType === "Bike" ? "🏍️" : vehicleType === "Car" ? "🚗" : "🚕"} On the way
+                </p>
+                {distance && (
+                  <p className="text-xs text-blue-600 mt-1">
+                    📍 {distance.toFixed(1)} km away
+                  </p>
+                )}
+                {eta && (
+                  <p className="text-xs text-orange-600 mt-1">
+                    ⏱️ ETA: {eta}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  📍 {riderLocation.lat.toFixed(6)}, {riderLocation.lng.toFixed(6)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* Pickup Location Marker */}
+        {pickupLocation && pickupLocation.lat && pickupLocation.lng && (
+          <Marker position={[pickupLocation.lat, pickupLocation.lng]}>
+            <Popup>
+              <div className="p-2">
+                <p className="font-bold text-sm text-red-600">📍 Pickup Location</p>
+                <p className="text-xs text-gray-600">Your pickup point</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  📍 {pickupLocation.lat.toFixed(6)}, {pickupLocation.lng.toFixed(6)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* Drop Location Marker */}
+        {dropLocation && dropLocation.lat && dropLocation.lng && (
+          <Marker position={[dropLocation.lat, dropLocation.lng]}>
+            <Popup>
+              <div className="p-2">
+                <p className="font-bold text-sm text-blue-600">🎯 Drop Location</p>
+                <p className="text-xs text-gray-600">Your destination</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  📍 {dropLocation.lat.toFixed(6)}, {dropLocation.lng.toFixed(6)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
     </div>
   );

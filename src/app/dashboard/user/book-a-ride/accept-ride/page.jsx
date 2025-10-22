@@ -1,6 +1,30 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+// Simple Error Boundary component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
 import {
   Bike,
   BusFront,
@@ -46,36 +70,126 @@ const rideTypeIcon = {
   Car: Car,
 };
 
-export default function AcceptRide() {
+function AcceptRideContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [dropLocation, setDropLocation] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [urlParams, setUrlParams] = useState({});
 
-  // Extract ride details from URL query parameters
-  const pickup = searchParams.get("pickup") || "";
-  const drop = searchParams.get("drop") || "";
-  const type = searchParams.get("vehicleType") || "Bike";
-  const fare = searchParams.get("amount") || "";
-  const distance = searchParams.get("distance") || "";
-  const eta = searchParams.get("arrivalTime") || "00h:00m";
-  const rideId = searchParams.get("rideId") || "";
-  const userId = searchParams.get("userId") || "";
-  const riderId = searchParams.get("riderId") || "";
-  const riderName = searchParams.get("riderName") || "";
-  const riderEmail = searchParams.get("riderEmail") || "";
-  const vehicleType = searchParams.get("vehicleType") || "";
-  const vehicleModel = searchParams.get("vehicleModel") || "";
-  const vehicleRegisterNumber = searchParams.get("vehicleRegisterNumber") || "";
-  const completedRides = searchParams.get("completedRides") || "0";
-  const ratings = searchParams.get("ratings") || "0";
-  const baseFare = searchParams.get("baseFare") || "0";
-  const distanceFare = searchParams.get("distanceFare") || "0";
-  const timeFare = searchParams.get("timeFare") || "0";
-  const tax = searchParams.get("tax") || "0";
-  const total = searchParams.get("total") || "0";
-  const mode = searchParams.get("mode") || "auto";
-  const promo = searchParams.get("promo") || "";
+  // Parse pickup and drop locations from URL parameters
+  useEffect(() => {
+    if (!searchParams) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Create a safe copy of searchParams to avoid read-only issues
+      const params = new URLSearchParams(searchParams.toString());
+      const pickup = params.get("pickup") || "";
+      const drop = params.get("drop") || "";
+      
+      // Store all params in state to avoid repeated access
+      const allParams = {
+        pickup,
+        drop,
+        type: params.get("vehicleType") || "Bike",
+        fare: params.get("amount") || "",
+        distance: params.get("distance") || "",
+        eta: params.get("arrivalTime") || "00h:00m",
+        rideId: params.get("rideId") || "",
+        userId: params.get("userId") || "",
+        riderId: params.get("riderId") || "",
+        riderName: params.get("riderName") || "",
+        riderEmail: params.get("riderEmail") || "",
+        vehicleType: params.get("vehicleType") || "",
+        vehicleModel: params.get("vehicleModel") || "",
+        vehicleRegisterNumber: params.get("vehicleRegisterNumber") || "",
+        completedRides: params.get("completedRides") || "0",
+        ratings: params.get("ratings") || "0",
+        baseFare: params.get("baseFare") || "0",
+        distanceFare: params.get("distanceFare") || "0",
+        timeFare: params.get("timeFare") || "0",
+        tax: params.get("tax") || "0",
+        total: params.get("total") || "0",
+        mode: params.get("mode") || "auto",
+        promo: params.get("promo") || ""
+      };
+      
+      setUrlParams(allParams);
+      
+      // Parse pickup location
+      if (pickup && pickup.includes(",")) {
+        const coords = pickup.split(",");
+        if (coords.length === 2) {
+          const lat = parseFloat(coords[0]);
+          const lng = parseFloat(coords[1]);
+          if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            setPickupLocation({ lat, lng });
+          }
+        }
+      }
+      
+      // Parse drop location
+      if (drop && drop.includes(",")) {
+        const coords = drop.split(",");
+        if (coords.length === 2) {
+          const lat = parseFloat(coords[0]);
+          const lng = parseFloat(coords[1]);
+          if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            setDropLocation({ lat, lng });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing URL parameters:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchParams]);
+
+  // Early return if still loading or searchParams is not available
+  if (isLoading || !searchParams) {
+    return (
+      <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading ride details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract ride details from URL query parameters with safe fallbacks
+  const {
+    pickup = "",
+    drop = "",
+    type = "Bike",
+    fare = "",
+    distance = "",
+    eta = "00h:00m",
+    rideId = "",
+    userId = "",
+    riderId = "",
+    riderName = "",
+    riderEmail = "",
+    vehicleType = "",
+    vehicleModel = "",
+    vehicleRegisterNumber = "",
+    completedRides = "0",
+    ratings = "0",
+    baseFare = "0",
+    distanceFare = "0",
+    timeFare = "0",
+    tax = "0",
+    total = "0",
+    mode = "auto",
+    promo = ""
+  } = urlParams;
 
   // Set vehicle icon
   const VehicleIcon = rideTypeIcon[type] || Bike;
@@ -96,36 +210,41 @@ export default function AcceptRide() {
 
   // ✅ Updated Complete Ride Handler
   const handleCompleteRide = () => {
+    try {
+      const params = new URLSearchParams();
+      
+      // Add parameters one by one to avoid duplicate key issues
+      if (rideId) params.append('rideId', rideId);
+      if (userId) params.append('userId', userId);
+      if (riderId) params.append('riderId', riderId);
+      if (ratings) params.append('ratings', ratings);
+      if (riderName) params.append('riderName', riderName);
+      if (riderEmail) params.append('riderEmail', riderEmail);
+      if (pickup) params.append('pickup', pickup);
+      if (drop) params.append('drop', drop);
+      if (type) params.append('vehicleType', type);
+      if (vehicleModel) params.append('vehicleModel', vehicleModel);
+      if (vehicleRegisterNumber) params.append('vehicleRegisterNumber', vehicleRegisterNumber);
+      if (distance) params.append('distance', distance);
+      if (baseFare) params.append('baseFare', baseFare);
+      if (distanceFare) params.append('distanceFare', distanceFare);
+      if (timeFare) params.append('timeFare', timeFare);
+      if (tax) params.append('tax', tax);
+      if (total) params.append('total', total);
+      if (promo) params.append('promo', promo);
+      if (fare) params.append('fare', fare);
+      if (eta) params.append('arrivalTime', eta);
+      if (completedRides) params.append('completedRides', completedRides);
+      if (mode) params.append('mode', mode);
 
-    const params = new URLSearchParams({
-      rideId,
-      userId,
-      riderId,
-      ratings,
-      riderName,
-      riderEmail,
-      pickup,
-      drop,
-      vehicleType,
-      vehicleModel,
-      vehicleRegisterNumber,
-      distance,
-      baseFare,
-      distanceFare,
-      timeFare,
-      tax,
-      total,
-      promo,
-      fare,
-      arrivalTime: eta,
-      vehicleType: type,
-      completedRides,
-      mode,
-    });
-
-    router.push(
-      `/dashboard/user/payment?${params.toString()}`
-    );
+      router.push(
+        `http://localhost:3000/dashboard/user/payment?${params.toString()}`
+      );
+    } catch (error) {
+      console.error('Error creating URL parameters:', error);
+      // Fallback navigation without parameters
+      router.push('/dashboard/user/payment');
+    }
   };
 
   // ✅ Updated Cancel Ride Handler
@@ -289,7 +408,7 @@ export default function AcceptRide() {
 
                {/* Buttons */}
                <div className="space-y-3">
-                 <Button 
+                 <Button
                    onClick={() => setIsChatOpen(true)}
                    variant="default"
                    className="w-full h-12 text-base font-semibold"
@@ -329,6 +448,8 @@ export default function AcceptRide() {
                   rideId={rideId}
                   riderInfo={riderInfo}
                   vehicleType={type}
+                  pickupLocation={pickupLocation}
+                  dropLocation={dropLocation}
                 />
               </div>
 
@@ -396,5 +517,28 @@ export default function AcceptRide() {
         riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
       />
     </div>
+  );
+}
+
+export default function AcceptRide() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading ride details...</p>
+        </div>
+      </div>
+    }>
+      <ErrorBoundary fallback={
+        <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+          <div className="text-center">
+            <p className="text-sm text-red-500">Error loading ride details. Please try again.</p>
+          </div>
+        </div>
+      }>
+        <AcceptRideContent />
+      </ErrorBoundary>
+    </Suspense>
   );
 }
