@@ -9,7 +9,6 @@ import {
   Bike,
   Car,
   BusFront,
-  TextAlignJustify,
   Moon,
   Sun,
   LucideLogOut,
@@ -19,8 +18,9 @@ import {
   MessageSquare,
   LogIn,
   UserPlus,
+  Menu,
 } from "lucide-react";
-import defaultAvatar from '../../../Assets/default-avatar.png'
+import defaultAvatar from "../../../Assets/default-avatar.png";
 import gsap from "gsap";
 import logo from "../../../Assets/ridex-logo.webp";
 import darkLogo from "../../../Assets/logo-dark.webp";
@@ -30,6 +30,7 @@ import { useAuth } from "@/app/hooks/AuthProvider";
 import useTheme from "@/app/hooks/useTheme";
 import { useFetchData } from "@/app/hooks/useApi";
 import { toast } from "sonner";
+import LanguageToggle from "@/components/Shared/LanguageToggle";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -42,6 +43,8 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const topbarRef = useRef(null);
+  const rideByRef = useRef(null);
+  const accountRef = useRef(null);
 
   const { data } = useFetchData(
     "users",
@@ -52,9 +55,14 @@ const Navbar = () => {
 
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? "hidden" : "auto";
+    // ✅ Auto-close dropdowns if sidebar opens
+    if (sidebarOpen) {
+      setRideByOpen(false);
+      setAccountOpen(false);
+    }
   }, [sidebarOpen]);
 
-  // GSAP animation for topbar smooth show/hide
+  // ✅ Topbar scroll animation
   useEffect(() => {
     if (!user && topbarRef.current) {
       const handleScroll = () => {
@@ -73,7 +81,45 @@ const Navbar = () => {
   }, [user]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const toggleRideBy = () => setRideByOpen(!rideByOpen);
+
+  const toggleRideBy = () => {
+    // ✅ close account dropdown if open
+    if (accountOpen) setAccountOpen(false);
+    setRideByOpen((prev) => !prev);
+  };
+
+  const toggleAccount = () => {
+    // ✅ close rideby dropdown if open
+    if (rideByOpen) setRideByOpen(false);
+    setAccountOpen((prev) => !prev);
+  };
+
+  // ✅ GSAP animation for dropdowns (RideBy & Account)
+  useEffect(() => {
+    const ridePanel = rideByRef.current;
+    if (ridePanel) {
+      gsap.to(ridePanel, {
+        opacity: rideByOpen ? 1 : 0,
+        y: rideByOpen ? 0 : -10,
+        duration: 0.25,
+        pointerEvents: rideByOpen ? "auto" : "none",
+        ease: "power2.out",
+      });
+    }
+  }, [rideByOpen]);
+
+  useEffect(() => {
+    const accPanel = accountRef.current;
+    if (accPanel) {
+      gsap.to(accPanel, {
+        opacity: accountOpen ? 1 : 0,
+        y: accountOpen ? 0 : -10,
+        duration: 0.25,
+        pointerEvents: accountOpen ? "auto" : "none",
+        ease: "power2.out",
+      });
+    }
+  }, [accountOpen]);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -82,29 +128,12 @@ const Navbar = () => {
         setAccountOpen(false);
       }
     };
-    const handleClick = (e) => {
-      const ridePanel = document.getElementById("rideby-panel");
-      const rideBtn = e.target.closest('[aria-controls="rideby-panel"]');
-      const accPanel = document.getElementById("account-panel");
-      const accBtn = e.target.closest("#account-photo");
-
-      if (ridePanel && !ridePanel.contains(e.target) && !rideBtn) {
-        setRideByOpen(false);
-      }
-      if (accPanel && !accPanel.contains(e.target) && !accBtn) {
-        setAccountOpen(false);
-      }
-    };
     document.addEventListener("keydown", handleKey);
-    document.addEventListener("click", handleClick);
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.removeEventListener("click", handleClick);
-    };
+    return () => document.removeEventListener("keydown", handleKey);
   }, []);
 
   const activeStyle = (path) =>
-    pathname.startsWith(path)
+    pathname?.startsWith(path)
       ? "text-primary font-semibold"
       : "hover:text-primary transition-colors duration-300";
 
@@ -131,10 +160,9 @@ const Navbar = () => {
       {!user && (
         <div
           ref={topbarRef}
-          className={`w-full z-[95] bg-primary backdrop-blur-sm transition-all duration-500 ease-in-out`}
+          className="w-full z-[95] bg-primary backdrop-blur-sm transition-all duration-500 ease-in-out"
         >
           <div className="max-w-[1440px] mx-auto flex justify-between items-center h-10 px-4 sm:px-6 xl:px-8 text-sm">
-            {/* Left side */}
             <div className="flex items-center gap-1.5 sm:gap-4">
               <Link
                 href="/support"
@@ -152,16 +180,13 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Middle Text */}
-            <div className="text-xs sm:text-sm text-center text-white transition-opacity duration-500 ease-in-out">
+            <div className="text-xs sm:text-sm text-center text-white">
               <span className="sm:hidden">Hey there, welcome to RideX!</span>
               <span className="hidden sm:inline">
-                Hey there, welcome to RideX ride sharing platform. To start ride
-                login here!
+                Hey there, welcome to RideX ride sharing platform. To start ride login here!
               </span>
             </div>
 
-            {/* Right side */}
             <div className="flex items-center gap-1.5 sm:gap-4">
               <Link
                 href="/signIn"
@@ -184,73 +209,145 @@ const Navbar = () => {
 
       {/* ---------- MAIN NAVBAR ---------- */}
       <header
-        className={`fixed left-0 right-0 z-[90] bg-background transition-all duration-500 border-b-2 border-gray-100 dark:border-gray-700 ${user
-            ? "top-0"
-            : isScrolled
-              ? "top-0 shadow-sm"
-              : "mt-0"
-          }`}
+        className={`fixed left-0 right-0 z-[90] bg-background transition-all duration-500 border-b border-border ${
+          user ? "top-0" : isScrolled ? "top-0 shadow-sm" : "mt-0"
+        }`}
       >
-        <div className="max-w-[1440px] mx-auto flex justify-between items-center h-20 sm:h-24 px-3 sm:px-6 xl:px-8 relative">
-          {/* Left section - Logo + Navigation */}
+        <div className="max-w-[1440px] mx-auto flex justify-between items-center h-20 sm:h-24 px-3 sm:px-6 xl:px-8">
+          {/* Left: Logo */}
           <div className="flex items-center gap-4">
             <Link href="/" className="dark:hidden">
-              <Image
-                src={logo}
-                alt="RideX Logo"
-                width={110}
-                height={44}
-                className="max-sm:w-[110px]"
-              />
+              <Image src={logo} alt="RideX Logo" width={110} height={44} />
             </Link>
             <Link href="/" className="hidden dark:block">
-              <Image
-                src={darkLogo}
-                alt="RideX Logo"
-                width={110}
-                height={44}
-                className="max-sm:w-[110px]"
-              />
+              <Image src={darkLogo} alt="RideX Logo" width={110} height={44} />
+            </Link>
+          </div>
+
+          {/* Center: Navigation */}
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 text-sm xl:text-lg font-semibold uppercase tracking-wide">
+            <Link href="/" className={activeStyle("/")}>
+              Home
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-7 text-lg font-semibold ml-6">
-              {/* Ride By dropdown */}
-              <div className="relative h-full flex items-center">
-                <div className="relative">
-                  <button
-                    onClick={toggleRideBy}
-                    aria-expanded={rideByOpen}
-                    aria-controls="rideby-panel"
-                    className="flex items-center py-6 cursor-pointer"
-                  >
-                    Ride By
-                    <ChevronDown
-                      className={`text-xs transition-transform duration-200 ${rideByOpen ? "rotate-180" : ""
-                        }`}
-                    />
-                  </button>
-
-                  <div
-                    id="rideby-panel"
-                    role="menu"
-                    className={`absolute top-full right-0 mt-3 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${rideByOpen
-                        ? "opacity-100 translate-y-0 pointer-events-auto"
-                        : "opacity-0 -translate-y-3 pointer-events-none"
+            {/* Ride By dropdown */}
+            <div className="relative h-full flex items-center cursor-pointer">
+              <button
+                onClick={toggleRideBy}
+                aria-expanded={rideByOpen}
+                aria-controls="rideby-panel"
+                className="flex items-center py-6 -mx-1 cursor-pointer uppercase"
+              >
+                <p className="pr-1">Ride By</p>
+                <ChevronDown
+                  className={`text-xs transition-transform duration-200 ${
+                    rideByOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <div
+                id="rideby-panel"
+                ref={rideByRef}
+                role="menu"
+                className="absolute top-full right-0 mt-[11px] w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden origin-top z-[80]" // ✅ reduced z-index
+                style={{ opacity: 0, pointerEvents: "none" }}
+              >
+                {["/ride-bike", "/ride-cng", "/ride-car"].map((path, i) => {
+                  const icons = [Bike, BusFront, Car];
+                  const labels = ["Bike", "CNG", "Car"];
+                  const Icon = icons[i];
+                  return (
+                    <Link
+                      key={path}
+                      href={path}
+                      className={`flex items-center gap-3 justify-between w-full px-6 py-3 transition-all duration-300 ${
+                        pathname.startsWith(path)
+                          ? "font-semibold bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
                       }`}
-                  >
-                    {["/ride-bike", "/ride-cng", "/ride-car"].map((path, i) => {
-                      const icons = [Bike, BusFront, Car];
-                      const labels = ["Bike", "CNG", "Car"];
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="text-primary text-xl border p-0.5 rounded" />
+                        <span className="text-sm uppercase">{labels[i]}</span>
+                      </div>
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: "var(--primary)" }}
+                      />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Link href="/offers" className={activeStyle("/offers")}>
+              Offers
+            </Link>
+            <Link href="/contact" className={activeStyle("/contact")}>
+              Contact
+            </Link>
+            <Link href="/about" className={activeStyle("/about")}>
+              About
+            </Link>
+            <Link href="/blogs" className={activeStyle("/blogs")}>
+              Blogs
+            </Link>
+            {user?.role === "user" && (
+              <Link href="/become-rider" className={activeStyle("/become-rider")}>
+                Become a Rider
+              </Link>
+            )}
+          </nav>
+
+          {/* Right: Theme + Language + User + Menu */}
+          <div className="flex items-center gap-0.5 sm:gap-2 lg:gap-1 xl:gap-2">
+            <LanguageToggle />
+
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="relative w-8.5 h-8.5 sm:w-11 lg:w-9 xl:w-11 sm:h-11 lg:h-9 xl:h-11 flex items-center justify-center rounded-full transition-all duration-300 border border-border bg-primary text-white hover:bg-primary/10 hover:text-primary cursor-pointer"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
+              ) : (
+                <Moon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
+              )}
+            </button>
+
+            {user && (
+              <div className="relative h-full flex items-center">
+                <Image
+                  src={data?.photoUrl || defaultAvatar}
+                  height={36}
+                  width={36}
+                  alt="User Photo"
+                  id="account-photo"
+                  className="w-9 h-9 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12 border border-border rounded-full object-cover cursor-pointer"
+                  onClick={toggleAccount}
+                />
+                <div
+                  id="account-panel"
+                  ref={accountRef}
+                  role="menu"
+                  className="absolute top-full right-0 mt-[23px] sm:mt-[25px] w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden origin-top z-[80]" // ✅ reduced z-index
+                  style={{ opacity: 0, pointerEvents: "none" }}
+                >
+                  {["/dashboard/my-profile", `/dashboard/${user?.role}`].map(
+                    (path, i) => {
+                      const icons = [User, ChartColumnDecreasing];
+                      const labels = ["Profile", "Dashboard"];
                       const Icon = icons[i];
                       return (
                         <Link
                           key={path}
                           href={path}
-                          className={`flex items-center gap-3 justify-between w-full rounded-md px-6 py-3 transition-all duration-300 transform ${pathname.startsWith(path)
-                              ? "font-semibold bg-primary/10 text-primary scale-[0.98] my-0.5"
-                              : "text-muted-foreground hover:bg-primary/10 hover:text-primary hover:scale-[0.98] my-0.5"
-                            }`}
-                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center gap-3 justify-between px-6 py-3 ${
+                            pathname.startsWith(path)
+                              ? "font-semibold bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                          }`}
                         >
                           <div className="flex items-center gap-3">
                             <Icon className="text-primary text-xl border p-0.5 rounded" />
@@ -264,93 +361,13 @@ const Navbar = () => {
                           />
                         </Link>
                       );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <Link href="/offers" className={activeStyle("/offers")}>
-                Offers
-              </Link>
-              <Link href="/contact" className={activeStyle("/contact")}>
-                Contact
-              </Link>
-              <Link href="/about" className={activeStyle("/about")}>
-                About
-              </Link>
-
-              {user?.role === "user" && (
-                <Link
-                  href="/become-rider"
-                  className={activeStyle("/become-rider")}
-                >
-                  Become a Rider
-                </Link>
-              )}
-            </nav>
-          </div>
-
-          {/* Right section - Theme Toggle + User */}
-          <div className="flex items-center gap-2 mr-14 sm:mr-16">
-            <button
-              onClick={toggleTheme}
-              className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full"
-            >
-              {theme === "dark" ? <Sun /> : <Moon />}
-            </button>
-
-            {user && (
-              <div className="relative h-full flex items-center">
-                <Image
-                  src={data?.photoUrl || defaultAvatar}
-                  height={36}
-                  width={36}
-                  alt="User Photo"
-                  id="account-photo"
-                  className="w-9 h-9 sm:w-10 sm:h-10 border border-border rounded-full object-cover cursor-pointer"
-                  onClick={() => setAccountOpen((prev) => !prev)}
-                />
-                <div
-                  id="account-panel"
-                  role="menu"
-                  className={`absolute top-full right-0 mt-5.5 w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden transform transition-all duration-250 origin-top z-[9999] ${accountOpen
-                      ? "opacity-100 translate-y-0 pointer-events-auto"
-                      : "opacity-0 -translate-y-3 pointer-events-none"
-                    }`}
-                >
-                  {["/dashboard/my-profile", `/dashboard/${user?.role}`].map((path, i) => {
-                    const icons = [User, ChartColumnDecreasing];
-                    const labels = ["Profile", "Dashboard"];
-                    const Icon = icons[i];
-                    const active = pathname.startsWith(path);
-                    return (
-                      <Link
-                        key={path}
-                        href={path}
-                        className={`flex items-center gap-3 justify-between w-full rounded-md px-6 py-3 transition-all duration-300 transform ${active
-                            ? "font-semibold bg-primary/10 text-primary scale-[0.98] my-0.5"
-                            : "text-muted-foreground hover:bg-primary/10 hover:text-primary hover:scale-[0.98] my-0.5"
-                          }`}
-                        onClick={() => setSidebarOpen(false)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="text-primary text-xl border p-0.5 rounded" />
-                          <span className="text-sm uppercase">
-                            {labels[i]}
-                          </span>
-                        </div>
-                        <span
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: "var(--primary)" }}
-                        />
-                      </Link>
-                    );
-                  })}
+                    }
+                  )}
 
                   <Button
                     onClick={handleLogout}
                     variant="destructive"
-                    className="flex items-center gap-3 justify-start w-auto rounded-md px-10 py-5 mt-0.5 mb-1 mx-1"
+                    className="flex items-center gap-3 justify-start px-10 py-5 m-1 rounded-md"
                   >
                     <LucideLogOut className="text-white text-xl border p-0.5 rounded" />
                     <span className="text-sm uppercase">Logout</span>
@@ -358,22 +375,18 @@ const Navbar = () => {
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Mobile menu button */}
-          <button
-            aria-label="Open menu"
-            onClick={toggleSidebar}
-            className="absolute right-0 top-6 sm:top-8 bottom-0 bg-primary w-14 h-20 sm:w-18 sm:h-28 flex flex-col justify-between items-center cursor-pointer"
-          >
-            <div className="h-20 w-full flex flex-col justify-center items-center">
-              <TextAlignJustify className="text-white w-6 h-6 sm:w-8 sm:h-8" />
-            </div>
-            <div className="bg-foreground/60 dark:bg-foreground h-2 sm:h-3 w-full" />
-          </button>
+            {/* Hamburger */}
+            <button
+              aria-label="Open menu"
+              onClick={toggleSidebar}
+              className="flex items-center justify-center rounded-full bg-foreground text-background w-14 sm:w-22 lg:w-16 xl:w-22 h-10 sm:h-12 lg:h-11 xl:h-12 ml-1 sm:ml-3 lg:ml-2 xl:ml-3 hover:scale-105 active:scale-95 transition-transform duration-200"
+            >
+              <Menu className="w-6 h-5 sm:w-8 sm:h-6" />
+            </button>
+          </div>
         </div>
 
-        {/* Sidebar */}
         <Sidebar
           sidebarOpen={sidebarOpen}
           toggleSidebar={toggleSidebar}

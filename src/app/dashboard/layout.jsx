@@ -17,7 +17,7 @@ import { useFetchData } from "../hooks/useApi";
 import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
-import RiderStatus from "@/components/Shared/Riders/RiderStatus";
+import RiderStatus from "@/components/Shared/RiderStatus";
 import { useLogout } from "../hooks/SignOutButton";
 
 export default function DashboardLayout({ children }) {
@@ -51,7 +51,7 @@ const handleLogout = useLogout();
   return (
     <ProtectedRoute>
       {/* Container with horizontal overflow hidden */}
-      <div className="flex h-auto bg-background text-foreground overflow-x-hidden">
+      <div className="flex min-h-screen bg-background text-foreground overflow-x-hidden">
         {/* Mobile overlay */}
         <div
           className={`fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden ${
@@ -147,9 +147,9 @@ const handleLogout = useLogout();
         </aside>
 
         {/* Main content area */}
-        <div className={`flex-1 flex flex-col ${sidebarOpen ? "lg:ml-64" : "ml-0"} ${sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"}`}>
+        <div className="flex-1 flex flex-col">
           {/* Topbar */}
-          <header className="flex items-center justify-between px-6 py-3 border-b border-border bg-topbar-bg sticky top-0 z-20">
+          <header className={`flex items-center justify-between px-6 py-3 border-b border-border bg-background text-foreground fixed top-0 w-full ${sidebarCollapsed ? "lg:w-[calc(100%-80px)] lg:ml-20" : "lg:w-[calc(100%-256px)] lg:ml-64"} z-20`}>
             <div className="flex items-center gap-4">
               <button onClick={toggleSidebar} className="p-2.5 rounded-full bg-muted hover:bg-accent transition cursor-pointer">
                 <Menu className="w-5 h-5 text-foreground" />
@@ -187,7 +187,7 @@ const handleLogout = useLogout();
           </header>
 
           {/* Scrollable main content */}
-          <main className="flex-1 overflow-y-auto scrollbar-hidden px-6 py-6">
+          <main className={`flex-1 scrollbar-hidden p-6 mt-10 ${sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"}`}>
             {children}
           </main>
         </div>
