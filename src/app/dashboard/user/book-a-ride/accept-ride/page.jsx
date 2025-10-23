@@ -77,6 +77,7 @@ function AcceptRideContent() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropLocation, setDropLocation] = useState(null);
+  const [liveEta, setLiveEta] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [urlParams, setUrlParams] = useState({});
 
@@ -92,6 +93,7 @@ function AcceptRideContent() {
       const params = new URLSearchParams(searchParams.toString());
       const pickup = params.get("pickup") || "";
       const drop = params.get("drop") || "";
+      
       
       
       // Store all params in state to avoid repeated access
@@ -238,9 +240,7 @@ function AcceptRideContent() {
       if (completedRides) params.append('completedRides', completedRides);
       if (mode) params.append('mode', mode);
 
-      router.push(
-        `http://localhost:3000/dashboard/user/payment?${params.toString()}`
-      );
+      router.push(`/dashboard/user/payment?${params.toString()}`);
     } catch (error) {
       console.error('Error creating URL parameters:', error);
       // Fallback navigation without parameters
@@ -267,9 +267,11 @@ function AcceptRideContent() {
                   <CheckCircle className="w-8 h-8 text-background" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Your {type} is on the way</h2>
+                  <h2 className="text-xl font-bold">
+                    {liveEta ? `Your captain is on the way to pickup (${liveEta})` : eta ? `Your captain is on the way to pickup (${eta})` : `Your ${type} is on the way`}
+                  </h2>
                   <p className="text-background text-sm">
-                    Track your ride in real-time
+                    {liveEta || eta ? "Captain will reach your pickup location soon" : "Track your ride in real-time"}
                   </p>
                 </div>
               </div>
@@ -281,7 +283,7 @@ function AcceptRideContent() {
                   className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-3 py-1"
                 >
                   <Clock className="w-3 h-3 mr-1" />
-                  {eta}
+                  {liveEta || eta}
                 </Badge>
                 <Badge
                   variant="secondary"
@@ -364,7 +366,7 @@ function AcceptRideContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1">
+                <div className="grid grid-cols-1 space-y-3">
                   <h5 className="my-2 text-sm font-semibold text-muted-foreground uppercase">
                     Vehicle Information
                   </h5>
@@ -445,13 +447,14 @@ function AcceptRideContent() {
                 <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
                   Live Tracking
                 </h5>
-                <LiveTrackingMap
-                  rideId={rideId}
-                  riderInfo={riderInfo}
-                  vehicleType={type}
-                  pickupLocation={pickupLocation}
-                  dropLocation={dropLocation}
-                />
+                  <LiveTrackingMap
+                    rideId={rideId}
+                    riderInfo={riderInfo}
+                    vehicleType={type}
+                    pickupLocation={pickupLocation}
+                    dropLocation={dropLocation}
+                    onEtaUpdate={setLiveEta}
+                  />
               </div>
 
               {/* Ride Details */}
