@@ -93,6 +93,7 @@ function AcceptRideContent() {
       const pickup = params.get("pickup") || "";
       const drop = params.get("drop") || "";
       
+      
       // Store all params in state to avoid repeated access
       const allParams = {
         pickup,

@@ -86,14 +86,35 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
       return;
     }
 
-    // Wait for map to be fully initialized
-    if (!map.getContainer() || !map.getContainer().parentNode) {
+    // Wait for map to be fully initialized with better checks
+    const isMapReady = () => {
+      try {
+        if (!map) return false;
+        if (!map.getContainer) return false;
+        
+        const container = map.getContainer();
+        if (!container) return false;
+        if (!container.parentNode) return false;
+        if (typeof container.parentNode.appendChild !== 'function') return false;
+        if (!map._loaded) return false;
+        
+        // Additional check for DOM readiness
+        if (!document.body.contains(container)) return false;
+        
+        return true;
+      } catch (error) {
+        console.warn('Map readiness check failed:', error);
+        return false;
+      }
+    };
+
+    if (!isMapReady()) {
       console.log('Map container not ready, retrying...');
       const timeoutId = setTimeout(() => {
-        if (map.getContainer() && map.getContainer().parentNode) {
+        if (isMapReady()) {
           setPolyline(prev => prev); // Trigger re-render
         }
-      }, 100);
+      }, 200); // Increased delay
       return () => clearTimeout(timeoutId);
     }
 
@@ -161,7 +182,7 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
         const timeoutId = setTimeout(() => {
           console.log('OSRM request timeout, aborting...');
           controller.abort();
-        }, 5000); // 5 second timeout (reduced from 8)
+        }, 3000); // 3 second timeout (reduced from 5)
         
         let response;
         try {
@@ -180,10 +201,14 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
           clearTimeout(timeoutId);
           if (fetchError.name === 'AbortError') {
             console.warn('OSRM request was aborted due to timeout');
-            throw new Error('OSRM request timeout');
+            // Don't throw error, just log and continue to GraphHopper
+            console.log('Continuing to GraphHopper fallback...');
+            return;
           } else {
             console.warn('OSRM fetch error:', fetchError.message);
-            throw fetchError;
+            // Don't throw error, just log and continue to GraphHopper
+            console.log('Continuing to GraphHopper fallback...');
+            return;
           }
         }
 
@@ -239,19 +264,38 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
 
                     console.log('Polyline object created:', !!newPolyline, newPolyline);
 
-                    if (newPolyline && typeof newPolyline.addTo === 'function' && map && map.getContainer()) {
+                    if (newPolyline && typeof newPolyline.addTo === 'function' && map) {
                       try {
-                        // Ensure map is ready before adding polyline
-                        if (map.getContainer() && map.getContainer().parentNode) {
-                          newPolyline.addTo(map);
-                          setPolyline(newPolyline);
-                          console.log('Street-following polyline created successfully');
-                          return;
+                        // Double-check map readiness before adding polyline
+                        if (isMapReady()) {
+                          // Additional safety check with try-catch around addTo
+                          try {
+                            newPolyline.addTo(map);
+                            setPolyline(newPolyline);
+                            console.log('Street-following polyline created successfully');
+                            return;
+                          } catch (addToError) {
+                            console.warn('addTo failed, retrying after delay:', addToError);
+                            // Retry after a short delay
+                            setTimeout(() => {
+                              if (isMapReady()) {
+                                try {
+                                  newPolyline.addTo(map);
+                                  setPolyline(newPolyline);
+                                  console.log('Street-following polyline created on retry');
+                                } catch (retryError) {
+                                  console.warn('Retry failed:', retryError);
+                                  // Don't throw, just log and continue
+                                }
+                              }
+                            }, 1000); // Increased delay
+                          }
                         } else {
-                          console.warn('Map container not ready for polyline addition');
+                          console.warn('Map not ready for polyline addition');
                         }
                       } catch (addError) {
                         console.error('Error adding polyline to map:', addError);
+                        // Don't throw error, just log it
                       }
                     } else {
                       console.error('Failed to create polyline or map is not available', {
@@ -284,7 +328,7 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
             const ghTimeoutId = setTimeout(() => {
               console.log('GraphHopper request timeout, aborting...');
               ghController.abort();
-            }, 5000); // 5 second timeout for GraphHopper
+            }, 3000); // 3 second timeout for GraphHopper
             
             let ghResponse;
             try {
@@ -301,9 +345,14 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
               clearTimeout(ghTimeoutId);
               if (ghFetchError.name === 'AbortError') {
                 console.warn('GraphHopper request was aborted due to timeout');
-                throw new Error('GraphHopper request timeout');
+                // Don't throw error, just log and continue
+                console.log('Both OSRM and GraphHopper failed - no polyline will be shown');
+                return;
               } else {
-                throw ghFetchError;
+                console.warn('GraphHopper fetch error:', ghFetchError.message);
+                // Don't throw error, just log and continue
+                console.log('Both OSRM and GraphHopper failed - no polyline will be shown');
+                return;
               }
             }
             
@@ -331,18 +380,37 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
                         }
                       );
 
-                      if (newPolyline && map && map.getContainer()) {
+                      if (newPolyline && map) {
                         try {
-                          if (map.getContainer() && map.getContainer().parentNode) {
-                            newPolyline.addTo(map);
-                            setPolyline(newPolyline);
-                            console.log('GraphHopper route created successfully');
-                            return;
+                          // Use the same map readiness check
+                          if (isMapReady()) {
+                            try {
+                              newPolyline.addTo(map);
+                              setPolyline(newPolyline);
+                              console.log('GraphHopper route created successfully');
+                              return;
+                            } catch (addToError) {
+                              console.warn('GraphHopper addTo failed, retrying after delay:', addToError);
+                              // Retry after a short delay
+                              setTimeout(() => {
+                                if (isMapReady()) {
+                                  try {
+                                    newPolyline.addTo(map);
+                                    setPolyline(newPolyline);
+                                    console.log('GraphHopper polyline created on retry');
+                                  } catch (retryError) {
+                                    console.warn('GraphHopper retry failed:', retryError);
+                                    // Don't throw, just log and continue
+                                  }
+                                }
+                              }, 1000); // Increased delay
+                            }
                           } else {
-                            console.warn('Map container not ready for GraphHopper polyline addition');
+                            console.warn('Map not ready for GraphHopper polyline addition');
                           }
                         } catch (addError) {
                           console.error('Error adding GraphHopper polyline to map:', addError);
+                          // Don't throw error, just log it
                         }
                       } else {
                         console.error('Failed to create GraphHopper polyline or map is not available');
@@ -584,6 +652,7 @@ const RideMap = ({
   const [center, setCenter] = useState([23.8103, 90.4125]);
   const [zoom, setZoom] = useState(12);
   const [error, setError] = useState(null);
+  const [mapError, setMapError] = useState(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -746,13 +815,23 @@ const RideMap = ({
   console.log('Parsed coords - pickup:', parsedPickupCoords, 'drop:', parsedDropCoords);
 
   // Error boundary
-  if (error) {
+  if (error || mapError) {
     return (
       <div className="w-full h-full bg-gray-200 flex items-center justify-center">
         <div className="text-center">
           <MapPin className="w-8 h-8 text-red-400 mx-auto mb-2" />
           <p className="text-sm text-red-500">Map Error</p>
           <p className="text-xs text-gray-500 mt-1">Please refresh the page</p>
+          <button 
+            onClick={() => {
+              setError(null);
+              setMapError(null);
+              window.location.reload();
+            }}
+            className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -837,6 +916,7 @@ const RideMap = ({
       `}</style>
       
       <MapContainer
+        key={`map-${center[0]}-${center[1]}-${zoom}`}
         center={center}
         zoom={zoom}
         zoomControl={false} // disable default zoom control
@@ -905,13 +985,23 @@ const RideMap = ({
   );
   } catch (renderError) {
     console.error('Error rendering map:', renderError);
-    setError(renderError);
+    setMapError(renderError);
     return (
       <div className="w-full h-full bg-gray-200 flex items-center justify-center">
         <div className="text-center">
           <MapPin className="w-8 h-8 text-red-400 mx-auto mb-2" />
-          <p className="text-sm text-red-500">Map Error</p>
+          <p className="text-sm text-red-500">Map Rendering Error</p>
           <p className="text-xs text-gray-500 mt-1">Please refresh the page</p>
+          <button 
+            onClick={() => {
+              setError(null);
+              setMapError(null);
+              window.location.reload();
+            }}
+            className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
