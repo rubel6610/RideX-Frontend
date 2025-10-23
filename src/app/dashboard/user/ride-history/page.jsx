@@ -69,15 +69,32 @@ const statusBadge = (status) => {
 };
 
 // Function to convert coordinates to real location (via backend proxy)
+// Optimized with caching to avoid redundant API calls
+const locationCache = new Map();
+
 const fetchLocationName = async (coordinates) => {
   if (!coordinates) return "Unknown location";
   const [lon, lat] = coordinates;
+  
+  // Create a cache key based on coordinates (rounded to reduce cache misses)
+  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  
+  // Return cached result if available
+  if (locationCache.has(cacheKey)) {
+    return locationCache.get(cacheKey);
+  }
+  
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
     );
     const data = await response.json();
-    return data.display_name || "Unknown location";
+    const displayName = data.display_name || "Unknown location";
+    
+    // Cache the result
+    locationCache.set(cacheKey, displayName);
+    
+    return displayName;
   } catch (error) {
     console.error("Error fetching location:", error);
     return "Unknown location";
@@ -96,7 +113,6 @@ export default function RideHistoryPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedDate, setSelectedDate] = useState(null);
-  const [loading, setLoading] = useState(true);       // loading state for fetching & processing
   const [processing, setProcessing] = useState(true);
 
   const { data: ridesData = [], isLoading } = useFetchData("rides", "/rides", null);
@@ -112,7 +128,6 @@ export default function RideHistoryPage() {
       if (lastSignatureRef.current !== "__empty__") {
         lastSignatureRef.current = "__empty__";
         setRides([]);
-        setLoading(false);
         setProcessing(false);
       }
       return;
@@ -126,19 +141,30 @@ export default function RideHistoryPage() {
 
     const enrich = async () => {
       try {
-        const ridesWithLocations = await Promise.all(
-          ridesData.map(async (ride) => {
-            const pickupName = await fetchLocationName(ride.pickup?.coordinates);
-            const dropName   = await fetchLocationName(ride.drop?.coordinates);
-            return { ...ride, pickupName, dropName };
-          })
-        );
-        setRides(ridesWithLocations);
+        setProcessing(true);
+        
+        // Batch process rides with limited concurrency to avoid overwhelming the API
+        const BATCH_SIZE = 5; // Process 5 rides at a time
+        const ridesWithLocations = [];
+        
+        for (let i = 0; i < ridesData.length; i += BATCH_SIZE) {
+          const batch = ridesData.slice(i, i + BATCH_SIZE);
+          const enrichedBatch = await Promise.all(
+            batch.map(async (ride) => {
+              const pickupName = await fetchLocationName(ride.pickup?.coordinates);
+              const dropName = await fetchLocationName(ride.drop?.coordinates);
+              return { ...ride, pickupName, dropName };
+            })
+          );
+          ridesWithLocations.push(...enrichedBatch);
+          
+          // Update UI progressively as batches complete
+          setRides([...ridesWithLocations]);
+        }
       } catch (e) {
         console.error("Failed to enrich rides:", e);
         setRides(ridesData);
       } finally {
-        setLoading(false);
         setProcessing(false);
       }
     };
@@ -165,7 +191,7 @@ export default function RideHistoryPage() {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const isDataReady = !loading && !processing;
+  const isDataReady = !isLoading && !processing;
 
   return (
     <TooltipProvider>

@@ -1,67 +1,23 @@
 "use client";
 
 import { useAuth } from "@/app/hooks/AuthProvider";
-import { useState, useEffect } from "react";
+import { da } from "date-fns/locale";
+import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function PerformanceStats() {
   const { user } = useAuth();
-
-  const [performance, setPerformance] = useState({
-    rating: 0,
-    cancelledRate: 0,
-    acceptanceRate: 0,
-    completionRate: 0,
-    totalEarnings: 0,
-    completedRides: 0,
-    pendingRides: 0,
-    totalRideRequests: 0,
-    totalReviews: 0,
-    trend: [0, 0, 0, 0, 0, 0, 0],
-    paymentBreakdown: {
-      completed: 0,
-      pending: 0,
-      failed: 0,
-      cancelled: 0
-    },
-    rideBreakdown: {
-      accepted: 0,
-      completed: 0,
-      rejected: 0,
-      cancelled: 0,
-      pending: 0
-    }
-  });
-  const [loading, setLoading] = useState(true);
+  // console.log(user?.id);
+  const [allRiders, setAllRiders] = useState([]);
   const [error, setError] = useState(null);
 
-  // Fetch rider performance statistics
-  useEffect(() => {
-    const fetchPerformanceStats = async () => {
-      if (!user?.id) return;
-      
-      try {
-        setLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/payment/rider-stats/${user.id}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch performance statistics');
-        }
-        
-        const data = await response.json();
-        setPerformance(data);
-      
-      } catch (err) {
-        console.error('Error fetching performance stats:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchPerformanceStats();
-  }, [user?.id]);
-
+  const [performance] = useState({
+    rating: 4.5,
+    cancelledRate: 8,
+    acceptanceRate: 92,
+    trend: [5, 4, 4.5, 4, 4.8, 5, 4.7],
+  });
   const chartData = [
     { week: "Week 1", rating: performance.trend[0] },
     { week: "Week 2", rating: performance.trend[1] },
@@ -72,13 +28,33 @@ export default function PerformanceStats() {
     { week: "Week 7", rating: performance.trend[6] },
   ];
 
+  useEffect(() => {
+    const fetchRiders = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
+        const data = await res.json();
+
+        // server থেকে আসা riders array ধরে রাখা
+        setAllRiders(Array.isArray(data.riders) ? data.riders : []);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchRiders();
+  }, []);
+
+  const matchedRider = allRiders.find(rider => rider.userId === user?.id);
+  console.log("Matched Rider:", matchedRider);
+
+  const reviewOutOfFive = matchedRider?.reviews / 13;
+  const formattedReview = reviewOutOfFive?.toFixed(1);
+  console.log(formattedReview);
+
   const stats = [
-    { icon: "⭐", title: "Rating", value: `${performance.rating}/5`, subtitle: `${performance.totalReviews} reviews` },
-    { icon: "❌", title: "Cancellation Rate", value: `${performance.cancelledRate}%`, subtitle: "Rides cancelled/rejected" },
-    { icon: "✅", title: "Acceptance Rate", value: `${performance.acceptanceRate}%`, subtitle: "Rides accepted" },
-    { icon: "🎯", title: "Completion Rate", value: `${performance.completionRate}%`, subtitle: "Rides completed" },
-    { icon: "💰", title: "Total Earnings", value: `${performance.totalEarnings.toFixed(2)} BDT`, subtitle: "From completed rides" },
-    { icon: "🚗", title: "Total Rides", value: performance.totalRideRequests, subtitle: "All ride requests" },
+    { icon: "⭐", title: "Rating", value: `${formattedReview}/5` },
+    { icon: "❌", title: "Cancellation Rate", value: `${performance.cancelledRate}%` },
+    { icon: "✅", title: "Acceptance Rate", value: `${performance.acceptanceRate}%` },
   ];
 
   // Loading and error states handling
