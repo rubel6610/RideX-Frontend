@@ -5,15 +5,14 @@ import { useAuth } from "@/app/hooks/AuthProvider";
 
 export default function OngoingRidePage() {
 
-
-    // Passenger Modal state
-    const [showPassenger, setShowPassenger] = useState(false);
     const { user } = useAuth();
     const [rideData, setRideData] = useState(null);
     const [users, setusers] = useState(null);
     const [currentRider, setCurrentRider] = useState(null);
     const [error, setError] = useState(null);
+    const [locationName, setLocationName] = useState("");
     const riderId = user?.id;
+
 
     useEffect(() => {
         if (!riderId) return;
@@ -37,21 +36,24 @@ export default function OngoingRidePage() {
     const matchedRide = rideData?.find(ride => ride.riderId === currentRider) || [];
     console.log(matchedRide?.userId);
 
+    // passengger data fetch 
+    useEffect(() => {
+        if (!matchedRide?.userId) return;
 
-    // when passender info come from server side then this useeffect open 
-    // useEffect(() => {
-    //     const fetchPassenger = async () => {
-    //         try {
-    //             const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide?.userId}`);
-    //             const data = await res.json();
-    //             setusers(data)
-    //         }
-    //         catch (err) {
-    //             setError(err.message);
-    //         };
-    //     }
-    //     fetchPassenger()
-    // }, []);
+        const fetchPassenger = async () => {
+            try {
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide.userId}`
+                );
+                const data = await res.json();
+                setusers(data);
+            } catch (err) {
+                setError(err.message);
+            }
+        };
+
+        fetchPassenger();
+    }, [matchedRide?.userId]);
 
     const {
         fare,
@@ -59,53 +61,131 @@ export default function OngoingRidePage() {
         status,
         pickup,
         drop,
+        acceptedAt,
         createdAt,
+        assignedAt,
         riderInfo
     } = matchedRide;
 
+    const CurrentRideLocation = matchedRide?.drop?.coordinates;
+    const longitude = CurrentRideLocation?.[0];
+    const latitude = CurrentRideLocation?.[1];
+    console.log(longitude, latitude);
+
+    const fetchLocationName = async (lat, lon) => {
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+            );
+            const data = await res.json();
+            return data.display_name || "Location not found";
+        } catch (error) {
+            console.error(error);
+            return "Location not found";
+        }
+    };
+
+    useEffect(() => {
+        const CurrentRideLocation = matchedRide?.drop?.coordinates;
+        const longitude = CurrentRideLocation?.[0];
+        const latitude = CurrentRideLocation?.[1];
+
+        if (longitude !== undefined && latitude !== undefined) {
+            const getLocation = async () => {
+                const name = await fetchLocationName(latitude, longitude);
+                setLocationName(name);
+            };
+            getLocation();
+        }
+    }, [matchedRide]);
+
     if (error) return <p>Error: {error}</p>;
-    if (!rideData) return <p>No ride found</p>;
-    if (!matchedRide) return <p>No ride found</p>;
+
+    if (!matchedRide || !rideData) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-24 h-24 mb-6 text-muted-foreground"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 17v-6h6v6m2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h5l2 2h5a2 2 0 012 2v10a2 2 0 01-2 2z"
+                    />
+                </svg>
+
+                <h2 className="text-2xl font-bold mb-2">No ongoing rides</h2>
+                <p className="text-center max-w-sm">
+                    You currently have no ongoing rides. Start a ride to see it listed here.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex justify-center p-4">
             <div className="w-full max-w-5xl rounded-2xl p-6 md:p-10">
-                <h2 className="text-3xl font-bold text-foreground text-center mb-10">
+                <h2 className="text-3xl font-bold text-foreground  mb-6">
                     Ride Details
                 </h2>
 
                 {/* Grid Layout for Left & Right Part */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 rounded-2xl">
                     {/* LEFT SIDE - Rider Info */}
-                    <div className="p-6 shadow-md bg-accent/50 hover:bg-accent/80 rounded-2xl flex flex-col transition-all hover:border-primary border border-border">
-                        <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
+                    <div className="p-6 shadow-md bg-chart-2/80 flex flex-col">
+
+                        {/* Profile Image */}
+                        <div className="flex text-start justify-center">
+                            <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg mb-4">
+                                <img
+                                    src={users?.photoUrl || "/default-avatar.png"}
+                                    alt={users?.fullName || "User"}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Passenger Info */}
+                        <h3 className="text-lg md:text-xl font-semibold mb-4 border-b pb-2 w-full text-center">
                             Passenger Information
                         </h3>
-                        <ul className="space-y-2">
-                            <li>
-                                <strong>Name:</strong> {riderInfo.fullName}
-                            </li>
-                            <li>
-                                <strong>Email:</strong> {riderInfo.email}
-                            </li>
-                            <li>
-                                <strong>Vehicle:</strong> {riderInfo.vehicleModel} (
-                                {riderInfo.vehicleType})
-                            </li>
-                            <li>
-                                <strong>Register No:</strong> {riderInfo.vehicleRegisterNumber}
-                            </li>
-                            <li>
-                                <strong>Completed Rides:</strong> {riderInfo.completedRides}
-                            </li>
-                            <li>
-                                <strong>Ratings:</strong> {riderInfo.ratings} ⭐
-                            </li>
-                        </ul>
+                        <div>
+                            <ul className="space-y-2 text-sm md:text-base w-full text-left">
+                                <li>
+                                    <strong>Name:</strong> {users?.fullName}
+                                </li>
+                                <li>
+                                    <strong>Email:</strong> {users?.email}
+                                </li>
+                                <li>
+                                    <strong>Gender:</strong> {users?.gender}
+                                </li>
+                                <li>
+                                    <strong>Completed Rides:</strong> {users?.completedRides}
+                                </li>
+                                <li>
+                                    <strong>Verifieds:</strong> {users?.isVerified}
+                                </li>
+                                <li>
+                                    <strong>NID No:</strong> {users?.NIDno}
+                                </li>
+                                <li>
+                                    <strong>Phone Number:</strong> {users?.phoneNumber}
+                                </li>
+                                <li>
+                                    <strong>User Id:</strong> {users?._id}
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                     {/* RIGHT SIDE - Ride Info */}
-                    <div className="p-6 shadow-md bg-accent/50 hover:bg-accent/80 rounded-2xl flex flex-col transition-all hover:border-primary border border-border">
+                    <div className="p-6 shadow-md bg-accent/30 flex flex-col border border-border">
                         <h3 className="text-lg md:text-xl font-semibold mb-4  border-b pb-2">
                             Ride Information
                         </h3>
@@ -125,15 +205,20 @@ export default function OngoingRidePage() {
                                 </span>
                             </li>
                             <li>
-                                <strong>Pickup Coordinates:</strong>{" "}
-                                {pickup.coordinates.join(", ")}
+                                <strong>Accept At:</strong>{" "}
+                                {new Date(acceptedAt).toLocaleString()}
                             </li>
                             <li>
-                                <strong>Drop Coordinates:</strong> {drop.coordinates.join(", ")}
+                                <strong>Assigned At:</strong>{" "}
+                                {new Date(assignedAt).toLocaleString()}
                             </li>
                             <li>
                                 <strong>Created At:</strong>{" "}
                                 {new Date(createdAt).toLocaleString()}
+                            </li>
+
+                            <li>
+                                <strong>Drop Location:</strong> {locationName || "Loading..."}
                             </li>
                         </ul>
                     </div>
@@ -142,4 +227,3 @@ export default function OngoingRidePage() {
         </div>
     )
 }
-

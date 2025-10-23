@@ -103,7 +103,7 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* About RideX */}
             <div className="lg:col-span-1">
-              <h3 className="text-xl font-semibold text-background mb-4">About <span className="text-primary">RideX</span></h3>
+              <h3 className="text-xl font-semibold text-white mb-4">About <span className="text-primary">RideX</span></h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
                 RideX is premier ride-sharing platform offering bikes, CNG, and cars with real-time tracking and professional drivers.
               </p>
@@ -125,7 +125,7 @@ export default function Footer() {
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-xl font-semibold text-background mb-4">Quick <span className="text-primary">Links</span></h3>
+              <h3 className="text-xl font-semibold text-white mb-4">Quick <span className="text-primary">Links</span></h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <Link href="/offers" className="hover:text-primary hover:translate-x-2 transition-all duration-400 ease-in-out inline-block relative group">
@@ -156,7 +156,7 @@ export default function Footer() {
 
             {/* Useful Links */}
             <div>
-              <h3 className="text-xl font-semibold text-background mb-4">Useful <span className="text-primary">Links</span></h3>
+              <h3 className="text-xl font-semibold text-white mb-4">Useful <span className="text-primary">Links</span></h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <Link href="/terms-and-conditions" className="hover:text-primary hover:translate-x-2 transition-all duration-400 ease-in-out inline-block relative group">
@@ -187,7 +187,7 @@ export default function Footer() {
 
             {/* Get Notification */}
             <div>
-              <h3 className="text-xl font-semibold text-background mb-4">Get <span className="text-primary">Notification</span></h3>
+              <h3 className="text-xl font-semibold text-white mb-4">Get <span className="text-primary">Notification</span></h3>
               <p className="text-gray-400 text-sm mb-4">
                 Get Notification From Our Latest News! Enter Your Email Here
               </p>
@@ -195,7 +195,7 @@ export default function Footer() {
                 <input
                   type="email"
                   placeholder="Enter Mail"
-                  className="w-full px-4 py-3 pr-12 bg-background text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-3 pr-12 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
