@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Star, ArrowRight, MapPin, Navigation, Bike } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import heroImage from "@/Assets/hero-ridex.webp"; // Using this image as requested
+import heroImage from "@/Assets/hero-ridex.webp";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { gsap } from "gsap";
@@ -254,15 +254,15 @@ const Hero = () => {
                     {/* Background shapes to mimic the jagged/broken frame effect */}
                     <div className="absolute inset-0 z-0">
                         {/* Top-Left block */}
-                        <span ref={(el) => (shapesRef.current[0] = el)} className="absolute -top-10 -left-10 xl:top-0 xl:-left-14 h-16 w-16 bg-accent/70 dark:bg-primary/60 transform rotate-12" />
+                        <span ref={(el) => (shapesRef.current[0] = el)} className="absolute -top-10 -left-10 xl:top-0 xl:-left-14 h-16 w-16 bg-primary/60 transform rotate-12" />
                         {/* Top-Right block */}
-                        <span ref={(el) => (shapesRef.current[1] = el)} className="absolute top-0 right-0 md:right-6 lg:right-0 h-10 w-20 bg-accent/70 dark:bg-primary/60 translate-x-1/2 -translate-y-1/2" />
+                        <span ref={(el) => (shapesRef.current[1] = el)} className="absolute top-0 right-0 md:right-6 lg:right-0 h-10 w-20 bg-primary/60 translate-x-1/2 -translate-y-1/2" />
                         {/* Left-Center Block */}
-                        <span ref={(el) => (shapesRef.current[2] = el)} className="absolute top-2/4 -left-11 md:-left-5 lg:-left-11 h-16 w-10 bg-accent/70 dark:bg-primary/60" />
+                        <span ref={(el) => (shapesRef.current[2] = el)} className="absolute top-2/4 -left-11 md:-left-5 lg:-left-11 h-16 w-10 bg-primary/60" />
                         {/* Right-Center Block (thin strip) */}
-                        <span ref={(el) => (shapesRef.current[3] = el)} className="absolute top-1/2 -right-4 sm:-right-7 md:-right-3 h-10 w-4 bg-accent/70 dark:bg-primary/60 translate-x-1/2" />
+                        <span ref={(el) => (shapesRef.current[3] = el)} className="absolute top-1/2 -right-4 sm:-right-7 md:-right-3 h-10 w-4 bg-primary/60 translate-x-1/2" />
                         {/* Bottom-Right block (large) */}
-                        <span ref={(el) => (shapesRef.current[4] = el)} className="absolute -bottom-10 -right-10 md:-right-7 lg:-right-10 h-24 w-24 bg-accent/70 dark:bg-primary/60 transform -rotate-12" />
+                        <span ref={(el) => (shapesRef.current[4] = el)} className="absolute -bottom-10 -right-10 md:-right-7 lg:-right-10 h-24 w-24 bg-primary/60 transform -rotate-12" />
                     </div>
 
                     <div ref={imageRef} className="z-10 w-full pt-[75%]"> {/* Aspect ratio container for image */}

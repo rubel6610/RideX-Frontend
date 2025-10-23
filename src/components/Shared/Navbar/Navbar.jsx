@@ -127,7 +127,7 @@ const Navbar = () => {
     return () => document.removeEventListener("keydown", handleKey);
   }, []);
 
-  // ✅ FIXED: only exact path gets active style
+  // Only exact path gets active style
   const activeStyle = (path) =>
     pathname === path
       ? "text-primary font-semibold"
