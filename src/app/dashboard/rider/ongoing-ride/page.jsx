@@ -66,11 +66,7 @@ export default function OngoingRidePage() {
         assignedAt,
         riderInfo
     } = matchedRide;
-
-    const CurrentRideLocation = matchedRide?.drop?.coordinates;
-    const longitude = CurrentRideLocation?.[0];
-    const latitude = CurrentRideLocation?.[1];
-    console.log(longitude, latitude);
+    console.log(matchedRide);
 
     const fetchLocationName = async (lat, lon) => {
         try {
