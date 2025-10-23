@@ -23,15 +23,15 @@ const ChatModal = ({ open, onClose, riderName, riderVehicle, rideId, riderId }) 
     const [sending, setSending] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [rideStatus, setRideStatus] = useState(null);
+    const [connectionError, setConnectionError] = useState(false);
     const socketRef = useRef(null);
     const scrollAreaRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    const messageListenerAttached = useRef(false);
 
-    // Determine user type (user or rider)
     const userType = user?.role === "rider" ? "rider" : "user";
     const currentUserId = userType === "rider" ? (riderId || user?.id) : user?.id;
 
-    // Fetch existing chat messages and ride status
     useEffect(() => {
         if (!rideId || !open) return;
 
@@ -41,6 +41,11 @@ const ChatModal = ({ open, onClose, riderName, riderVehicle, rideId, riderId }) 
                 const res = await fetch(
                     `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${rideId}/chat`
                 );
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 const data = await res.json();
                 
                 if (data.success) {
@@ -58,60 +63,111 @@ const ChatModal = ({ open, onClose, riderName, riderVehicle, rideId, riderId }) 
         fetchMessages();
     }, [rideId, open]);
 
-    // Check if chat is allowed based on ride status
     const isChatAllowed = rideStatus === 'accepted' || rideStatus === 'pending';
 
-    // Initialize socket connection and join ride chat room
     useEffect(() => {
-        if (!open || !rideId || !currentUserId) return;
+        if (!open || !rideId || !currentUserId) {
+            setConnectionError(false);
+            return;
+        }
 
-        // Initialize socket
-        socketRef.current = initSocket(currentUserId, user?.role === "admin");
+        try {
+            socketRef.current = initSocket(currentUserId, user?.role === "admin");
 
-        // Join the ride-specific chat room
-        socketRef.current.emit("join_ride_chat", {
-            rideId,
-            userId: currentUserId,
-            userType,
-        });
-
-        // Listen for incoming messages
-        socketRef.current.on("receive_ride_message", (data) => {
-            if (data.rideId === rideId) {
-                setMessages((prev) => [...prev, data.message]);
-                scrollToBottom();
+            if (!socketRef.current) {
+                setConnectionError(true);
+                toast.error("Failed to establish connection");
+                return;
             }
-        });
 
-        // Listen for typing indicators
-        socketRef.current.on("ride_typing_start", (data) => {
-            if (data.rideId === rideId && data.userId !== currentUserId) {
-                setIsTyping(true);
-            }
-        });
-
-        socketRef.current.on("ride_typing_stop", (data) => {
-            if (data.rideId === rideId && data.userId !== currentUserId) {
-                setIsTyping(false);
-            }
-        });
-
-        // Cleanup on unmount or when modal closes
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.emit("leave_ride_chat", {
+            const handleConnect = () => {
+                setConnectionError(false);
+                socketRef.current.emit("join_ride_chat", {
                     rideId,
                     userId: currentUserId,
                     userType,
                 });
-                socketRef.current.off("receive_ride_message");
-                socketRef.current.off("ride_typing_start");
-                socketRef.current.off("ride_typing_stop");
+            };
+
+            const handleDisconnect = () => {
+                setConnectionError(true);
+            };
+
+            const handleConnectError = (error) => {
+                console.error("Chat connection error:", error);
+                setConnectionError(true);
+            };
+
+            const handleReceiveMessage = (data) => {
+                try {
+                    if (data.rideId === rideId) {
+                        setMessages((prev) => {
+                            const exists = prev.some(msg => msg.id === data.message.id);
+                            if (exists) return prev;
+                            return [...prev, data.message];
+                        });
+                        scrollToBottom();
+                        
+                        if (data.message.senderType !== userType) {
+                            toast.success("New message received", {
+                                description: data.message.text.substring(0, 50) + "..."
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error handling received message:", error);
+                }
+            };
+
+            const handleTypingStart = (data) => {
+                if (data.rideId === rideId && data.userId !== currentUserId) {
+                    setIsTyping(true);
+                }
+            };
+
+            const handleTypingStop = (data) => {
+                if (data.rideId === rideId && data.userId !== currentUserId) {
+                    setIsTyping(false);
+                }
+            };
+
+            if (socketRef.current.connected) {
+                handleConnect();
             }
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
-        };
+
+            socketRef.current.on("connect", handleConnect);
+            socketRef.current.on("disconnect", handleDisconnect);
+            socketRef.current.on("connect_error", handleConnectError);
+            socketRef.current.on("receive_ride_message", handleReceiveMessage);
+            socketRef.current.on("ride_typing_start", handleTypingStart);
+            socketRef.current.on("ride_typing_stop", handleTypingStop);
+
+            messageListenerAttached.current = true;
+
+            return () => {
+                if (socketRef.current) {
+                    socketRef.current.emit("leave_ride_chat", {
+                        rideId,
+                        userId: currentUserId,
+                        userType,
+                    });
+                    socketRef.current.off("connect", handleConnect);
+                    socketRef.current.off("disconnect", handleDisconnect);
+                    socketRef.current.off("connect_error", handleConnectError);
+                    socketRef.current.off("receive_ride_message", handleReceiveMessage);
+                    socketRef.current.off("ride_typing_start", handleTypingStart);
+                    socketRef.current.off("ride_typing_stop", handleTypingStop);
+                    messageListenerAttached.current = false;
+                }
+                if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                }
+            };
+        } catch (error) {
+            console.error("Error initializing chat socket:", error);
+            setConnectionError(true);
+            toast.error("Chat connection failed");
+        }
     }, [open, rideId, currentUserId, userType, user?.role]);
 
     // Scroll to bottom when new messages arrive
@@ -132,66 +188,88 @@ const ChatModal = ({ open, onClose, riderName, riderVehicle, rideId, riderId }) 
         }, 100);
     };
 
-    // Handle typing indicator
     const handleTyping = () => {
-        if (!socketRef.current || !rideId) return;
+        if (!socketRef.current || !rideId || connectionError) return;
 
-        // Emit typing start
-        socketRef.current.emit("ride_typing_start", {
-            rideId,
-            userId: currentUserId,
-            userType,
-        });
-
-        // Clear existing timeout
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-
-        // Set timeout to stop typing indicator
-        typingTimeoutRef.current = setTimeout(() => {
-            socketRef.current.emit("ride_typing_stop", {
+        try {
+            socketRef.current.emit("ride_typing_start", {
                 rideId,
                 userId: currentUserId,
                 userType,
             });
-        }, 1000);
+
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+
+            typingTimeoutRef.current = setTimeout(() => {
+                if (socketRef.current) {
+                    socketRef.current.emit("ride_typing_stop", {
+                        rideId,
+                        userId: currentUserId,
+                        userType,
+                    });
+                }
+            }, 1000);
+        } catch (error) {
+            console.error("Error emitting typing indicator:", error);
+        }
     };
 
-    // Send message
     const handleSend = async () => {
-        if (!message.trim() || !socketRef.current || !rideId || !currentUserId) return;
+        if (!message.trim() || !socketRef.current || !rideId || !currentUserId || connectionError) {
+            if (connectionError) {
+                toast.error("Connection error", {
+                    description: "Please check your internet connection"
+                });
+            }
+            return;
+        }
 
         const messageText = message.trim();
         setMessage("");
         setSending(true);
 
-        // Stop typing indicator
         if (typingTimeoutRef.current) {
             clearTimeout(typingTimeoutRef.current);
         }
-        socketRef.current.emit("ride_typing_stop", {
-            rideId,
-            userId: currentUserId,
-            userType,
-        });
+        
+        try {
+            socketRef.current.emit("ride_typing_stop", {
+                rideId,
+                userId: currentUserId,
+                userType,
+            });
+        } catch (error) {
+            console.error("Error stopping typing indicator:", error);
+        }
 
         try {
-            // Emit message via socket
-            socketRef.current.emit("send_ride_message", {
+            const messageData = {
                 rideId,
                 senderId: currentUserId,
                 senderType: userType,
                 message: messageText,
                 timestamp: new Date().toISOString(),
-            });
+            };
 
-            // Listen for errors
-            socketRef.current.once("message_error", (error) => {
+            socketRef.current.emit("send_ride_message", messageData);
+
+            const errorHandler = (error) => {
                 console.error("Error sending message:", error);
-                toast.error("Failed to send message");
-                setMessage(messageText); // Restore message on error
-            });
+                toast.error("Failed to send message", {
+                    description: "Please try again"
+                });
+                setMessage(messageText);
+                socketRef.current.off("message_error", errorHandler);
+            };
+
+            socketRef.current.once("message_error", errorHandler);
+
+            setTimeout(() => {
+                socketRef.current.off("message_error", errorHandler);
+            }, 5000);
+
         } catch (error) {
             console.error("Error sending message:", error);
             toast.error("Failed to send message");

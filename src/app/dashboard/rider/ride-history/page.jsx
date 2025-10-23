@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star, CheckCircle, DollarSign, User, Check } from "lucide-react";
+import { CheckCircle, DollarSign, User, Check } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RideHistory() {
@@ -83,96 +83,64 @@ export default function RideHistory() {
   );
 
   // 🌟 Star icon list generate
-  const renderStars = (rating) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <Star
-          key={i}
-          className={`w-5 h-5 ${
-            i <= rating ? "text-primary" : "text-gray-300"
-          }`}
-        />
-      );
-    }
-    return stars;
-  };
+
 
   return (
     <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
       {/* Summary cards */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Rides */}
-
-        <div
-          className="mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary "
-        >
+        <div className="p-6 bg-accent/30 rounded-2xl flex flex-col items-center justify-center border border-primary">
           <User className="w-8 h-8 text-primary mb-2" />
-          <h2 className="text-lg font-semibold md:text-[16px]">Total Rides</h2>
+          <h2 className="text-lg font-semibold">Total Rides</h2>
           {loading ? (
             <Skeleton className="h-6 w-12 mt-2 bg-accent/80" />
           ) : (
-            <h2 className="text-2xl font-bold text-primary">
+            <h2 className="text-2xl font-bold text-primary mt-1">
               {summary.totalRides}
             </h2>
           )}
         </div>
 
         {/* Completed Rides */}
-        <div
-          className="
-       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary"
-        >
-          <Check className="w-8 h-8 mt-2 text-primary mb-2" />
-          <h2 className="text-lg mt-2 font-semibold md:text-[16px]">
+        <div className="p-6 bg-accent/30 rounded-2xl flex flex-col items-center justify-center border border-primary">
+          <Check className="w-8 h-8 text-primary mb-2" />
+          <h2 className="text-lg font-semibold">
             Completed Rides
           </h2>
           {loading ? (
-            <Skeleton className="h-6 w-12  bg-accent/80" />
+            <Skeleton className="h-6 w-12 mt-2 bg-accent/80" />
           ) : (
-            <h2 className="text-2xl font-bold text-primary">
+            <h2 className="text-2xl font-bold text-primary mt-1">
               {summary.totalCompletedRides}
             </h2>
           )}
         </div>
 
         {/* Average Rating */}
-        <div
-           className="
-       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary"
-        >
-          <Star className="w-8 h-8 text-primary mb-2" />
-          <h2 className="text-lg  font-semibold mt-2 md:text-[16px]">
+        <div className="p-6 bg-accent/30 rounded-2xl flex flex-col items-center justify-center border border-primary">
+          <CheckCircle className="w-8 h-8 text-primary mb-2" />
+          <h2 className="text-lg font-semibold">
             Average Rating
           </h2>
-          <div className="flex items-center space-x-0">
-            {loading ? (
-              <Skeleton className="h-5 w-16 mt-1 bg-accent/80" />
-            ) : (
-              <>
-                <span className="ml-2 text-primary md:text-[18px] font-bold">
-                  {summary.avgRating.toFixed(1)}/5
-                </span>
-                {renderStars(Math.round(summary.avgRating))}
-              </>
-            )}
-          </div>
-        </div>
-
-
-
-        {/* Total Amount */}
-        <div
-          className="
-       mr-10 p-6 bg-accent/30 rounded-2xl flex flex-col items-center border border-primary"
-        >
-          <DollarSign className="w-8 h-8 text-primary mb-2" />
-          <h2 className="text-lg font-semibold md:text-[16px]">Total Amount</h2>
           {loading ? (
             <Skeleton className="h-6 w-16 mt-2 bg-accent/80" />
           ) : (
-            <h2 className="text-2xl font-bold text-primary">
+            <h2 className="text-2xl font-bold text-primary mt-1">
+              {summary.avgRating.toFixed(1)}/5
+            </h2>
+          )}
+        </div>
+
+        {/* Total Amount */}
+        <div className="p-6 bg-accent/30 rounded-2xl flex flex-col items-center justify-center border border-primary">
+          <DollarSign className="w-8 h-8 text-primary mb-2" />
+          <h2 className="text-lg font-semibold">Total Amount</h2>
+          {loading ? (
+            <Skeleton className="h-6 w-16 mt-2 bg-accent/80" />
+          ) : (
+            <h2 className="text-2xl font-bold text-primary mt-1">
               ৳{summary.totalCommission.toFixed(2)}
             </h2>
           )}

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SendHorizontal, Users, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
 
 const BACKEND = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
@@ -81,7 +82,6 @@ export default function AdminSupport() {
       socketRef.current.on("new_message", (data) => {
         console.log("New message received:", data);
         
-        // Update the active thread immediately if it's the current one
         if (activeThread && activeThread._id === data.threadId) {
           setActiveThread(prev => ({
             ...prev,
@@ -89,10 +89,9 @@ export default function AdminSupport() {
             lastMessage: data.message.text,
             updatedAt: new Date()
           }));
-          scrollToBottom(); // Scroll when new message arrives
+          scrollToBottom();
         }
 
-        // Update thread in the list with the new message
         setThreads(prev => prev.map(thread => {
           if (thread._id === data.threadId) {
             const updatedThread = {
@@ -102,7 +101,6 @@ export default function AdminSupport() {
               messages: [...(thread.messages || []), data.message]
             };
             
-            // If this thread is the active one, also update activeThread
             if (activeThread && activeThread._id === data.threadId) {
               setActiveThread(updatedThread);
             }
@@ -111,6 +109,13 @@ export default function AdminSupport() {
           }
           return thread;
         }));
+
+        if (data.message.sender === 'user') {
+          toast.info('New message from user', {
+            description: data.message.text.substring(0, 50) + '...',
+            duration: 5000,
+          });
+        }
       });
 
       // Typing indicators
@@ -331,8 +336,7 @@ export default function AdminSupport() {
   };
 
   return (
-    <div className="flex h-screen bg-background text-white overflow-hidden">
-      {/* Sidebar */}
+    <div className="flex h-[calc(100vh-100px)] bg-background overflow-hidden">
       <Card className="w-96 m-4 flex flex-col border-border bg-card overflow-hidden">
         <CardHeader className="border-b border-border bg-card">
           <CardTitle className="flex items-center gap-2 text-white">

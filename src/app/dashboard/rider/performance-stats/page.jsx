@@ -10,6 +10,7 @@ export default function PerformanceStats() {
   // console.log(user?.id);
   const [allRiders, setAllRiders] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
 
   const [performance] = useState({
@@ -31,13 +32,15 @@ export default function PerformanceStats() {
   useEffect(() => {
     const fetchRiders = async () => {
       try {
+        setLoading(true);
         const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
         const data = await res.json();
 
-        // server থেকে আসা riders array ধরে রাখা
         setAllRiders(Array.isArray(data.riders) ? data.riders : []);
       } catch (err) {
         setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -59,11 +62,25 @@ export default function PerformanceStats() {
 
   // Loading and error states handling
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading performance stats...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error fetching data: {error.message}</div>;
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center text-destructive">
+          <p className="text-lg font-semibold">Error fetching data</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/tooltip";
 import { TableSkeleton } from "@/components/Shared/Skeleton/CardSkeleton";
 import { Button } from "@/components/ui/button";
+import { usePagination, PaginationControls } from "@/components/ui/pagination-table";
 
 // Type icon mapping
 const typeIcon = {
@@ -192,6 +193,7 @@ export default function RideHistoryPage() {
   });
 
   const isDataReady = !isLoading && !processing;
+  const pagination = usePagination(filtered, 10);
 
   return (
     <TooltipProvider>
@@ -291,7 +293,7 @@ export default function RideHistoryPage() {
             <div className="p-4 border-b border-primary flex justify-between items-center">
               <h2 className="text-lg font-semibold">All Rides</h2>
               <div className="text-sm text-foreground/50">
-                Showing {filtered.length} of {rides.length} rides
+                Showing {pagination.startIndex}-{pagination.endIndex} of {filtered.length} rides
               </div>
             </div>
 
@@ -313,14 +315,14 @@ export default function RideHistoryPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.length ? (
-                    filtered.map((ride, idx) => (
+                  {pagination.currentData.length ? (
+                    pagination.currentData.map((ride, idx) => (
                       <TableRow
                         key={ride._id}
                         className="hover:bg-accent/20 transition-colors"
                       >
                         <TableCell className="text-xs md:text-sm text-muted-foreground">
-                          {idx + 1}
+                          {(pagination.currentPage - 1) * 10 + idx + 1}
                         </TableCell>
                         <TableCell className="text-xs md:text-sm">
                           { new Date(ride.createdAt).toLocaleDateString() }
@@ -426,6 +428,9 @@ export default function RideHistoryPage() {
                   )}
                 </TableBody>
               </Table>
+            )}
+            {!isLoading && isDataReady && filtered.length > 0 && (
+              <PaginationControls pagination={pagination} />
             )}
           </div>
         </div>

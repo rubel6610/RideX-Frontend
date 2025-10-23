@@ -14,6 +14,7 @@ import NoRide from "./components/NoRide";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import { initSocket } from "@/components/Shared/socket/socket";
 import { toast } from "sonner";
+import { usePagination, PaginationControls } from "@/components/ui/pagination-table";
 
 function RideModal({ open, onClose, ride }) {
   if (!open || !ride) return null;
@@ -42,6 +43,7 @@ const AvailableRidesPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRide, setSelectedRide] = useState(null);
   const [riderId, setRiderId] = useState(null);
+  const pagination = usePagination(rides, 10);
 
   // Fetch rider profile to get riderId
   useEffect(() => {
@@ -372,7 +374,7 @@ const AvailableRidesPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rides.map((ride, idx) => (
+            {pagination.currentData.map((ride, idx) => (
               <TableRow
                 key={ride._id}
                 className={`transition-colors hover:bg-[var(--color-card)] ${
@@ -434,6 +436,7 @@ const AvailableRidesPage = () => {
           </TableBody>
         </Table>
       </div>
+      <PaginationControls pagination={pagination} />
       <RideModal
         open={!!selectedRide}
         ride={selectedRide}

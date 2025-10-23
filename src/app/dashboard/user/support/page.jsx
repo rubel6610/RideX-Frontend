@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SendHorizontal, MessageCircle } from "lucide-react";
 import { initSocket } from '@/components/Shared/socket/socket';
+import { toast } from "sonner";
 
 export default function UserChat() {
   const { user } = useAuth();
@@ -36,6 +37,13 @@ export default function UserChat() {
     socketRef.current.on("new_message", (data) => {
       setMessages(prev => [...prev, data.message]);
       setStatus('answered');
+      
+      if (data.message.sender === 'admin') {
+        toast.success('New message from support', {
+          description: data.message.text.substring(0, 50) + '...',
+          duration: 5000,
+        });
+      }
     });
 
     socketRef.current.on("thread_updated", (data) => {
@@ -164,27 +172,28 @@ export default function UserChat() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto mt-8 border-border bg-card text-white">
-      <CardHeader className="border-b border-border bg-card">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-white">
-            <MessageCircle className="h-6 w-6" />
-            Support Chat
-          </CardTitle>
-          <Badge variant={status === 'waiting' ? 'destructive' : 'secondary'} className="text-white">
-            {status}
-          </Badge>
-        </div>
-      </CardHeader>
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <Card className="w-full max-w-2xl border-border bg-card shadow-xl">
+        <CardHeader className="border-b border-border bg-card">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <MessageCircle className="h-6 w-6" />
+              Support Chat
+            </CardTitle>
+            <Badge variant={status === 'waiting' ? 'destructive' : 'secondary'}>
+              {status}
+            </Badge>
+          </div>
+        </CardHeader>
 
-      <CardContent className="p-0">
-        <ScrollArea className="h-96 p-4 bg-background custom-scrollbar">
+        <CardContent className="p-0">
+          <ScrollArea className="h-[500px] p-4 bg-background custom-scrollbar">
           <div className="space-y-4">
             {messages.length === 0 ? (
-              <div className="text-center mt-20 text-white/70">
-                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-white/30" />
-                <p className="text-lg font-semibold text-white">No messages yet</p>
-                <p className="text-white/70">Start a conversation with our support team</p>
+              <div className="text-center mt-20 text-muted-foreground">
+                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
+                <p className="text-lg font-semibold">No messages yet</p>
+                <p className="text-muted-foreground">Start a conversation with our support team</p>
               </div>
             ) : (
               messages.map((msg, index) => (
@@ -195,16 +204,12 @@ export default function UserChat() {
                   <div
                     className={`max-w-[80%] rounded-lg px-4 py-2 ${
                       msg.sender === 'user'
-                        ? "bg-primary text-white"
-                        : "bg-gray-700 text-white border border-border"
+                        ? "bg-gradient-to-r from-primary to-accent text-white"
+                        : "bg-card text-foreground border border-border"
                     }`}
                   >
-                    <div className="text-sm whitespace-pre-wrap text-white">{msg.text}</div>
-                    <div
-                      className={`text-xs mt-1 ${
-                        msg.sender === 'user' ? 'text-white/80' : 'text-white'
-                      }`}
-                    >
+                    <div className="text-sm whitespace-pre-wrap">{msg.text}</div>
+                    <div className="text-xs mt-1 opacity-70">
                       {formatTime(msg.createdAt)}
                     </div>
                   </div>
@@ -212,14 +217,13 @@ export default function UserChat() {
               ))
             )}
             
-            {/* Admin Typing Indicator */}
             {adminTyping && (
               <div className="flex justify-start">
-                <div className="max-w-[80%] rounded-lg px-4 py-2 bg-card text-white border border-border">
+                <div className="max-w-[80%] rounded-lg px-4 py-2 bg-card border border-border">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                    <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-foreground/70 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-foreground/70 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-foreground/70 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                   </div>
                 </div>
               </div>
@@ -250,12 +254,12 @@ export default function UserChat() {
                   sendMessage();
                 }
               }}
-              className="flex-1 bg-background border-border text-foreground placeholder-white/50"
+              className="flex-1 bg-background border-border text-foreground placeholder-muted-foreground"
             />
             <Button 
               type="submit" 
               disabled={!text.trim()}
-              variant="primary"
+              className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
             >
               <SendHorizontal size={18} />
             </Button>
@@ -263,5 +267,6 @@ export default function UserChat() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

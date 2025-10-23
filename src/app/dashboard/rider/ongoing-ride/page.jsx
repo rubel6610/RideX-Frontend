@@ -5,6 +5,8 @@ import { useAuth } from "@/app/hooks/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import ChatModal from "@/components/Shared/ChatModal";
+import { initSocket } from "@/components/Shared/socket/socket";
+import { toast } from "sonner";
 
 export default function OngoingRidePage() {
 
@@ -18,6 +20,22 @@ export default function OngoingRidePage() {
     const [loading, setLoading] = useState(true);
     const riderId = user?.id;
 
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const socket = initSocket(user.id, false);
+
+        socket.on('new_message_notification', (data) => {
+            toast.info('New message from passenger', {
+                description: data.message,
+                duration: 5000,
+            });
+        });
+
+        return () => {
+            socket.off('new_message_notification');
+        };
+    }, [user]);
 
     useEffect(() => {
         if (!riderId) return;
@@ -78,7 +96,7 @@ export default function OngoingRidePage() {
         fetchPassenger();
     }, [matchedRide?.userId]);
 
-    // ✅ Safely destructure with fallback to prevent null errors
+    //  Safely destructure with fallback to prevent null errors
     const {
         fare = null,
         vehicleType = null,
@@ -91,7 +109,7 @@ export default function OngoingRidePage() {
         riderInfo = null
     } = matchedRide || {};
 
-    // ✅ Safely extract coordinates with null checks
+    //  Safely extract coordinates with null checks
     const CurrentRideLocation = matchedRide?.drop?.coordinates || [];
     const longitude = CurrentRideLocation[0];
     const latitude = CurrentRideLocation[1];
@@ -142,9 +160,37 @@ export default function OngoingRidePage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[400px]">
-                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-muted-foreground">Loading ride information...</p>
+            <div className="space-y-4">
+                <div className="h-8 w-64 bg-muted animate-pulse rounded"></div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-border">
+                    <div className="p-4 md:p-6 bg-chart-2/80 flex flex-col border-b md:border-b-0 md:border-r border-border">
+                        <div className="flex justify-center mb-4">
+                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-muted animate-pulse"></div>
+                        </div>
+                        <div className="h-6 w-48 bg-muted animate-pulse rounded mb-4 mx-auto"></div>
+                        <div className="space-y-3">
+                            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                                <div key={i} className="flex gap-2">
+                                    <div className="h-4 w-32 bg-muted animate-pulse rounded"></div>
+                                    <div className="h-4 flex-1 bg-muted animate-pulse rounded"></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="p-4 md:p-6 bg-accent/30 flex flex-col">
+                        <div className="h-6 w-48 bg-muted animate-pulse rounded mb-4"></div>
+                        <div className="space-y-3">
+                            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                                <div key={i} className="flex gap-2">
+                                    <div className="h-4 w-32 bg-muted animate-pulse rounded"></div>
+                                    <div className="h-4 flex-1 bg-muted animate-pulse rounded"></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }

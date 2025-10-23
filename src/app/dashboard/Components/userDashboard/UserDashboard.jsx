@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
-// Replicating the SidebarLink logic for internal consistency and collapse support
+
 const SidebarLinkInternal = ({ href, pathname, Icon, label, collapsed, hasBadge = false }) => {
   const isActive = pathname.startsWith(href) && pathname === href;
 
