@@ -187,32 +187,38 @@ const BookARideContent = () => {
         if (!hasPushed && data.status === "accepted" && data?.rideInfo) {
           hasPushed = true;
 
+          // Create a new URLSearchParams object
           const params = new URLSearchParams();
           
-          // Add parameters safely
-          if (rideId) params.append('rideId', rideId);
-          if (user?.id) params.append('userId', user.id);
-          if (data?.rideInfo?.riderId) params.append('riderId', data.rideInfo.riderId);
-          if (data?.rideInfo?.fare) params.append('amount', data.rideInfo.fare.toString());
-          if (pickupName || pickup) params.append('pickup', pickupName || pickup);
-          if (dropName || drop) params.append('drop', dropName || drop);
-          if (selectedType) params.append('vehicleType', selectedType);
-          if (rideData?.distanceKm) params.append('distance', rideData.distanceKm.toString());
-          if (rideData?.arrivalTime) params.append('arrivalTime', rideData.arrivalTime);
-          if (appliedPromo) params.append('promo', appliedPromo);
-          if (rideData?.baseFare) params.append('baseFare', rideData.baseFare.toString());
-          if (rideData?.distanceFare) params.append('distanceFare', rideData.distanceFare.toString());
-          if (rideData?.timeFare) params.append('timeFare', rideData.timeFare.toString());
-          if (rideData?.tax) params.append('tax', rideData.tax.toString());
-          if (data?.rideInfo?.fare) params.append('total', data.rideInfo.fare.toString());
-          if (data?.rideInfo?.riderInfo?.fullName) params.append('riderName', data.rideInfo.riderInfo.fullName);
-          if (data?.rideInfo?.riderInfo?.email) params.append('riderEmail', data.rideInfo.riderInfo.email);
-          if (data?.rideInfo?.riderInfo?.vehicleModel) params.append('vehicleModel', data.rideInfo.riderInfo.vehicleModel);
-          if (data?.rideInfo?.riderInfo?.vehicleRegisterNumber) params.append('vehicleRegisterNumber', data.rideInfo.riderInfo.vehicleRegisterNumber);
-          if (data?.rideInfo?.riderInfo?.ratings) params.append('ratings', data.rideInfo.riderInfo.ratings.toString());
-          if (data?.rideInfo?.riderInfo?.completedRides) params.append('completedRides', data.rideInfo.riderInfo.completedRides.toString());
+          // Add parameters safely with null checks
+          try {
+            if (rideId) params.append('rideId', rideId);
+            if (user?.id) params.append('userId', user.id);
+            if (data?.rideInfo?.riderId) params.append('riderId', data.rideInfo.riderId);
+            if (data?.rideInfo?.fare) params.append('amount', data.rideInfo.fare.toString());
+            if (pickupName || pickup) params.append('pickup', pickupName || pickup);
+            if (dropName || drop) params.append('drop', dropName || drop);
+            if (selectedType) params.append('vehicleType', selectedType);
+            if (rideData?.distanceKm) params.append('distance', rideData.distanceKm.toString());
+            if (rideData?.arrivalTime) params.append('arrivalTime', rideData.arrivalTime);
+            if (appliedPromo) params.append('promo', appliedPromo);
+            if (rideData?.baseFare) params.append('baseFare', rideData.baseFare.toString());
+            if (rideData?.distanceFare) params.append('distanceFare', rideData.distanceFare.toString());
+            if (rideData?.timeFare) params.append('timeFare', rideData.timeFare.toString());
+            if (rideData?.tax) params.append('tax', rideData.tax.toString());
+            if (data?.rideInfo?.fare) params.append('total', data.rideInfo.fare.toString());
+            if (data?.rideInfo?.riderInfo?.fullName) params.append('riderName', data.rideInfo.riderInfo.fullName);
+            if (data?.rideInfo?.riderInfo?.email) params.append('riderEmail', data.rideInfo.riderInfo.email);
+            if (data?.rideInfo?.riderInfo?.vehicleModel) params.append('vehicleModel', data.rideInfo.riderInfo.vehicleModel);
+            if (data?.rideInfo?.riderInfo?.vehicleRegisterNumber) params.append('vehicleRegisterNumber', data.rideInfo.riderInfo.vehicleRegisterNumber);
+            if (data?.rideInfo?.riderInfo?.ratings) params.append('ratings', data.rideInfo.riderInfo.ratings.toString());
+            if (data?.rideInfo?.riderInfo?.completedRides) params.append('completedRides', data.rideInfo.riderInfo.completedRides.toString());
 
-          router.push(`/dashboard/user/book-a-ride/accept-ride?${params.toString()}`);
+            router.push(`/dashboard/user/book-a-ride/accept-ride?${params.toString()}`);
+          } catch (paramError) {
+            console.error("Error building URL parameters:", paramError);
+            toast.error("Failed to navigate to ride details");
+          }
         }
       } catch (err) {
         console.error("Error fetching ride status:", err);
@@ -221,7 +227,7 @@ const BookARideContent = () => {
 
     const interval = setInterval(fetchRideStatus, 1000);
     return () => clearInterval(interval);
-  }, [rideId, user, rideData, pickup, drop, pickupName, dropName, selectedType, router]);
+  }, [rideId, user, rideData, pickup, drop, pickupName, dropName, selectedType, appliedPromo, router]);
 
   // ✅ Handle Ride Request
   const handleRideRequest = useCallback(async () => {

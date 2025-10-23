@@ -151,6 +151,9 @@ function AcceptRideContent() {
       }
     } catch (error) {
       console.error('Error parsing URL parameters:', error);
+      toast.error('Failed to load ride details', {
+        description: 'Please try booking a new ride'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -212,40 +215,56 @@ function AcceptRideContent() {
     },
   };
 
-  // ✅ Updated Complete Ride Handler
+  // ✅ Updated Complete Ride Handler with enhanced error protection
   const handleCompleteRide = () => {
     try {
-      const params = new URLSearchParams();
+      // Create new URLSearchParams object from scratch
+      const queryParams = new URLSearchParams();
       
-      // Add parameters one by one to avoid duplicate key issues
-      if (rideId) params.append('rideId', rideId);
-      if (userId) params.append('userId', userId);
-      if (riderId) params.append('riderId', riderId);
-      if (ratings) params.append('ratings', ratings);
-      if (riderName) params.append('riderName', riderName);
-      if (riderEmail) params.append('riderEmail', riderEmail);
-      if (pickup) params.append('pickup', pickup);
-      if (drop) params.append('drop', drop);
-      if (type) params.append('vehicleType', type);
-      if (vehicleModel) params.append('vehicleModel', vehicleModel);
-      if (vehicleRegisterNumber) params.append('vehicleRegisterNumber', vehicleRegisterNumber);
-      if (distance) params.append('distance', distance);
-      if (baseFare) params.append('baseFare', baseFare);
-      if (distanceFare) params.append('distanceFare', distanceFare);
-      if (timeFare) params.append('timeFare', timeFare);
-      if (tax) params.append('tax', tax);
-      if (total) params.append('total', total);
-      if (promo) params.append('promo', promo);
-      if (fare) params.append('fare', fare);
-      if (eta) params.append('arrivalTime', eta);
-      if (completedRides) params.append('completedRides', completedRides);
-      if (mode) params.append('mode', mode);
+      // Add parameters one by one with safe string conversion
+      const safeAppend = (key, value) => {
+        if (value !== null && value !== undefined && value !== '') {
+          queryParams.append(key, String(value));
+        }
+      };
 
-      router.push(`/dashboard/user/payment?${params.toString()}`);
+      safeAppend('rideId', rideId);
+      safeAppend('userId', userId);
+      safeAppend('riderId', riderId);
+      safeAppend('ratings', ratings);
+      safeAppend('riderName', riderName);
+      safeAppend('riderEmail', riderEmail);
+      safeAppend('pickup', pickup);
+      safeAppend('drop', drop);
+      safeAppend('vehicleType', type);
+      safeAppend('vehicleModel', vehicleModel);
+      safeAppend('vehicleRegisterNumber', vehicleRegisterNumber);
+      safeAppend('distance', distance);
+      safeAppend('baseFare', baseFare);
+      safeAppend('distanceFare', distanceFare);
+      safeAppend('timeFare', timeFare);
+      safeAppend('tax', tax);
+      safeAppend('total', total);
+      safeAppend('promo', promo);
+      safeAppend('fare', fare);
+      safeAppend('arrivalTime', eta);
+      safeAppend('completedRides', completedRides);
+      safeAppend('mode', mode);
+
+      const queryString = queryParams.toString();
+      router.push(`/dashboard/user/payment?${queryString}`);
     } catch (error) {
-      console.error('Error creating URL parameters:', error);
-      // Fallback navigation without parameters
-      router.push('/dashboard/user/payment');
+      console.error('Error creating payment URL:', error);
+      toast.error('Navigation error', {
+        description: 'Failed to proceed to payment. Please try again.'
+      });
+      // Fallback: try navigation with minimal params
+      try {
+        router.push(`/dashboard/user/payment?rideId=${rideId}&userId=${userId}`);
+      } catch (fallbackError) {
+        console.error('Fallback navigation failed:', fallbackError);
+        router.push('/dashboard/user/payment');
+      }
     }
   };
 

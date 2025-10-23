@@ -68,43 +68,59 @@ const AvailableRidesPage = () => {
   useEffect(() => {
     if (!riderId) return;
 
-    const socket = initSocket(user?.id, false);
-    
-    // Join rider-specific room
-    socket.emit('join_rider', riderId);
-    console.log('Rider joined room:', riderId);
+    try {
+      const socket = initSocket(user?.id, false);
+      
+      // Join rider-specific room
+      socket.emit('join_rider', riderId);
+      console.log('Rider joined room:', riderId);
 
-    // Listen for new ride requests
-    socket.on('new_ride_request', async (data) => {
-      console.log('✅ New ride request received:', data);
-      toast.success('New ride request!', {
-        description: 'A passenger nearby needs a ride',
+      // Listen for new ride requests
+      socket.on('new_ride_request', async (data) => {
+        try {
+          console.log('✅ New ride request received:', data);
+          toast.success('New ride request!', {
+            description: 'A passenger nearby needs a ride',
+          });
+
+          // Fetch addresses for the new ride
+          const enrichedRide = await enrichRideWithAddresses(data.ride);
+          setRides((prev) => [enrichedRide, ...prev]);
+        } catch (error) {
+          console.error('Error processing new ride request:', error);
+        }
       });
 
-      // Fetch addresses for the new ride
-      const enrichedRide = await enrichRideWithAddresses(data.ride);
-      setRides((prev) => [enrichedRide, ...prev]);
-    });
+      // Listen for auto-rejection notifications
+      socket.on('ride_auto_rejected', (data) => {
+        try {
+          console.log('Ride auto-rejected:', data.rideId);
+          toast.info('Ride request expired');
+          setRides((prev) => prev.filter((r) => r._id !== data.rideId));
+        } catch (error) {
+          console.error('Error processing auto-rejection:', error);
+        }
+      });
 
-    // Listen for auto-rejection notifications
-    socket.on('ride_auto_rejected', (data) => {
-      console.log('Ride auto-rejected:', data.rideId);
-      toast.info('Ride request expired');
-      setRides((prev) => prev.filter((r) => r._id !== data.rideId));
-    });
+      // Listen for user cancellations
+      socket.on('ride_cancelled_by_user', (data) => {
+        try {
+          console.log('Ride cancelled by user:', data.rideId);
+          toast.info('Passenger cancelled the ride');
+          setRides((prev) => prev.filter((r) => r._id !== data.rideId));
+        } catch (error) {
+          console.error('Error processing user cancellation:', error);
+        }
+      });
 
-    // Listen for user cancellations
-    socket.on('ride_cancelled_by_user', (data) => {
-      console.log('Ride cancelled by user:', data.rideId);
-      toast.info('Passenger cancelled the ride');
-      setRides((prev) => prev.filter((r) => r._id !== data.rideId));
-    });
-
-    return () => {
-      socket.off('new_ride_request');
-      socket.off('ride_auto_rejected');
-      socket.off('ride_cancelled_by_user');
-    };
+      return () => {
+        socket.off('new_ride_request');
+        socket.off('ride_auto_rejected');
+        socket.off('ride_cancelled_by_user');
+      };
+    } catch (error) {
+      console.error('Error initializing socket:', error);
+    }
   }, [riderId, user]);
 
   // Helper function to enrich ride with addresses
@@ -260,7 +276,7 @@ const AvailableRidesPage = () => {
     try {
       const actualRiderId = riderId || rideRiderId;
       
-      await fetch(
+      const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-reject`,
         {
           method: "POST",
@@ -268,9 +284,22 @@ const AvailableRidesPage = () => {
           body: JSON.stringify({ rideId, riderId: actualRiderId }),
         }
       );
-      setRides((prev) => prev.filter((r) => r._id !== rideId));
+      
+      const data = await res.json();
+      
+      if (data.success || res.ok) {
+        setRides((prev) => prev.filter((r) => r._id !== rideId));
+        toast.info('Ride rejected', {
+          description: 'Finding another nearby rider for this request'
+        });
+      } else {
+        toast.error(data.message || 'Failed to reject ride');
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Reject ride error:", err);
+      toast.error('Network error', {
+        description: 'Failed to reject ride. Please try again.'
+      });
     }
   };
 
@@ -279,7 +308,7 @@ const AvailableRidesPage = () => {
     try {
       const actualRiderId = riderId || rideRiderId;
       
-      await fetch(
+      const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-cancel`,
         {
           method: "POST",
@@ -287,13 +316,24 @@ const AvailableRidesPage = () => {
           body: JSON.stringify({ rideId, riderId: actualRiderId }),
         }
       );
-      setRides((prev) =>
-        prev.map((r) =>
-          r._id === rideId ? { ...r, status: "cancelled" } : r
-        )
-      );
+      
+      const data = await res.json();
+      
+      if (data.success || res.ok) {
+        setRides((prev) =>
+          prev.map((r) =>
+            r._id === rideId ? { ...r, status: "cancelled" } : r
+          )
+        );
+        toast.success('Ride cancelled successfully');
+      } else {
+        toast.error(data.message || 'Failed to cancel ride');
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Cancel ride error:", err);
+      toast.error('Network error', {
+        description: 'Failed to cancel ride. Please try again.'
+      });
     }
   };
 

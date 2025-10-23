@@ -15,6 +15,7 @@ export default function OngoingRidePage() {
     const [error, setError] = useState(null);
     const [locationName, setLocationName] = useState("");
     const [chatOpen, setChatOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     const riderId = user?.id;
 
 
@@ -22,22 +23,33 @@ export default function OngoingRidePage() {
         if (!riderId) return;
 
         const fetchRide = async () => {
+            setLoading(true);
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${riderId}`);
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 const data = await res.json();
                 // console.log(data);
-                setRideData(data?.rides);
-                setCurrentRider(data?.rider?._id)
+                setRideData(data?.rides || []);
+                setCurrentRider(data?.rider?._id);
+                setError(null); // Clear any previous errors
             }
             catch (err) {
+                console.error('Error fetching ride data:', err);
                 setError(err.message);
-            };
+                setRideData([]);
+            } finally {
+                setLoading(false);
+            }
         }
         fetchRide();
     }, [riderId]);
 
-    // this is current ride data so this data show in UI
-    const matchedRide = rideData?.find(ride => ride.riderId === currentRider) || [];
+    // this is current ride data so this data show in UI - Only show accepted rides
+    const matchedRide = rideData?.find(ride => ride.riderId === currentRider && ride.status === 'accepted') || null;
     console.log(matchedRide?.userId);
 
     // passengger data fetch 
@@ -49,9 +61,16 @@ export default function OngoingRidePage() {
                 const res = await fetch(
                     `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide.userId}`
                 );
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 const data = await res.json();
                 setusers(data);
+                setError(null); // Clear any previous errors
             } catch (err) {
+                console.error('Error fetching passenger data:', err);
                 setError(err.message);
             }
         };
@@ -59,33 +78,43 @@ export default function OngoingRidePage() {
         fetchPassenger();
     }, [matchedRide?.userId]);
 
+    // ✅ Safely destructure with fallback to prevent null errors
     const {
-        fare,
-        vehicleType,
-        status,
-        pickup,
-        drop,
-        acceptedAt,
-        createdAt,
-        assignedAt,
-        riderInfo
-    } = matchedRide;
+        fare = null,
+        vehicleType = null,
+        status = null,
+        pickup = null,
+        drop = null,
+        acceptedAt = null,
+        createdAt = null,
+        assignedAt = null,
+        riderInfo = null
+    } = matchedRide || {};
 
-    const CurrentRideLocation = matchedRide?.drop?.coordinates;
-    const longitude = CurrentRideLocation?.[0];
-    const latitude = CurrentRideLocation?.[1];
-    console.log(longitude, latitude);
+    // ✅ Safely extract coordinates with null checks
+    const CurrentRideLocation = matchedRide?.drop?.coordinates || [];
+    const longitude = CurrentRideLocation[0];
+    const latitude = CurrentRideLocation[1];
 
     const fetchLocationName = async (lat, lon) => {
         try {
+            if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+                return "Invalid coordinates";
+            }
+            
             const res = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
             );
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
             const data = await res.json();
             return data.display_name || "Location not found";
         } catch (error) {
-            console.error(error);
-            return "Location not found";
+            console.error("Error fetching location name:", error);
+            return "Location unavailable";
         }
     };
 
@@ -96,8 +125,13 @@ export default function OngoingRidePage() {
 
         if (longitude !== undefined && latitude !== undefined) {
             const getLocation = async () => {
-                const name = await fetchLocationName(latitude, longitude);
-                setLocationName(name);
+                try {
+                    const name = await fetchLocationName(latitude, longitude);
+                    setLocationName(name);
+                } catch (error) {
+                    console.error("Error fetching location name:", error);
+                    setLocationName("Location unavailable");
+                }
             };
             getLocation();
         }
@@ -106,30 +140,51 @@ export default function OngoingRidePage() {
     // Check if chat is allowed based on ride status
     const isChatAllowed = matchedRide?.status === 'accepted' || matchedRide?.status === 'pending';
 
-    if (error) return <p>Error: {error}</p>;
-
-    if (!matchedRide || !rideData) {
+    if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-24 h-24 mb-6 text-muted-foreground"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 17v-6h6v6m2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h5l2 2h5a2 2 0 012 2v10a2 2 0 01-2 2z"
-                    />
-                </svg>
+            <div className="flex flex-col items-center justify-center h-[400px]">
+                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-muted-foreground">Loading ride information...</p>
+            </div>
+        );
+    }
 
-                <h2 className="text-2xl font-bold mb-2">No ongoing rides</h2>
-                <p className="text-center max-w-sm">
-                    You currently have no ongoing rides. Start a ride to see it listed here.
+    if (error) return <p className="text-center text-destructive p-6">Error: {error}</p>;
+
+    if (!matchedRide) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[400px] bg-gradient-to-br from-muted/30 to-muted/10 rounded-2xl border-2 border-dashed border-border">
+                <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl"></div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-28 h-28 text-muted-foreground relative z-10"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+                        />
+                    </svg>
+                </div>
+
+                <h2 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">No Active Rides</h2>
+                <p className="text-center max-w-md text-muted-foreground text-sm md:text-base px-4">
+                    You currently have no ongoing rides between you and any passenger. Accept a ride from the Available Rides section to see it here.
                 </p>
+                
+                <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <a
+                        href="/dashboard/rider/available-rides"
+                        className="px-6 py-3 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:opacity-90 transition-all hover:scale-105 shadow-lg"
+                    >
+                        View Available Rides
+                    </a>
+                </div>
             </div>
         );
     }
