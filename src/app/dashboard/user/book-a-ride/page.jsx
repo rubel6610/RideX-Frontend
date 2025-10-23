@@ -331,7 +331,7 @@ const BookARideContent = () => {
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
         <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
-          <ModeSelector mode={mode} setMode={setMode} />
+         
           <LocationInputs
             pickup={pickup}
             setPickup={setPickup}

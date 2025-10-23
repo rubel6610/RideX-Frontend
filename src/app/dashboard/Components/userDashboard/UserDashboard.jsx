@@ -59,11 +59,10 @@ const UserDashboard = ({ collapsed }) => {
         { href: "/dashboard/user", Icon:  LayoutDashboard, label: "Dashboard" },
         { href: "/dashboard/user/book-a-ride", Icon: Users, label: "Book A Ride" },
         { href: "/dashboard/user/ride-history", Icon: TrendingUp, label: "Ride History" },
-        { href: "/dashboard/user/saved-locations", Icon: MapPin, label: "Saved Locations" },
-        { href: "/dashboard/user/payment-options", Icon: DollarSign, label: "Payment Options" },
+      
 
         //  general menu
-        {href: "/dashboard/profile", Icon: User, label: `${user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Profile`},
+        {href: "/dashboard/my-profile", Icon: User, label: `${user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Profile`},
         { href: "/dashboard/user/support", Icon: HelpCircle, label: "Support" },
     ];
 
