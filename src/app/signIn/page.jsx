@@ -6,12 +6,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import GuestOnlyRoute from "../hooks/GuestOnlyRoute";
-import LoginImage from "../../Assets/login.png";
-import SidebarCar from "../../Assets/sidebar-car.json"; // ✅ Lottie file import
+import LoginLight from "../../Assets/login.svg";
+import LoginDark from "../../Assets/darkLogin.svg";
+import SidebarCar from "../../Assets/sidebar-car.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { gsap } from "gsap"; // ✅ GSAP
-import Lottie from "lottie-react"; // ✅ Lottie React
+import { gsap } from "gsap"; 
+import Lottie from "lottie-react";
+import { useTheme } from "next-themes";
 
 function LoginPage() {
   const router = useRouter();
@@ -20,6 +22,7 @@ function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
+  const { theme } = useTheme(); // detect light/dark mode
 
   // GSAP refs
   const leftRef = useRef(null);
@@ -78,22 +81,32 @@ function LoginPage() {
           ref={leftRef}
           className="hidden sm:flex w-full h-full items-center justify-center"
         >
-          <div className="relative w-full h-full">
+          <div className="dark:hidden relative w-full h-full">
             <Image
-              src={LoginImage}
+              src={LoginLight}
               alt="Login illustration"
               fill
-              className="object-cover scale-y-50"
+              className="object-cover"
+              priority
+            />
+          </div>
+
+          <div className="hidden dark:block relative w-full h-full">
+            <Image
+              src={LoginDark}
+              alt="Login illustration"
+              fill
+              className="object-cover"
               priority
             />
           </div>
         </div>
 
         {/* ---------- Right Side (Form) ---------- */}
-<div
-  ref={formRef}
-  className="flex items-center justify-center w-full p-6 sm:p-8 md:p-12 lg:p-16 h-full bg-card"
->
+        <div
+          ref={formRef}
+          className="flex items-center justify-center w-full p-6 sm:p-8 md:p-12 lg:p-16 h-full bg-card"
+        >
           <div className="w-full max-w-md">
             {/* Branding */}
             <div ref={textRef} className="relative flex items-center gap-3 mb-10 sm:mb-6 md:mb-4 lg:mb-10">
