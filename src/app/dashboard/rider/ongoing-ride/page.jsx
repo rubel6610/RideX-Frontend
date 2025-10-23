@@ -13,6 +13,7 @@ export default function OngoingRidePage() {
     const riderId = user?.id;
     console.log(rideData);
 
+
     useEffect(() => {
         if (!riderId) return;
 
@@ -190,4 +191,3 @@ export default function OngoingRidePage() {
         </div>
     )
 }
-
