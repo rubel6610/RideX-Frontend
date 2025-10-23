@@ -174,7 +174,7 @@ export default function RiderDash() {
         {/* Ratings Line Chart */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
-            <CardTitle>Ratings Over Time</CardTitle>
+            <CardTitle>Ratings Over Time </CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">

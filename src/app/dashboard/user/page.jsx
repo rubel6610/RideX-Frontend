@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { Settings, Star, MapPin, Clock, DollarSign } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -15,13 +16,14 @@ import {
   Line,
 } from "recharts";
 import CountUp from "react-countup";
+import { useAuth } from "@/app/hooks/AuthProvider";
 
 /* ---------- utils ---------- */
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-/* ---------- shadcn/ui inline card ---------- */
+/* ---------- Card Components ---------- */
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
@@ -54,50 +56,105 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- Dummy chart data ---------- */
-const areaData = [
-  { month: "Jan", spending: 120 },
-  { month: "Feb", spending: 200 },
-  { month: "Mar", spending: 180 },
-  { month: "Apr", spending: 260 },
-  { month: "May", spending: 300 },
-  { month: "Jun", spending: 400 },
-];
-
-const barData = [
-  { day: "Mon", rides: 2 },
-  { day: "Tue", rides: 3 },
-  { day: "Wed", rides: 1 },
-  { day: "Thu", rides: 4 },
-  { day: "Fri", rides: 2 },
-  { day: "Sat", rides: 5 },
-  { day: "Sun", rides: 3 },
-];
-
-const lineData = [
-  { week: "W1", rating: 4.0 },
-  { week: "W2", rating: 4.2 },
-  { week: "W3", rating: 3.8 },
-  { week: "W4", rating: 4.5 },
-  { week: "W5", rating: 4.3 },
-];
-
 /* ---------- PassengerDash ---------- */
 export default function PassengerDash() {
+  const { user } = useAuth(); // Logged-in user
+  const [payments, setPayments] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [rides, setRides] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return; // যদি user na thake, fetch হবে না
+
+    async function fetchData() {
+      try {
+        const [paymentsRes, reviewsRes, ridesRes] = await Promise.all([
+          fetch("http://localhost:5000/api/payment/all"),
+          fetch("http://localhost:5000/api/ride-reviews"),
+          fetch("http://localhost:5000/api/rides"),
+        ]);
+
+        const paymentsData = await paymentsRes.json();
+        const reviewsData = await reviewsRes.json();
+        const ridesData = await ridesRes.json();
+
+        // শুধুমাত্র current logged-in user এর data
+        setPayments(paymentsData.filter(p => p.userId === user.id));
+        setReviews(reviewsData.filter(r => r.userId === user.id));
+        setRides(ridesData.filter(r => r.userId === user.id));
+      } catch (err) {
+        console.error("API থেকে ডেটা আনতে সমস্যা:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [user]);
+
+  if (loading)
+    return <p className="text-center text-lg">⏳ ডাটা লোড হচ্ছে...</p>;
+
+  // ---------- Stats হিসাব ----------
+const totalRides = rides.length;
+const activeBookings = rides.filter((r) => r.status === "accepted").length;
+
+// শুধুমাত্র Paid status এর payments যোগ হবে
+const totalSpent = payments
+  .filter(p => p.status === "Paid") // এখানে filter
+  .reduce((sum, p) => {
+    const amount =
+      p.amount ??
+      p.totalAmount ??
+      p.subtotal ??
+      p.rideDetails?.fareBreakdown?.totalAmount ??
+      0;
+    return sum + amount;
+  }, 0);
+
+
+
+
+  const avgRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviews.length
+      : 0;
+
+  // ---------- Charts ----------
+  const monthlySpending = payments.map((p) => ({
+    month: new Date(p.paymentCompletedAt || p.timestamps?.paymentCompletedAt).toLocaleString("en-US", { month: "short" }),
+    amount:
+      p.amount ?? p.totalAmount ?? p.subtotal ?? p.rideDetails?.fareBreakdown?.totalAmount ?? 0,
+  }));
+
+  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weeklyRidesCount = rides.reduce((acc, ride) => {
+    const date = new Date(ride.createdAt || ride.date || ride.timestamps?.createdAt);
+    const day = weekDays[date.getDay()];
+    if (day) acc[day] = (acc[day] || 0) + 1;
+    return acc;
+  }, {});
+  const weeklyRidesData = weekDays.map((day) => ({ day, rides: weeklyRidesCount[day] || 0 }));
+
+  const ratingsOverTime = reviews.map((r) => ({
+    week: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    rating: r.rating ?? 0,
+  }));
+  
+
   const stats = [
-    { title: "Total Rides", icon: MapPin, value: 145 },
-    { title: "Active Bookings", icon: Clock, value: 3 },
-    { title: "Total Spent", icon: DollarSign, value: 12000 },
-    { title: "Avg. Rating", icon: Star, value: 4.3 },
+    { title: "Total Rides", icon: MapPin, value: totalRides },
+    { title: "Active Bookings", icon: Clock, value: activeBookings },
+    { title: "Total Spent", icon: DollarSign, value: totalSpent },
+    { title: "Avg. Rating", icon: Star, value: avgRating.toFixed(1) },
   ];
 
   return (
     <div className="space-y-4">
-      {/* Heading + Spinner */}
       <div className="flex items-center space-x-3">
         <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
           <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />
-          PASSENGER ANALYSIS
+          PASSENGER DASHBOARD
         </h1>
       </div>
 
@@ -111,84 +168,71 @@ export default function PassengerDash() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-extrabold ml-8 pb-2">
-                <CountUp
-                  end={item.value}
-                  duration={2.2}
-                  delay={0.4}
-                  separator=","
-                  decimals={item.title === "Avg. Rating" ? 1 : 0}
-                />
+                {item.title === "Total Spent" ? (
+                  <CountUp end={Number(item.value)} duration={2.2} delay={0.4} separator="," prefix="৳ " />
+                ) : (
+                  <CountUp end={Number(item.value)} duration={2.2} delay={0.4} separator="," decimals={item.title === "Avg. Rating" ? 1 : 0} />
+                )}
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Bottom Row (3 charts same size) */}
+      {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Spending Area Chart */}
+        {/* Monthly Spending */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
             <CardTitle>Monthly Spending</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData}>
+              <AreaChart data={monthlySpending}>
                 <defs>
                   <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" className="[stop-color:#87e64b]" stopOpacity={0.7} />
-                    <stop offset="95%" className="[stop-color:#87e64b]" stopOpacity={0.1} />
+                    <stop offset="5%" stopColor="#87e64b" stopOpacity={0.7} />
+                    <stop offset="95%" stopColor="#87e64b" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="spending"
-                  stroke="#6bcf32"
-                  fill="url(#colorSpend)"
-                />
+                <Tooltip formatter={(value) => `৳ ${value}`} />
+                <Area type="monotone" dataKey="amount" stroke="#6bcf32" fill="url(#colorSpend)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Rides Bar Chart */}
+        {/* Weekly Rides */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
             <CardTitle>Weekly Rides</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
+              <BarChart data={weeklyRidesData}>
                 <XAxis dataKey="day" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="rides" className="fill-[#ef4444]" />
+                <Bar dataKey="rides" fill="#ef4444" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Ratings Line Chart */}
+        {/* Ratings Over Time */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
             <CardTitle>Ratings Over Time</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
+              <LineChart data={ratingsOverTime}>
                 <XAxis dataKey="week" />
-                <YAxis domain={[3, 5]} />
+                <YAxis domain={[1, 5]} />
                 <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="rating"
-                  stroke="#87e64b"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                />
+                <Line type="monotone" dataKey="rating" stroke="#87e64b" strokeWidth={3} dot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

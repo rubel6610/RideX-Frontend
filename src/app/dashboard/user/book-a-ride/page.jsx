@@ -84,26 +84,31 @@ const BookARideContent = () => {
   // ✅ Load route params from URL if available
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const p1 = params.get("pickup");
-    const p2 = params.get("drop");
-    const promoP = params.get("promo");
-    const typeP = params.get("type");
-    const modeP = params.get("mode");
+    
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const p1 = params.get("pickup");
+      const p2 = params.get("drop");
+      const promoP = params.get("promo");
+      const typeP = params.get("type");
+      const modeP = params.get("mode");
 
-    if (p1) setPickup(p1);
-    if (p2) setDrop(p2);
-    if (promoP) {
-      setPromo(promoP);
-      setAppliedPromo(promoP);
+      if (p1) setPickup(p1);
+      if (p2) setDrop(p2);
+      if (promoP) {
+        setPromo(promoP);
+        setAppliedPromo(promoP);
+      }
+      if (typeP) setSelectedType(typeP);
+      if (modeP) setMode(modeP);
+
+      if (p1 || p2)
+        toast.success("Route loaded from URL", {
+          description: "Your route has been automatically filled from the link.",
+        });
+    } catch (error) {
+      console.error('Error loading URL parameters:', error);
     }
-    if (typeP) setSelectedType(typeP);
-    if (modeP) setMode(modeP);
-
-    if (p1 || p2)
-      toast.success("Route loaded from URL", {
-        description: "Your route has been automatically filled from the link.",
-      });
   }, []);
 
   // ✅ Fare calculation effect (optimized)
