@@ -4,8 +4,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Car, ArrowLeft } from "lucide-react";
+import { useAuth } from "./hooks/AuthProvider";
 
 export default function NotFound() {
+const {user} = useAuth();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
       <Card className="w-full max-w-md text-center shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700">
@@ -20,7 +23,7 @@ export default function NotFound() {
 
         <CardContent>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-            Oops! The page you are looking for took a wrong turn.  
+            Oops! The page you are looking for took a wrong turn.
             Let’s get you back on the RideX route.
           </p>
 
@@ -30,7 +33,7 @@ export default function NotFound() {
                 Go Home
               </Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href={`/dashboard/${user?.role}`}>
               <Button
                 variant="outline"
                 size="lg"

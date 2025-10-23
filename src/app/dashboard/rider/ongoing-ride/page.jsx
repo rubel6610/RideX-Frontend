@@ -7,13 +7,13 @@ export default function OngoingRidePage() {
 
 
     // Passenger Modal state
-    const [showPassenger, setShowPassenger] = useState(false);
     const { user } = useAuth();
     const [rideData, setRideData] = useState(null);
     const [users, setusers] = useState(null);
     const [currentRider, setCurrentRider] = useState(null);
     const [error, setError] = useState(null);
     const riderId = user?.id;
+
 
     useEffect(() => {
         if (!riderId) return;
@@ -38,20 +38,24 @@ export default function OngoingRidePage() {
     console.log(matchedRide?.userId);
 
 
-    // when passender info come from server side then this useeffect open 
-    // useEffect(() => {
-    //     const fetchPassenger = async () => {
-    //         try {
-    //             const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide?.userId}`);
-    //             const data = await res.json();
-    //             setusers(data)
-    //         }
-    //         catch (err) {
-    //             setError(err.message);
-    //         };
-    //     }
-    //     fetchPassenger()
-    // }, []);
+    // when passender info come from server side then this useeffect open
+    useEffect(() => {
+  if (!matchedRide?.userId) return; // userId না থাকলে কিছু করব না
+
+  const fetchPassenger = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide.userId}`
+      );
+      const data = await res.json();
+      setusers(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  fetchPassenger();
+}, [matchedRide?.userId]);
 
     const {
         fare,
@@ -142,4 +146,3 @@ export default function OngoingRidePage() {
         </div>
     )
 }
-
