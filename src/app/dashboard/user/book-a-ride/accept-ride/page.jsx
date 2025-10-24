@@ -1,9 +1,9 @@
 "use client";
+
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// Simple Error Boundary component
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -540,7 +540,6 @@ function AcceptRideContent() {
                 </div>
               </div>
 
-              {/* Promo Display */}
               {promo && (
                 <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-between">
                   <div className="flex items-center gap-2">
