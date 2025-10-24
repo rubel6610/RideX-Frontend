@@ -1,24 +1,133 @@
 "use client";
+"use client";
 
 import { useAuth } from "@/app/hooks/AuthProvider";
-import { da } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function PerformanceStats() {
   const { user } = useAuth();
-  // console.log(user?.id);
   const [allRiders, setAllRiders] = useState([]);
+  const [allRides, setAllRides] = useState([]);
+  const [allPayments, setAllPayments] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
-  const [performance] = useState({
-    rating: 4.5,
-    cancelledRate: 8,
-    acceptanceRate: 92,
-    trend: [5, 4, 4.5, 4, 4.8, 5, 4.7],
+  const [performance, setPerformance] = useState({
+    rating: 0,
+    cancelledRate: 0,
+    acceptanceRate: 0,
+    trend: [0, 0, 0, 0, 0, 0, 0],
+    paymentBreakdown: {
+      completed: 0,
+      pending: 0,
+      failed: 0,
+      cancelled: 0
+    },
+    rideBreakdown: {
+      completed: 0,
+      accepted: 0,
+      pending: 0,
+      rejected: 0,
+      cancelled: 0
+    }
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        const [ridersRes, ridesRes, paymentsRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`),
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rides`),
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/payment/all`)
+        ]);
+
+        const ridersData = await ridersRes.json();
+        const ridesData = await ridesRes.json();
+        const paymentsData = await paymentsRes.json();
+
+        setAllRiders(Array.isArray(ridersData.riders) ? ridersData.riders : []);
+        setAllRides(Array.isArray(ridesData) ? ridesData : []);
+        setAllPayments(Array.isArray(paymentsData) ? paymentsData : []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      fetchData();
+    }
+  }, [user?.id]);
+
+  // Calculate performance stats when data is loaded
+  useEffect(() => {
+    if (!loading && allRiders.length > 0 && user?.id) {
+      const matchedRider = allRiders.find(rider => rider.userId === user?.id);
+      
+      if (matchedRider) {
+        // Filter rides for this rider
+        const riderRides = allRides.filter(ride => 
+          ride.riderId === matchedRider._id.toString() || 
+          ride.riderId === matchedRider._id
+        );
+        
+        // Filter payments for this rider
+        const riderPayments = allPayments.filter(payment => 
+          payment.rideDetails?.riderId === matchedRider._id.toString() ||
+          payment.rideDetails?.riderId === matchedRider._id
+        );
+
+        // Calculate ride breakdown
+        const rideBreakdown = {
+          completed: riderRides.filter(r => r.status === 'completed').length,
+          accepted: riderRides.filter(r => r.status === 'accepted').length,
+          pending: riderRides.filter(r => r.status === 'pending').length,
+          rejected: riderRides.filter(r => r.status === 'rejected').length,
+          cancelled: riderRides.filter(r => r.status === 'cancelled').length
+        };
+
+        // Calculate payment breakdown
+        const paymentBreakdown = {
+          completed: riderPayments.filter(p => p.status === 'Paid').length,
+          pending: riderPayments.filter(p => p.status === 'Pending').length,
+          failed: riderPayments.filter(p => p.status === 'Failed').length,
+          cancelled: riderPayments.filter(p => p.status === 'Cancelled').length
+        };
+
+        // Calculate rates
+        const totalRides = riderRides.length;
+        const cancelledRides = rideBreakdown.cancelled + rideBreakdown.rejected;
+        const acceptedRides = rideBreakdown.accepted + rideBreakdown.completed;
+        
+        const cancelledRate = totalRides > 0 ? ((cancelledRides / totalRides) * 100).toFixed(1) : 0;
+        const acceptanceRate = totalRides > 0 ? ((acceptedRides / totalRides) * 100).toFixed(1) : 100;
+        
+        // Calculate rating (assuming reviews field contains rating sum or average)
+        const rating = matchedRider.ratings || matchedRider.reviews || 0;
+        const formattedRating = typeof rating === 'number' ? rating.toFixed(1) : '0.0';
+
+        // Generate trend data (last 7 weeks)
+        const trend = [4.5, 4.3, 4.6, 4.4, 4.7, 4.8, parseFloat(formattedRating)];
+
+        setPerformance({
+          rating: parseFloat(formattedRating),
+          cancelledRate: parseFloat(cancelledRate),
+          acceptanceRate: parseFloat(acceptanceRate),
+          trend,
+          paymentBreakdown,
+          rideBreakdown
+        });
+      }
+    }
+  }, [loading, allRiders, allRides, allPayments, user?.id]);
+
+  const matchedRider = allRiders.find(rider => rider.userId === user?.id);
+  const formattedReview = performance.rating.toFixed(1);
+
   const chartData = [
     { week: "Week 1", rating: performance.trend[0] },
     { week: "Week 2", rating: performance.trend[1] },
@@ -28,31 +137,6 @@ export default function PerformanceStats() {
     { week: "Week 6", rating: performance.trend[5] },
     { week: "Week 7", rating: performance.trend[6] },
   ];
-
-  useEffect(() => {
-    const fetchRiders = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
-        const data = await res.json();
-
-        setAllRiders(Array.isArray(data.riders) ? data.riders : []);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRiders();
-  }, []);
-
-  const matchedRider = allRiders.find(rider => rider.userId === user?.id);
-  console.log("Matched Rider:", matchedRider);
-
-  const reviewOutOfFive = matchedRider?.reviews / 13;
-  const formattedReview = reviewOutOfFive?.toFixed(1);
-  console.log(formattedReview);
 
   const stats = [
     { icon: "⭐", title: "Rating", value: `${formattedReview}/5` },

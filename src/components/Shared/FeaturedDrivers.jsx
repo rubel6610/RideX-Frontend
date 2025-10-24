@@ -3,15 +3,12 @@
 import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Star } from 'lucide-react';
 
 // --- DRIVER/SERVICE ASSET IMPORTS ---
 import servicePic1 from '../../Assets/driver-michael.jpg'; // Michael's Photo
 import servicePic2 from '../../Assets/driver-sarah.jpg';   // Sarah's Photo
 import servicePic3 from '../../Assets/driver-featured.jpg'; // David's Photo
-
-gsap.registerPlugin(ScrollTrigger);
 
 const FeaturedDrivers = () => {
   const sectionRef = useRef(null);
@@ -48,27 +45,20 @@ const FeaturedDrivers = () => {
     },
   ];
 
+  // Initial mount animation (not scroll-based)
   useEffect(() => {
     const ctx = gsap.context(() => {
-      cardRefs.current.forEach((card, index) => {
-        const direction = index % 2 === 0 ? -100 : 100;
-
-        gsap.fromTo(
-          card,
-          { opacity: 0, x: direction },
-          {
-            opacity: 1,
-            x: 0,
-            duration: 0.8,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 80%',
-              once: true, // ✅ animation runs only once
-            },
-          }
-        );
-      });
+      gsap.fromTo(
+        cardRefs.current,
+        { opacity: 0, y: 60 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1.2,
+          ease: 'power3.out',
+          stagger: 0.2,
+        }
+      );
     }, sectionRef);
 
     return () => ctx.revert();
@@ -106,7 +96,6 @@ const FeaturedDrivers = () => {
                 PREMIUM DRIVER SERVICE
               </div>
               <div className="w-2 h-2 bg-primary rounded-full"></div>
-
             </div>
             <h2 className="text-4xl sm:text-5xl md:text-[34px] lg:text-[40px] xl:text-[50px] font-black text-foreground uppercase leading-8 sm:leading-11 md:leading-[31px] lg:leading-10 xl:leading-11.5">
               MEET OUR <span className="text-primary">FEATURED DRIVERS</span>
