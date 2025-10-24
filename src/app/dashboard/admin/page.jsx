@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { Settings, Users, User, Bike, DollarSign } from "lucide-react";
 import CountUp from "react-countup";
 
-// আলাদা component import
 import Charts from "./Components/Charts";
 import DataTableDemo from "./Components/DataTableDemo";
 
@@ -45,13 +45,47 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- AdminDash ---------- */
 export default function AdminDash() {
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/analytics/admin`
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          setAnalytics(data.analytics);
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin analytics:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnalytics();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
   const stats = [
-    { title: "Total Passengers", icon: User, value: 420 },
-    { title: "Total Riders", icon: Bike, value: 850 },
-    { title: "Total Users", icon: Users, value: 3200 },
-    { title: "Earnings", icon: DollarSign, value: 120000 },
+    { title: "Total Passengers", icon: User, value: analytics?.totalPassengers || 0 },
+    { title: "Total Riders", icon: Bike, value: analytics?.totalRiders || 0 },
+    { title: "Total Users", icon: Users, value: analytics?.totalUsers || 0 },
+    { title: "Earnings", icon: DollarSign, value: analytics?.totalEarnings || 0 },
   ];
 
   return (
@@ -74,7 +108,13 @@ export default function AdminDash() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-extrabold ml-8 pb-2">
-                <CountUp end={item.value} duration={2.2} delay={0.4} separator="," />
+                <CountUp 
+                  end={item.value} 
+                  duration={2.2} 
+                  delay={0.4} 
+                  separator=","
+                  prefix={item.title === "Earnings" ? "৳ " : ""}
+                />
               </p>
             </CardContent>
           </Card>

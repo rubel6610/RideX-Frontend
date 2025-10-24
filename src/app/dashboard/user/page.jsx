@@ -18,12 +18,12 @@ import {
 import CountUp from "react-countup";
 import { useAuth } from "@/app/hooks/AuthProvider";
 
-/* ---------- utils ---------- */
+
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-/* ---------- Card Components ---------- */
+
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
@@ -56,97 +56,66 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- PassengerDash ---------- */
+
 export default function PassengerDash() {
-  const { user } = useAuth(); // Logged-in user
-  const [payments, setPayments] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [rides, setRides] = useState([]);
+  const { user } = useAuth(); 
+  const [stats, setStats] = useState({
+    totalRides: 0,
+    totalSpent: 0,
+    avgRating: 0
+  });
+  const [monthlySpending, setMonthlySpending] = useState([]);
+  const [weeklyRidesData, setWeeklyRidesData] = useState([]);
+  const [ratingsOverTime, setRatingsOverTime] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return; // যদি user na thake, fetch হবে না
+    if (!user?.id) return;
 
-    async function fetchData() {
+    async function fetchAnalytics() {
       try {
-        const [paymentsRes, reviewsRes, ridesRes] = await Promise.all([
-          fetch("http://localhost:5000/api/payment/all"),
-          fetch("http://localhost:5000/api/ride-reviews"),
-          fetch("http://localhost:5000/api/rides"),
-        ]);
+        setLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/analytics/user/${user.id}`
+        );
+        const data = await res.json();
 
-        const paymentsData = await paymentsRes.json();
-        const reviewsData = await reviewsRes.json();
-        const ridesData = await ridesRes.json();
-
-        // শুধুমাত্র current logged-in user এর data
-        setPayments(paymentsData.filter(p => p.userId === user.id));
-        setReviews(reviewsData.filter(r => r.userId === user.id));
-        setRides(ridesData.filter(r => r.userId === user.id));
+        if (data.success) {
+          const { totalRides, totalSpent, avgRating, monthlySpending, weeklyRides, ratingsOverTime } = data.analytics;
+          
+          setStats({
+            totalRides,
+            totalSpent,
+            avgRating
+          });
+          
+          setMonthlySpending(monthlySpending || []);
+          setWeeklyRidesData(weeklyRides || []);
+          setRatingsOverTime(ratingsOverTime || []);
+        }
       } catch (err) {
-        console.error("API থেকে ডেটা আনতে সমস্যা:", err);
+        console.error("Failed to fetch analytics:", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchData();
+    fetchAnalytics();
   }, [user]);
 
   if (loading)
-    return <p className="text-center text-lg">⏳ ডাটা লোড হচ্ছে...</p>;
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
 
-  // ---------- Stats হিসাব ----------
-const totalRides = rides.length;
-const activeBookings = rides.filter((r) => r.status === "accepted").length;
-
-// শুধুমাত্র Paid status এর payments যোগ হবে
-const totalSpent = payments
-  .filter(p => p.status === "Paid") // এখানে filter
-  .reduce((sum, p) => {
-    const amount =
-      p.amount ??
-      p.totalAmount ??
-      p.subtotal ??
-      p.rideDetails?.fareBreakdown?.totalAmount ??
-      0;
-    return sum + amount;
-  }, 0);
-
-
-
-
-  const avgRating =
-    reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviews.length
-      : 0;
-
-  // ---------- Charts ----------
-  const monthlySpending = payments.map((p) => ({
-    month: new Date(p.paymentCompletedAt || p.timestamps?.paymentCompletedAt).toLocaleString("en-US", { month: "short" }),
-    amount:
-      p.amount ?? p.totalAmount ?? p.subtotal ?? p.rideDetails?.fareBreakdown?.totalAmount ?? 0,
-  }));
-
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const weeklyRidesCount = rides.reduce((acc, ride) => {
-    const date = new Date(ride.createdAt || ride.date || ride.timestamps?.createdAt);
-    const day = weekDays[date.getDay()];
-    if (day) acc[day] = (acc[day] || 0) + 1;
-    return acc;
-  }, {});
-  const weeklyRidesData = weekDays.map((day) => ({ day, rides: weeklyRidesCount[day] || 0 }));
-
-  const ratingsOverTime = reviews.map((r) => ({
-    week: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    rating: r.rating ?? 0,
-  }));
-  
-
-  const stats = [
-    { title: "Total Rides", icon: MapPin, value: totalRides },
-    { title: "Active Bookings", icon: Clock, value: activeBookings },
-    { title: "Total Spent", icon: DollarSign, value: totalSpent },
-    { title: "Avg. Rating", icon: Star, value: avgRating.toFixed(1) },
+  const statsData = [
+    { title: "Total Rides", icon: MapPin, value: stats.totalRides },
+    { title: "Total Spent", icon: DollarSign, value: stats.totalSpent },
+    { title: "Avg. Rating", icon: Star, value: stats.avgRating },
   ];
 
   return (
@@ -158,9 +127,8 @@ const totalSpent = payments
         </h1>
       </div>
 
-      {/* Top Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((item, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {statsData.map((item, idx) => (
           <Card key={idx} className="flex flex-col justify-center p-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{item.title}</CardTitle>

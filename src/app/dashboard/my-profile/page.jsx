@@ -31,10 +31,10 @@ const MyProfile = () => {
     isLoading,
     isError,
     error,
-  } = useFetchData("user", "/user", { email: user?.email });
+  } = useFetchData("user", "user", { email: user?.email }, { enabled: !!user?.email });
 
   // ✅ Update user profile using your reusable `useUpdateData`
-  const updateProfile = useUpdateData("/user", {
+  const updateProfile = useUpdateData("user", {
     onSuccess: () => {
       toast.success("Profile updated successfully ✅");
       setIsEditPopupOpen(false);
