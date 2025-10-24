@@ -69,7 +69,7 @@ const statusBadge = (status) => {
   );
 };
 
-// Function to convert coordinates to real location (via backend proxy)
+// Function to convert coordinates to real location (direct Nominatim API call)
 // Optimized with caching to avoid redundant API calls
 const locationCache = new Map();
 
@@ -86,9 +86,20 @@ const fetchLocationName = async (coordinates) => {
   }
   
   try {
+    // Call Nominatim API directly from frontend
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+      {
+        headers: {
+          'User-Agent': 'RideX-App/1.0' // Required by Nominatim usage policy
+        }
+      }
     );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
     const displayName = data.display_name || "Unknown location";
     
@@ -98,6 +109,23 @@ const fetchLocationName = async (coordinates) => {
     return displayName;
   } catch (error) {
     console.error("Error fetching location:", error);
+    
+    // Fallback: try backend proxy as backup
+    try {
+      const backendResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
+      );
+      
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+        const displayName = data.display_name || "Unknown location";
+        locationCache.set(cacheKey, displayName);
+        return displayName;
+      }
+    } catch (backendError) {
+      console.error("Backend fallback also failed:", backendError);
+    }
+    
     return "Unknown location";
   }
 };
