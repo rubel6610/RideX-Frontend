@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }) {
   const { user } = useAuth();
   const { data } = useFetchData("users", "/user", { email: user?.email });
   // const userRole = user?.role;
-   const userRole = 'admin';
+   const userRole = user?.role;
 
   useEffect(() => {
     const handleResize = () => {
