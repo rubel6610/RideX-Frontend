@@ -234,7 +234,7 @@ export default function DashboardLayout({ children }) {
           </header>
 
           <main
-            className={`flex-1 scrollbar-hidden p-6 mt-10 ${
+            className={`flex-1  scrollbar-hidden p-6 mt-15 ${
               sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
             }`}
           >
