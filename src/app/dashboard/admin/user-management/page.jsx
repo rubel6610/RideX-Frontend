@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
 import { useFetchData, useUpdateData } from "@/app/hooks/useApi";
 import { Alert } from "@/components/ui/alert";
+import { usePagination, PaginationControls } from "@/components/ui/pagination-table";
 
 export default function UserManagement() {
   const [search, setSearch] = useState("");
@@ -64,7 +65,6 @@ export default function UserManagement() {
     return counts;
   }, [users]);
 
-  // ✅ Filter users by role + search
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
       if (roleFilter !== "all" && u.role !== roleFilter) return false;
@@ -78,6 +78,8 @@ export default function UserManagement() {
       return true;
     });
   }, [users, roleFilter, search]);
+
+  const pagination = usePagination(filteredUsers, 10);
 
   //  Handle loading / error
   if (isLoading) return <TableSkeleton />;
@@ -142,7 +144,7 @@ export default function UserManagement() {
             className="w-full sm:max-w-sm"
           />
           <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-            Showing {filteredUsers.length} {roleFilter} users
+            Showing {pagination.startIndex}-{pagination.endIndex} of {filteredUsers.length} {roleFilter} users
           </div>
         </div>
 
@@ -163,8 +165,8 @@ export default function UserManagement() {
             </TableHeader>
 
             <TableBody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {pagination.currentData.length > 0 ? (
+                pagination.currentData.map((user) => (
                   <TableRow key={user._id}>
                     <TableCell className="font-medium whitespace-nowrap">
                       {user.fullName || "N/A"}
@@ -220,6 +222,9 @@ export default function UserManagement() {
             </TableBody>
           </Table>
         </div>
+        {filteredUsers.length > 0 && (
+          <PaginationControls pagination={pagination} />
+        )}
       </CardContent>
     </Card>
   );

@@ -46,7 +46,7 @@ const Navbar = () => {
   const rideByRef = useRef(null);
   const accountRef = useRef(null);
 
-  const { data } = useFetchData(
+  const { data,isLoading } = useFetchData(
     "users",
     "/user",
     { email: user?.email },

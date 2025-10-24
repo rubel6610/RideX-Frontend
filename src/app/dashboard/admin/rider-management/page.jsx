@@ -16,6 +16,7 @@ import RiderActions from "./RiderActions";
 import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
 import { RefreshCw } from "lucide-react";
 import { useFetchData } from "@/app/hooks/useApi";
+import { usePagination, PaginationControls } from "@/components/ui/pagination-table";
 
 export default function RiderManagementClient() {
   const [search, setSearch] = useState("");
@@ -29,8 +30,19 @@ export default function RiderManagementClient() {
 
   const filteredRiders = riders.filter((rider) => {
     const riderStatus = rider.status?.toLowerCase() || "pending";
-    return statusFilter === riderStatus;
+    if (statusFilter !== riderStatus) return false;
+    
+    if (!search) return true;
+    const term = search.toLowerCase();
+    return (
+      (rider.fullName || "").toLowerCase().includes(term) ||
+      (rider.email || "").toLowerCase().includes(term) ||
+      (rider.vehicleType || "").toLowerCase().includes(term) ||
+      (rider.vehicleModel || "").toLowerCase().includes(term)
+    );
   });
+
+  const pagination = usePagination(filteredRiders, 10);
 
   const statusCounts = {
     pending: riders.filter((r) => !r.status || r.status?.toLowerCase() === "pending").length,
@@ -43,21 +55,19 @@ export default function RiderManagementClient() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 shadow-lg rounded-2xl bg-background border border-border">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold text-blue-600">Rider Management</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Rider Management</h1>
         <Button
           onClick={() => refetch()}
           variant="outline"
           size="sm"
-          className="flex items-center gap-2 border-blue-400 text-blue-600 hover:bg-blue-50"
+          className="flex items-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>
       </div>
 
-      {/* Status Tabs */}
       <div className="flex flex-wrap gap-2 sm:gap-4">
         {[
           { key: "pending", label: "Pending Riders", count: statusCounts.pending },
@@ -68,20 +78,12 @@ export default function RiderManagementClient() {
             key={tab.key}
             variant={statusFilter === tab.key ? "default" : "outline"}
             onClick={() => setStatusFilter(tab.key)}
-            className={`flex items-center gap-2 text-sm sm:text-base ${
-              statusFilter === tab.key
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "border-blue-300 text-blue-600"
-            }`}
+            className="flex items-center gap-2 text-sm sm:text-base"
           >
             {tab.label}
             <Badge
               variant={statusFilter === tab.key ? "secondary" : "outline"}
-              className={`text-xs ${
-                statusFilter === tab.key
-                  ? "bg-blue-50 text-blue-600"
-                  : "border-blue-300 text-blue-500"
-              }`}
+              className="text-xs"
             >
               {tab.count}
             </Badge>
@@ -95,45 +97,33 @@ export default function RiderManagementClient() {
           placeholder="Search by name, email, or vehicle..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:max-w-sm border-blue-300 focus-visible:ring-blue-400"
+          className="w-full sm:max-w-sm"
         />
-        <div className="text-sm text-blue-700">
-          Showing {filteredRiders.length} {statusFilter} riders
+        <div className="text-sm text-muted-foreground">
+          Showing {pagination.startIndex}-{pagination.endIndex} of {filteredRiders.length} {statusFilter} riders
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="rounded-2xl border-blue-300 shadow-sm overflow-x-auto bg-background border">
+      <div className="rounded-2xl shadow-sm overflow-x-auto bg-background border border-border">
         <Table className="min-w-[800px]">
           <TableHeader>
-            <TableRow className="bg-blue-50">
-              <TableHead className="whitespace-nowrap text-blue-700">Name</TableHead>
-              <TableHead className="whitespace-nowrap text-blue-700">Email</TableHead>
-              <TableHead className="whitespace-nowrap text-blue-700">Vehicle</TableHead>
-              <TableHead className="whitespace-nowrap text-blue-700">Model</TableHead>
-              <TableHead className="whitespace-nowrap text-blue-700">Reg. No</TableHead>
-              <TableHead className="whitespace-nowrap text-blue-700">Status</TableHead>
-              <TableHead className="text-center whitespace-nowrap text-blue-700">Actions</TableHead>
+            <TableRow className="bg-accent/30">
+              <TableHead className="whitespace-nowrap">Name</TableHead>
+              <TableHead className="whitespace-nowrap">Email</TableHead>
+              <TableHead className="whitespace-nowrap">Vehicle</TableHead>
+              <TableHead className="whitespace-nowrap">Model</TableHead>
+              <TableHead className="whitespace-nowrap">Reg. No</TableHead>
+              <TableHead className="whitespace-nowrap">Status</TableHead>
+              <TableHead className="text-center whitespace-nowrap">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {filteredRiders.length > 0 ? (
-              filteredRiders
-                .filter((rider) => {
-                  if (!search) return true;
-                  const term = search.toLowerCase();
-                  return (
-                    (rider.fullName || "").toLowerCase().includes(term) ||
-                    (rider.email || "").toLowerCase().includes(term) ||
-                    (rider.vehicleType || "").toLowerCase().includes(term) ||
-                    (rider.vehicleModel || "").toLowerCase().includes(term)
-                  );
-                })
-                .map((rider) => (
+            {pagination.currentData.length > 0 ? (
+              pagination.currentData.map((rider) => (
                   <TableRow
                     key={rider._id}
-                    className="hover:bg-blue-50 transition-colors duration-200"
+                    className="hover:bg-accent/20 transition-colors duration-200"
                   >
                     <TableCell className="font-medium">{rider.fullName || "N/A"}</TableCell>
                     <TableCell>{rider.email || "N/A"}</TableCell>
@@ -148,13 +138,6 @@ export default function RiderManagementClient() {
                             : rider.status?.toLowerCase() === "rejected"
                             ? "destructive"
                             : "secondary"
-                        }
-                        className={
-                          rider.status?.toLowerCase() === "approved"
-                            ? "bg-blue-600 text-white"
-                            : rider.status?.toLowerCase() === "rejected"
-                            ? "bg-red-500 text-white"
-                            : "bg-blue-100 text-blue-700"
                         }
                       >
                         {rider.status ? rider.status : "Pending"}
@@ -171,7 +154,7 @@ export default function RiderManagementClient() {
                 ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-6 text-blue-500">
+                <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                   No {statusFilter} riders found
                   {search && ` matching "${search}"`}
                 </TableCell>
@@ -180,6 +163,9 @@ export default function RiderManagementClient() {
           </TableBody>
         </Table>
       </div>
+      {filteredRiders.length > 0 && (
+        <PaginationControls pagination={pagination} />
+      )}
     </div>
   );
 }

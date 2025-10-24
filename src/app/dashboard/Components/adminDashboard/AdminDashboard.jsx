@@ -50,7 +50,7 @@ const AdminDashboard = ({ collapsed }) => {
     { href: "/dashboard/admin/promotions-discounts", Icon: Gift, label: "Promotions & Discounts" },
 
       //  general menu
-{href: "/dashboard/profile", Icon: User, label: `${user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Profile`},
+{href: "/dashboard/my-profile", Icon: User, label: `${user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Profile`},
     { href: "/dashboard/admin/support-inbox", Icon: HelpCircle, label: "Support Inbox" },
 
   ];

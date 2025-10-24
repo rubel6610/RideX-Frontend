@@ -53,6 +53,7 @@ export default function RootLayout({ children }) {
       lang="en"
       data-theme="light"
       className={`${mulish.variable} ${roboto.variable}`}
+      suppressHydrationWarning
     >
       <body className="bg-white text-black dark:bg-gray-900 dark:text-white">
         <ThemeProvider>
@@ -62,7 +63,6 @@ export default function RootLayout({ children }) {
             </QueryClientProvider>
           </AuthProvider>
         </ThemeProvider>
-
         <CursorFollower />
         <Toaster position="bottom-right" />
       </body>

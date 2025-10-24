@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { MapPin, Navigation, MoveVertical, Search, CircleDot } from "lucide-react";
+import { MapPin, Navigation, CircleDot, Search } from "lucide-react";
 
 const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) => {
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
@@ -134,6 +134,35 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
       }, 500);
     }
   };
+
+  // Update display names when pickup/drop values change (e.g., from URL params)
+  useEffect(() => {
+    // If pickup value changes and we don't have a display name yet, try to set it
+    if (pickup && !pickupDisplayName) {
+      // If pickup is coordinates, we might want to reverse geocode it
+      if (pickup.includes(",")) {
+        // It's coordinates, we could reverse geocode but for now just use as is
+        setPickupDisplayName(pickup);
+      } else {
+        // It's a name, use it directly
+        setPickupDisplayName(pickup);
+      }
+    }
+  }, [pickup, pickupDisplayName]);
+
+  useEffect(() => {
+    // If drop value changes and we don't have a display name yet, try to set it
+    if (drop && !dropDisplayName) {
+      // If drop is coordinates, we might want to reverse geocode it
+      if (drop.includes(",")) {
+        // It's coordinates, we could reverse geocode but for now just use as is
+        setDropDisplayName(drop);
+      } else {
+        // It's a name, use it directly
+        setDropDisplayName(drop);
+      }
+    }
+  }, [drop, dropDisplayName]);
 
   return (
     <div className="space-y-4">

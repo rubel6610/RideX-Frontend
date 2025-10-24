@@ -21,11 +21,11 @@ const EarningPage = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch payments from backend
+  //  Fetch payments from backend
   useEffect(() => {
     const fetchEarnings = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/payment/all"); // backend URL
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/payment/all`);
         const payments = await res.json();
 
         const now = new Date();
@@ -105,7 +105,7 @@ const EarningPage = () => {
     value: currentEarnings[i] || 0,
   }));
 
-  // ✅ summary with 2 decimal places
+  //  summary with 2 decimal places
   const summary = {
     today: earnings.daily.reduce((a, b) => a + b, 0).toFixed(2),
     week: earnings.weekly.reduce((a, b) => a + b, 0).toFixed(2),
@@ -131,32 +131,32 @@ const EarningPage = () => {
         ].map((item, index) => (
           <div
             key={index}
-            className="p-6 rounded-2xl border border-gray-200 dark:border-gray-700 text-center bg-white dark:bg-gray-800 transition-colors duration-300"
+            className="p-6 rounded-2xl border border-accent text-center bg-background hover:shadow-lg transition-all duration-300"
           >
-            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+            <h2 className="text-lg font-semibold text-foreground">
               {item.title}
             </h2>
-            <h2 className="text-2xl font-bold text-blue-600">
-              ${item.value}
+            <h2 className="text-2xl font-bold text-primary">
+              ৳{item.value}
             </h2>
           </div>
         ))}
       </div>
 
       {/* Chart */}
-      <div className="p-6 bg-background dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <div className="p-6 bg-background rounded-2xl border border-accent transition-all duration-300">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="text-xl font-semibold text-foreground">
             Earnings Chart
           </h2>
           <div className="flex gap-2">
             {["daily", "weekly", "monthly"].map((p) => (
               <button
                 key={p}
-                className={`px-4 py-1 rounded-lg font-medium transition-colors duration-300 ${
+                className={`px-4 py-1 rounded-lg font-medium transition-all duration-300 ${
                   period === p
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                    ? "bg-primary text-white"
+                    : "bg-accent text-foreground"
                 }`}
                 onClick={() => setPeriod(p)}
               >
@@ -180,7 +180,7 @@ const EarningPage = () => {
               itemStyle={{ color: "#fff" }}
             />
             <Legend wrapperStyle={{ color: "#ccc" }} />
-            <Bar dataKey="value" fill="#3b82f6" radius={[5, 5, 0, 0]} />
+            <Bar dataKey="value" fill="hsl(var(--primary))" radius={[5, 5, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

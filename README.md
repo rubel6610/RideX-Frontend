@@ -4,8 +4,18 @@
   <img src="https://img.shields.io/badge/Next.js-15.5.4-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Leaflet-1.9-green?style=for-the-badge&logo=leaflet" alt="Leaflet" />
+  <img src="https://img.shields.io/badge/Socket.IO-4.0-green?style=for-the-badge&logo=socket.io" alt="Socket.IO" />
 </div>
+
+---
+
+## 🌐 Live Demo
+
+- **Live Site**: [Coming Soon]
+- **Frontend Repository**: [GitHub - RideX Frontend](https://github.com/yourusername/ridex-frontend)
+- **Backend Repository**: [GitHub - RideX Backend](https://github.com/yourusername/ridex-backend)
+
+---
 
 ## 📋 Project Overview
 
@@ -43,61 +53,92 @@
 
 ## 🚀 Key Features
 
-### 1. **Smart Ride Booking System**
-- **Interactive Map Integration**: Leaflet-based map with location selection
-- **Real-time Fare Calculation**: Dynamic pricing based on distance and vehicle type
+### 🗺️ **Smart Ride Booking System**
+- **Interactive Map Integration**: Leaflet-based map with real-time location selection
+- **Dynamic Fare Calculation**: Real-time pricing based on distance and vehicle type
 - **Multiple Vehicle Options**: Support for Bike, Car, and CNG vehicles
 - **Location Autocomplete**: Smart location suggestions with geocoding
+- **Road-Following Routes**: OSRM integration for accurate route visualization
 
-### 2. **Live Tracking & Navigation**
-- **Real-time Location Updates**: 5-second interval location tracking
-- **Road-following Routes**: OSRM integration for accurate route planning
+### 📍 **Live Tracking & Navigation**
+- **Real-time Location Updates**: 5-second interval driver location tracking
 - **Interactive Map Markers**: Custom vehicle icons with pulse animations
 - **ETA Calculations**: Accurate arrival time predictions
+- **Route Optimization**: Shortest path calculation using OSRM
 
-### 3. **Advanced Payment System**
-- **Multiple Payment Methods**: Support for various payment options
+### 💳 **Advanced Payment System**
+- **Multiple Payment Methods**: Cash, Card, and Digital wallet support
 - **Secure Transactions**: Encrypted payment processing
-- **Receipt Generation**: Automated receipt and invoice creation
-- **Payment History**: Complete transaction tracking
+- **Automatic Receipt Generation**: PDF invoice creation
+- **Payment History**: Complete transaction tracking and analytics
 
-### 4. **Review & Rating System**
-- **5-Star Rating**: Interactive star rating with hover effects
-- **Comment System**: Optional feedback with 500-character limit
-- **Driver Rating**: Separate rating system for drivers
-- **Review Analytics**: Data collection for service improvement
+### ⭐ **Review & Rating System**
+- **5-Star Rating**: Interactive rating with visual feedback
+- **Comment System**: Optional feedback with character limit
+- **Driver Performance**: Comprehensive rating analytics
+- **Review History**: Track all ratings and reviews
 
-### 5. **Real-time Communication**
-- **In-app Chat**: Direct messaging between riders and drivers
-- **Message History**: Persistent chat conversations
-- **Typing Indicators**: Real-time communication status
-- **Notification System**: Push notifications for messages
+### 💬 **Real-time Communication**
+- **In-app Chat**: Direct messaging between riders and passengers
+- **Support System**: Integrated support chat for users and riders
+- **Message Notifications**: Real-time toast notifications for new messages
+- **Chat History**: Persistent conversation storage
 
-## 🛠️ Technical Implementation
+### 📊 **Dynamic Analytics Dashboard**
+- **User Dashboard**: Total rides, spending analytics, rating overview
+- **Rider Dashboard**: Earnings, completed rides, performance metrics
+- **Admin Dashboard**: Platform-wide statistics and user management
+- **Real-time Charts**: Interactive data visualization with Recharts
+
+### 🔔 **Notification System**
+- **Ride Updates**: Real-time notifications for ride status changes
+- **Message Alerts**: Toast notifications for chat messages
+- **Support Notifications**: Dynamic alerts for support messages
+- **System Alerts**: Important platform announcements
+
+### 🎨 **Modern UI/UX**
+- **Responsive Design**: Mobile-first approach with all screen sizes
+- **Dark/Light Theme**: Theme switching capability
+- **Skeleton Loading**: Professional loading states
+- **Smooth Animations**: Framer Motion and Tailwind animations
+- **Consistent Design**: Shadcn UI components throughout
+
+## 🛠️ Technology Stack
 
 ### **Frontend Technologies**
-- **Next.js 15.5.4**: React framework with SSR/SSG capabilities
-- **React 18**: Modern React with hooks and functional components
-- **Tailwind CSS**: Utility-first CSS framework for responsive design
-- **Shadcn UI**: Modern component library for consistent design
+| Technology | Version | Purpose |
+|-----------|---------|----------|
+| **Next.js** | 15.5.4 | React framework with App Router, SSR/SSG |
+| **React** | 18 | UI library with hooks and functional components |
+| **Tailwind CSS** | 3.0 | Utility-first CSS framework |
+| **Shadcn UI** | Latest | Modern component library |
+| **Leaflet** | 1.9 | Interactive map integration |
+| **React-Leaflet** | Latest | React wrapper for Leaflet |
+| **Socket.IO Client** | 4.0 | Real-time WebSocket communication |
+| **Recharts** | Latest | Chart and data visualization |
+| **React-Toastify/Sonner** | Latest | Toast notifications |
+| **Framer Motion** | Latest | Smooth animations |
+| **date-fns** | Latest | Date formatting and manipulation |
 
-### **Map & Location Services**
-- **Leaflet**: Open-source mapping library
-- **React-Leaflet**: React integration for Leaflet
-- **Leaflet Routing Machine**: Road-following route calculation
-- **OSRM**: Open Source Routing Machine for accurate routes
+### **Backend Technologies** (See Backend README)
+| Technology | Version | Purpose |
+|-----------|---------|----------|
+| **Node.js** | 18+ | JavaScript runtime |
+| **Express.js** | 4.0 | Web application framework |
+| **MongoDB** | 6.0 | NoSQL database |
+| **Mongoose** | Latest | MongoDB object modeling |
+| **Socket.IO** | 4.0 | Real-time bidirectional communication |
+| **JWT** | Latest | Authentication and authorization |
+| **Bcrypt** | Latest | Password hashing |
+| **Multer** | Latest | File upload handling |
 
-### **State Management & API**
-- **React Hooks**: useState, useEffect for state management
-- **Custom Hooks**: useAuth, useApi for reusable logic
-- **Fetch API**: Modern HTTP client for API communication
-- **URL Parameters**: SearchParams for data persistence
+### **Development Tools**
+- **Git** - Version control
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **Postman** - API testing
 
-### **UI/UX Features**
-- **Responsive Design**: Mobile-first approach with breakpoints
-- **Dark/Light Theme**: Theme switching capability
-- **Loading States**: Skeleton loaders and spinners
-- **Error Handling**: Comprehensive error boundaries and fallbacks
+---
 
 ## 🎨 Unique Features & Innovations
 

@@ -20,6 +20,7 @@ import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
 import UserDashboard from "./Components/userDashboard/UserDashboard";
 import RiderStatus from "@/components/Shared/RiderStatus";
+import NotificationBell from "@/components/Shared/NotificationBell";
 import { useLogout } from "../hooks/SignOutButton";
 
 export default function DashboardLayout({ children }) {
@@ -189,6 +190,9 @@ export default function DashboardLayout({ children }) {
             </div>
 
             <div className="flex items-center gap-3 md:gap-5">
+              {/* Notification Bell */}
+              <NotificationBell />
+              
               <button
                 type="button"
                 aria-label="Toggle theme"
@@ -230,7 +234,7 @@ export default function DashboardLayout({ children }) {
           </header>
 
           <main
-            className={`flex-1 scrollbar-hidden p-6 mt-10 ${
+            className={`flex-1  scrollbar-hidden p-6 mt-15 ${
               sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
             }`}
           >
