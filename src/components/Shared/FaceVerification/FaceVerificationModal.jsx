@@ -260,21 +260,21 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center">
+    <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4">
       <div 
         ref={modalRef}
-        className="relative w-full h-full md:w-[80%] lg:w-[60%] md:h-[85vh] lg:h-[80vh] md:rounded-2xl lg:rounded-2xl overflow-hidden bg-black"
+        className="relative w-full h-full md:w-[90%] lg:w-[70%] md:h-[90vh] lg:h-[85vh] md:rounded-3xl lg:rounded-3xl overflow-hidden bg-black shadow-2xl border-4 border-teal-500/30"
       >
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-white bg-destructive p-3 rounded-full hover:bg-destructive/90 hover:scale-110 transition-transform z-[10000]"
+          className="absolute top-6 right-6 text-white bg-destructive p-4 rounded-full hover:bg-destructive/90 hover:scale-110 transition-transform z-[100000] shadow-xl"
         >
-          <X size={20} />
+          <X size={24} />
         </button>
 
         <div 
           ref={progressBarRef}
-          className="absolute top-4 right-20 z-[10000]"
+          className="absolute top-6 right-24 z-[100000]"
         >
           <CircularProgress progress={progress} />
         </div>
@@ -282,10 +282,10 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
         {showMessage && (
           <div 
             ref={messageRef}
-            className="absolute inset-0 flex items-center justify-center z-[10001] pointer-events-none"
+            className="absolute inset-0 flex items-center justify-center z-[100001] pointer-events-none"
           >
-            <div className="bg-blue-600 text-white px-16 py-10 rounded-2xl shadow-2xl">
-              <div className="text-4xl font-bold text-center">HOLD FOR CAPTURE</div>
+            <div className="bg-blue-600 text-white px-20 py-12 rounded-3xl shadow-2xl animate-pulse">
+              <div className="text-5xl font-bold text-center">HOLD FOR CAPTURE</div>
             </div>
           </div>
         )}
@@ -293,18 +293,18 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
         {progress === 100 && !captureSuccess && (
           <div 
             ref={captureIndicatorRef}
-            className="absolute inset-0 border-8 border-green-500 z-[9998] pointer-events-none"
+            className="absolute inset-0 border-8 border-green-500 z-[99998] pointer-events-none animate-pulse"
           />
         )}
 
         {captureSuccess && (
           <div 
             ref={successMessageRef}
-            className="absolute inset-0 flex items-center justify-center z-[10001] pointer-events-none"
+            className="absolute inset-0 flex items-center justify-center z-[100001] pointer-events-none"
           >
-            <div className="bg-green-600 text-white px-12 py-8 rounded-2xl shadow-2xl">
-              <div className="text-6xl text-center mb-4">✓</div>
-              <div className="text-3xl font-bold text-center">CAPTURED!</div>
+            <div className="bg-green-600 text-white px-16 py-12 rounded-3xl shadow-2xl">
+              <div className="text-7xl text-center mb-6">✓</div>
+              <div className="text-4xl font-bold text-center">CAPTURED!</div>
             </div>
           </div>
         )}

@@ -29,7 +29,8 @@ export default function DashboardLayout({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user } = useAuth();
   const { data } = useFetchData("users", "/user", { email: user?.email });
-  const userRole = user?.role;
+  // const userRole = user?.role;
+   const userRole = 'admin';
 
   useEffect(() => {
     const handleResize = () => {
