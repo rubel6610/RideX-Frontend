@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 function RegisterPage() {
   const router = useRouter();
@@ -35,7 +36,9 @@ function RegisterPage() {
         imgForm.append("image", data.image[0]);
 
         const res = await fetch(
-          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY || process.env.IMGBB_KEY}`,
+          `https://api.imgbb.com/1/upload?key=${
+            process.env.NEXT_PUBLIC_IMGBB_KEY || process.env.IMGBB_KEY
+          }`,
           {
             method: "POST",
             body: imgForm,
@@ -51,12 +54,15 @@ function RegisterPage() {
         }
       }
 
+      // Remove the image file object before sending to backend
+      const { image, ...rest } = data;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data }),
+          body: JSON.stringify(rest),
         }
       );
 
@@ -286,7 +292,11 @@ function RegisterPage() {
                 className="absolute top-7.5 right-3"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
               >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showConfirmPassword ? (
+                  <EyeOff size={18} />
+                ) : (
+                  <Eye size={18} />
+                )}
               </button>
               {errors.confirmPassword && (
                 <p className="text-red-500 text-sm">
@@ -318,6 +328,17 @@ function RegisterPage() {
           >
             Register
           </Button>
+
+          {/* Toggle Sign In */}
+          <p className="text-center text-foreground mt-4">
+            Already have an account? Please{" "}
+            <Link
+              href="/signIn"
+              className="text-primary underline hover:text-primary/80 cursor-pointer"
+            >
+              Sign In
+            </Link>
+          </p>
         </form>
       </div>
     </GuestOnlyRoute>

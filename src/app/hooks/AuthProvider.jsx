@@ -33,9 +33,16 @@ export const AuthProvider = ({ children }) => {
     setUser(decoded);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
+  const logout = async () => {
+    try {
+      localStorage.removeItem("token");
+      setUser(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if there's an error, still clear the local state
+      localStorage.removeItem("token");
+      setUser(null);
+    }
   };
 
   return (

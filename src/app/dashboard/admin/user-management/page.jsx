@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+
 import {
   Table,
   TableBody,
@@ -22,40 +23,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { TableSkeleton } from "@/app/hooks/Skeleton/TableSkeleton";
-
-const BACKEND = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
+import { useFetchData, useUpdateData } from "@/app/hooks/useApi";
+import { Alert } from "@/components/ui/alert";
+import { usePagination, PaginationControls } from "@/components/ui/pagination-table";
 
 export default function UserManagement() {
-  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  // fetch users
+  // QueryClient for refetching
+  const queryClient = useQueryClient();
+
+  //  Fetch all users
   const {
     data: users = [],
     isLoading,
+    error,
     refetch,
-  } = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const res = await fetch(`${BACKEND}/api/users`);
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return res.json();
-    },
-  });
+  } = useFetchData("users", "/users");
 
-  // mutation for role update
-  const mutation = useMutation({
-    mutationFn: async ({ userId, role }) => {
-      const res = await fetch(`${BACKEND}/api/user/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role }),
-      });
-      if (!res.ok) throw new Error("Failed to update role");
-      return res.json();
-    },
+  //  Role update mutation (using reusable hook)
+  const mutation = useUpdateData("/user", {
     onSuccess: () => {
       toast.success("User role updated successfully ");
       queryClient.invalidateQueries(["users"]);
@@ -65,7 +54,7 @@ export default function UserManagement() {
     },
   });
 
-  // counts by role
+  //  Count roles safely
   const roleCounts = useMemo(() => {
     const counts = { all: users.length, admin: 0, user: 0, rider: 0 };
     users.forEach((u) => {
@@ -76,7 +65,6 @@ export default function UserManagement() {
     return counts;
   }, [users]);
 
-  // filter users
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
       if (roleFilter !== "all" && u.role !== roleFilter) return false;
@@ -91,7 +79,18 @@ export default function UserManagement() {
     });
   }, [users, roleFilter, search]);
 
+  const pagination = usePagination(filteredUsers, 10);
+
+  //  Handle loading / error
   if (isLoading) return <TableSkeleton />;
+
+  if (error)
+    return (
+      <Alert variant="destructive" className="text-center mt-8">
+        <Alert.Title className="text-lg">Failed to load users 😢</Alert.Title>
+        <Alert.Description>Please try again later.</Alert.Description>
+      </Alert>
+    );
 
   return (
     <Card className="p-4 sm:p-6 space-y-6 shadow-lg rounded-2xl bg-background border border-border">
@@ -145,15 +144,15 @@ export default function UserManagement() {
             className="w-full sm:max-w-sm"
           />
           <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-            Showing {filteredUsers.length} {roleFilter} users
+            Showing {pagination.startIndex}-{pagination.endIndex} of {filteredUsers.length} {roleFilter} users
           </div>
         </div>
 
-        {/* Table Container */}
+        {/* Table */}
         <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
-          <Table className="min-w-full ">
+          <Table className="min-w-full">
             <TableHeader>
-              <TableRow className="bg-accent/30 ">
+              <TableRow className="bg-accent/30">
                 <TableHead className="whitespace-nowrap">Name</TableHead>
                 <TableHead className="whitespace-nowrap">Email</TableHead>
                 <TableHead className="text-center whitespace-nowrap">
@@ -164,9 +163,10 @@ export default function UserManagement() {
                 </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {pagination.currentData.length > 0 ? (
+                pagination.currentData.map((user) => (
                   <TableRow key={user._id}>
                     <TableCell className="font-medium whitespace-nowrap">
                       {user.fullName || "N/A"}
@@ -191,8 +191,9 @@ export default function UserManagement() {
                     <TableCell className="flex justify-center">
                       <Select
                         defaultValue={user.role}
+                        disabled={mutation.isPending}
                         onValueChange={(value) =>
-                          mutation.mutate({ userId: user._id, role: value })
+                          mutation.mutate({ id: user._id, role: value })
                         }
                       >
                         <SelectTrigger className="w-[110px] sm:w-[120px] text-xs sm:text-sm">
@@ -221,6 +222,9 @@ export default function UserManagement() {
             </TableBody>
           </Table>
         </div>
+        {filteredUsers.length > 0 && (
+          <PaginationControls pagination={pagination} />
+        )}
       </CardContent>
     </Card>
   );

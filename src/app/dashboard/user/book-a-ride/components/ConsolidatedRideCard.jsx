@@ -77,7 +77,9 @@ const ConsolidatedRideCard = ({
           {/* Ride Info */}
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Clock className="w-4 h-4" />
-            <span>Arr 7 min</span>
+            <span>
+              {rideData?.arrivalTime || 'Calculating...'}
+            </span>
           </div>
 
           <div className={`relative text-2xl font-bold text-primary ${rideData?.promoApplied && 'pr-2 pt-1'}`}>
