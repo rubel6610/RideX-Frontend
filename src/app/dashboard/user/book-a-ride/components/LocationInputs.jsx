@@ -18,8 +18,9 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
     if (!locationName.trim()) return null;
 
     try {
+      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1&countrycodes=bd`
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/geocode?q=${encodeURIComponent(locationName)}&limit=1&countrycodes=bd`
       );
       const data = await response.json();
 
@@ -62,8 +63,9 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
     }
 
     try {
+      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=bd`
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/geocode?q=${encodeURIComponent(query)}&limit=5&countrycodes=bd`
       );
       const data = await response.json();
 

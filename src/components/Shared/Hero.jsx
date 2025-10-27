@@ -36,18 +36,20 @@ const Hero = () => {
     useEffect(() => {
         if (!pickup && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
+                async (position) => {
                     const { latitude, longitude } = position.coords;
-                    // reverse geocode to get address
-                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
-                        .then((res) => res.json())
-                        .then((data) => {
-                            const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                            setPickup(locName);
-                        })
-                        .catch(() => {
-                            setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-                        });
+                    // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
+                    try {
+                        const response = await fetch(
+                            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${latitude}&lon=${longitude}`
+                        );
+                        const data = await response.json();
+                        const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                        setPickup(locName);
+                    } catch (error) {
+                        console.error("Error getting location:", error);
+                        setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                    }
                 },
                 (err) => console.error("Error getting location:", err),
                 { enableHighAccuracy: true }
@@ -59,18 +61,20 @@ const Hero = () => {
     useEffect(() => {
         if (!pickup && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
+                async (position) => {
                     const { latitude, longitude } = position.coords;
-                    // reverse geocode to get address
-                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
-                        .then((res) => res.json())
-                        .then((data) => {
-                            const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                            setPickup(locName);
-                        })
-                        .catch(() => {
-                            setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-                        });
+                    // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
+                    try {
+                        const response = await fetch(
+                            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${latitude}&lon=${longitude}`
+                        );
+                        const data = await response.json();
+                        const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                        setPickup(locName);
+                    } catch (error) {
+                        console.error("Error getting location:", error);
+                        setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                    }
                 },
                 (err) => console.error("Error getting location:", err),
                 { enableHighAccuracy: true }

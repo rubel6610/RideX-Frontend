@@ -120,15 +120,16 @@ export default function OngoingRidePage() {
                 return "Invalid coordinates";
             }
             
-            const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+            // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
             );
             
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const data = await res.json();
+            const data = await response.json();
             return data.display_name || "Location not found";
         } catch (error) {
             console.error("Error fetching location name:", error);

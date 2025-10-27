@@ -22,6 +22,7 @@ import UserDashboard from "./Components/userDashboard/UserDashboard";
 import RiderStatus from "@/components/Shared/RiderStatus";
 import NotificationBell from "@/components/Shared/NotificationBell";
 import { useLogout } from "../hooks/SignOutButton";
+import ChatBot from '@/components/Shared/ChatBot/ChatBot';
 
 export default function DashboardLayout({ children }) {
   const handleLogout = useLogout();
@@ -53,6 +54,7 @@ export default function DashboardLayout({ children }) {
   return (
     <ProtectedRoute>
       <div className="flex min-h-screen bg-background text-foreground overflow-x-hidden">
+        
         <div
           className={`fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden ${
             sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -240,6 +242,11 @@ export default function DashboardLayout({ children }) {
           >
             {children}
           </main>
+        </div>
+
+        {/* Chatbot - show on all dashboard pages at right bottom */}
+        <div className='fixed bottom-4 right-4 z-50'>
+          <ChatBot/>
         </div>
       </div>
     </ProtectedRoute>
