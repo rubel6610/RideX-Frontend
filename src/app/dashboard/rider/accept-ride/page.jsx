@@ -26,6 +26,7 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
 import {
   Bike,
   BusFront,
@@ -39,6 +40,8 @@ import {
   Hash,
   CheckCircle,
   Check,
+  User,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,10 +50,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
 import ChatModal from "@/components/Shared/ChatModal";
+import { initSocket } from "@/components/Shared/socket/socket";
 
 // Dynamically import map component to prevent SSR issues
-const LiveTrackingMap = dynamic(
-  () => import("@/components/Shared/LiveTrackingMap"),
+const RiderLiveTrackingMap = dynamic(
+  () => import("./components/RiderLiveTrackingMap"),
   {
     ssr: false,
     loading: () => (
@@ -71,7 +75,7 @@ const rideTypeIcon = {
   Car: Car,
 };
 
-function AcceptRideContent() {
+function RiderAcceptRideContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -86,8 +90,70 @@ function AcceptRideContent() {
     coordinates: [90.4125, 23.8103], // Fallback to Dhaka
   });
   const [calculatedEta, setCalculatedEta] = useState(null);
+  const [distance, setDistance] = useState(null);
   const [pickupAddress, setPickupAddress] = useState("");
   const [dropAddress, setDropAddress] = useState("");
+
+  // Initialize Socket.IO for real-time updates
+  useEffect(() => {
+    if (!user?.id || !urlParams.rideId) return;
+
+    try {
+      const socket = initSocket(user.id, false);
+      
+      // Join ride-specific room
+      socket.emit('join_ride', urlParams.rideId);
+      console.log('Rider joined ride room:', urlParams.rideId);
+
+      // Listen for ride status updates
+      socket.on('ride_status_update', (data) => {
+        console.log('Ride status update received:', data);
+        if (data.rideId === urlParams.rideId) {
+          toast.info(`Ride status: ${data.status}`);
+          
+          // Handle different status updates
+          if (data.status === 'cancelled_by_user') {
+            toast.error('Passenger cancelled the ride');
+            router.push('/dashboard/rider/available-rides');
+          } else if (data.status === 'completed') {
+            toast.success('Ride completed successfully!');
+            router.push('/dashboard/rider/available-rides');
+          }
+        }
+      });
+
+      // Listen for passenger location updates
+      socket.on('passenger_location_update', (data) => {
+        console.log('Passenger location update:', data);
+        if (data.rideId === urlParams.rideId) {
+          // Update pickup location if passenger moved
+          if (data.location) {
+            setPickupLocation({
+              lat: data.location.lat,
+              lng: data.location.lng
+            });
+          }
+        }
+      });
+
+      // Listen for chat messages
+      socket.on('ride_chat_message', (data) => {
+        console.log('Chat message received:', data);
+        if (data.rideId === urlParams.rideId) {
+          toast.info(`New message from ${data.senderName}`);
+        }
+      });
+
+      return () => {
+        socket.off('ride_status_update');
+        socket.off('passenger_location_update');
+        socket.off('ride_chat_message');
+        socket.disconnect();
+      };
+    } catch (error) {
+      console.error('Error initializing socket:', error);
+    }
+  }, [user, urlParams.rideId, router]);
 
   // Geocoding function to convert coordinates to address
   const reverseGeocode = async (lat, lng) => {
@@ -156,7 +222,7 @@ function AcceptRideContent() {
   // Parse pickup and drop locations from URL parameters
   useEffect(() => {
     const parseLocations = async () => {
-      console.log("🔍 useEffect triggered, searchParams:", searchParams);
+      console.log("🔍 Rider Accept Ride - useEffect triggered, searchParams:", searchParams);
       if (!searchParams) {
         console.warn("❌ searchParams is null/undefined");
         setIsLoading(false);
@@ -169,9 +235,7 @@ function AcceptRideContent() {
       const pickup = params.get("pickup") || "";
       const drop = params.get("drop") || "";
       
-      console.log("🔍 URL parsing debug:", { pickup, drop, searchParams: searchParams.toString() });
-      
-      
+      console.log("🔍 Rider Accept Ride - URL parsing debug:", { pickup, drop, searchParams: searchParams.toString() });
       
       // Store all params in state to avoid repeated access
       const allParams = {
@@ -184,13 +248,13 @@ function AcceptRideContent() {
         rideId: params.get("rideId") || "",
         userId: params.get("userId") || "",
         riderId: params.get("riderId") || "",
-        riderName: params.get("riderName") || "",
-        riderEmail: params.get("riderEmail") || "",
+        passengerName: params.get("passengerName") || "",
+        passengerEmail: params.get("passengerEmail") || "",
+        passengerPhone: params.get("passengerPhone") || "",
+        passengerRating: params.get("passengerRating") || "0",
         vehicleType: params.get("vehicleType") || "",
         vehicleModel: params.get("vehicleModel") || "",
         vehicleRegisterNumber: params.get("vehicleRegisterNumber") || "",
-        completedRides: params.get("completedRides") || "0",
-        ratings: params.get("ratings") || "0",
         baseFare: params.get("baseFare") || "0",
         distanceFare: params.get("distanceFare") || "0",
         timeFare: params.get("timeFare") || "0",
@@ -205,27 +269,27 @@ function AcceptRideContent() {
       // Parse pickup location - handle both coordinates and address
       if (pickup) {
         const coords = pickup.split(",");
-        console.log("📍 Pickup coords:", coords);
+        console.log("📍 Rider Accept Ride - Pickup coords:", coords);
         
         // Check if it's coordinates (lat,lng) or address string
         if (coords.length === 2) {
           const lat = parseFloat(coords[0]);
           const lng = parseFloat(coords[1]);
-          console.log("📍 Parsed pickup coordinates:", { lat, lng });
+          console.log("📍 Rider Accept Ride - Parsed pickup coordinates:", { lat, lng });
           if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
             setPickupLocation({ lat, lng });
-            console.log("✅ Pickup location set from coordinates:", { lat, lng });
+            console.log("✅ Rider Accept Ride - Pickup location set from coordinates:", { lat, lng });
             
             // Convert coordinates to address
             const address = await reverseGeocode(lat, lng);
             setPickupAddress(address);
-            console.log("✅ Pickup address:", address);
+            console.log("✅ Rider Accept Ride - Pickup address:", address);
           } else {
-            console.warn("❌ Invalid pickup coordinates:", { lat, lng });
+            console.warn("❌ Rider Accept Ride - Invalid pickup coordinates:", { lat, lng });
           }
         } else {
           // It's an address string, use geocoding
-          console.log("📍 Converting address to coordinates:", pickup);
+          console.log("📍 Rider Accept Ride - Converting address to coordinates:", pickup);
           try {
             const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickup)}&limit=1`);
             const data = await response.json();
@@ -234,16 +298,16 @@ function AcceptRideContent() {
               const lng = parseFloat(data[0].lon);
               setPickupLocation({ lat, lng });
               setPickupAddress(pickup); // Use the original address string
-              console.log("✅ Pickup location set from geocoding:", { lat, lng });
+              console.log("✅ Rider Accept Ride - Pickup location set from geocoding:", { lat, lng });
             } else {
-              console.warn("❌ No coordinates found for address:", pickup);
+              console.warn("❌ Rider Accept Ride - No coordinates found for address:", pickup);
             }
           } catch (error) {
-            console.error("❌ Geocoding failed:", error);
+            console.error("❌ Rider Accept Ride - Geocoding failed:", error);
           }
         }
       } else {
-        console.warn("❌ No pickup parameter:", pickup);
+        console.warn("❌ Rider Accept Ride - No pickup parameter:", pickup);
       }
       
       // Parse drop location
@@ -254,13 +318,22 @@ function AcceptRideContent() {
           const lng = parseFloat(coords[1]);
           if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
             setDropLocation({ lat, lng });
+            
+            // Convert coordinates to address
+            const address = await reverseGeocode(lat, lng);
+            setDropAddress(address);
+            console.log("✅ Rider Accept Ride - Drop address:", address);
           }
         }
+      } else if (drop) {
+        // It's an address string
+        setDropAddress(drop);
+        console.log("✅ Rider Accept Ride - Drop address set from string:", drop);
       }
     } catch (error) {
-      console.error('Error parsing URL parameters:', error);
+      console.error('Rider Accept Ride - Error parsing URL parameters:', error);
       toast.error('Failed to load ride details', {
-        description: 'Please try booking a new ride'
+        description: 'Please try accepting a new ride'
       });
     } finally {
       setIsLoading(false);
@@ -281,24 +354,25 @@ function AcceptRideContent() {
           const riderData = await response.json();
           if (riderData.location && riderData.location.coordinates) {
             setRiderLocation(riderData.location);
-            console.log('Rider location updated:', riderData.location.coordinates);
+            console.log('Rider Accept Ride - Rider location updated:', riderData.location.coordinates);
             
             // Calculate ETA if pickup location is available
             if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
-              const distance = calculateDistance(
+              const calculatedDistance = calculateDistance(
                 riderData.location.coordinates[1], // lat
                 riderData.location.coordinates[0], // lng
                 pickupLocation.lat,
                 pickupLocation.lng
               );
-              const eta = calculateETA(distance, urlParams.vehicleType || 'bike');
+              const eta = calculateETA(calculatedDistance, urlParams.vehicleType || 'bike');
               setCalculatedEta(eta);
-              console.log('📏 Distance & ETA calculated:', { distance: distance.toFixed(2) + ' km', eta });
+              setDistance(calculatedDistance);
+              console.log('📏 Rider Accept Ride - Distance & ETA calculated:', { distance: calculatedDistance.toFixed(2) + ' km', eta });
             }
           }
         }
       } catch (error) {
-        console.error('Failed to fetch rider location:', error);
+        console.error('Rider Accept Ride - Failed to fetch rider location:', error);
       }
     };
 
@@ -307,7 +381,7 @@ function AcceptRideContent() {
     const interval = setInterval(fetchRiderLocation, 5000);
 
     return () => clearInterval(interval);
-  }, [urlParams.riderId]);
+  }, [urlParams.riderId, pickupLocation]);
 
   // Early return if still loading or searchParams is not available
   if (isLoading || !searchParams) {
@@ -327,18 +401,18 @@ function AcceptRideContent() {
     drop = "",
     type = "Bike",
     fare = "",
-    distance = "",
+    urlDistance = "",
     eta = "00h:00m",
     rideId = "",
     userId = "",
     riderId = "",
-    riderName = "",
-    riderEmail = "",
+    passengerName = "",
+    passengerEmail = "",
+    passengerPhone = "",
+    passengerRating = "0",
     vehicleType = "",
     vehicleModel = "",
     vehicleRegisterNumber = "",
-    completedRides = "0",
-    ratings = "0",
     baseFare = "0",
     distanceFare = "0",
     timeFare = "0",
@@ -351,85 +425,60 @@ function AcceptRideContent() {
   // Set vehicle icon
   const VehicleIcon = rideTypeIcon[type] || Bike;
 
-  const riderInfo = {
-    fullName: riderName || "N/A",
-    email: riderEmail || "",
-    vehicleType: vehicleType || type,
-    vehicleModel: vehicleModel || "Unknown Model",
-    vehicleRegisterNumber: vehicleRegisterNumber || "N/A",
-    status: "On the way",
-    location: riderLocation,
+  const passengerInfo = {
+    fullName: passengerName || "N/A",
+    email: passengerEmail || "",
+    phone: passengerPhone || "",
+    rating: parseFloat(passengerRating) || 0,
+    status: "Waiting for pickup",
   };
 
-  
-
-  // ✅ Updated Complete Ride Handler with enhanced error protection
-  const handleCompleteRide = () => {
-    try {
-      // Create new URLSearchParams object from scratch
-      const queryParams = new URLSearchParams();
-      
-      // Add parameters one by one with safe string conversion
-      const safeAppend = (key, value) => {
-        if (value !== null && value !== undefined && value !== '') {
-          queryParams.append(key, String(value));
-        }
-      };
-
-      safeAppend('rideId', rideId);
-      safeAppend('userId', userId);
-      safeAppend('riderId', riderId);
-      safeAppend('ratings', ratings);
-      safeAppend('riderName', riderName);
-      safeAppend('riderEmail', riderEmail);
-      safeAppend('pickup', pickup);
-      safeAppend('drop', drop);
-      safeAppend('vehicleType', type);
-      safeAppend('vehicleModel', vehicleModel);
-      safeAppend('vehicleRegisterNumber', vehicleRegisterNumber);
-      safeAppend('distance', distance);
-      safeAppend('baseFare', baseFare);
-      safeAppend('distanceFare', distanceFare);
-      safeAppend('timeFare', timeFare);
-      safeAppend('tax', tax);
-      safeAppend('total', total);
-      safeAppend('promo', promo);
-      safeAppend('fare', fare);
-      safeAppend('arrivalTime', eta);
-      safeAppend('completedRides', completedRides);
-      safeAppend('mode', mode);
-
-      const queryString = queryParams.toString();
-      router.push(`/dashboard/user/payment?${queryString}`);
-    } catch (error) {
-      console.error('Error creating payment URL:', error);
-      toast.error('Navigation error', {
-        description: 'Failed to proceed to payment. Please try again.'
-      });
-      // Fallback: try navigation with minimal params
-      try {
-        router.push(`/dashboard/user/payment?rideId=${rideId}&userId=${userId}`);
-      } catch (fallbackError) {
-        console.error('Fallback navigation failed:', fallbackError);
-        router.push('/dashboard/user/payment');
-      }
-    }
-  };
-
-  // ✅ Updated Cancel Ride Handler
-  const handleCancelRide = async () => {
-    if (!rideId || !userId) {
+  // ✅ Start Ride Handler
+  const handleStartRide = async () => {
+    if (!rideId || !riderId) {
       toast.error("Missing ride information");
       return;
     }
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/cancel`,
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/start-ride`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rideId, userId }),
+          body: JSON.stringify({ rideId, riderId }),
+        }
+      );
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Ride started successfully!");
+        // Navigate to ongoing ride page or update UI
+        router.push(`/dashboard/rider/ongoing-ride?rideId=${rideId}`);
+      } else {
+        toast.error(result.message || "Failed to start ride");
+      }
+    } catch (error) {
+      console.error("Error starting ride:", error);
+      toast.error("Failed to start ride. Please try again.");
+    }
+  };
+
+  // ✅ Cancel Ride Handler
+  const handleCancelRide = async () => {
+    if (!rideId || !riderId) {
+      toast.error("Missing ride information");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rideId, riderId }),
         }
       );
 
@@ -437,8 +486,8 @@ function AcceptRideContent() {
       
       if (result.success) {
         toast.success("Ride cancelled successfully");
-        // Redirect back to book a ride
-        router.push("/dashboard/user/book-a-ride");
+        // Redirect back to available rides
+        router.push("/dashboard/rider/available-rides");
       } else {
         toast.error(result.message || "Failed to cancel ride");
       }
@@ -462,10 +511,10 @@ function AcceptRideContent() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">
-                    {calculatedEta ? `Your captain is on the way to pickup (${calculatedEta})` : liveEta ? `Your captain is on the way to pickup (${liveEta})` : eta ? `Your captain is on the way to pickup (${eta})` : `Your ${type} is on the way`}
+                    {calculatedEta ? `Pickup passenger in ${calculatedEta}` : liveEta ? `Pickup passenger in ${liveEta}` : eta ? `Pickup passenger in ${eta}` : `Ready to pickup ${type} passenger`}
                   </h2>
                   <p className="text-background text-sm">
-                    {calculatedEta || liveEta || eta ? "Captain will reach your pickup location soon" : "Track your ride in real-time"}
+                    {calculatedEta || liveEta || eta ? "Navigate to pickup location" : "Track your ride in real-time"}
                   </p>
                 </div>
               </div>
@@ -491,24 +540,30 @@ function AcceptRideContent() {
 
           {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-            {/* Rider Info Section */}
+            {/* Passenger Info Section */}
             <div className="border border-border rounded-xl bg-gradient-to-br from-card to-background p-6 space-y-6">
-              {/* Rider Profile */}
+              {/* Passenger Profile */}
               <div className="flex items-center gap-4 pb-4 border-b border-border">
-                {riderInfo ? (
+                {passengerInfo ? (
                   <>
                     <Avatar className="w-20 h-20 border-4 border-primary shadow-lg">
                       <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-accent text-white">
-                        {riderInfo.fullName?.charAt(0) || "R"}
+                        {passengerInfo.fullName?.charAt(0) || "P"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <h4 className="text-3xl font-bold text-foreground mb-1 uppercase">
-                        {riderInfo.fullName}
+                        {passengerInfo.fullName}
                       </h4>
-                      <Badge className="bg-green-600 text-white">
-                        {riderInfo.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-blue-600 text-white">
+                          {passengerInfo.status}
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">{passengerInfo.rating.toFixed(1)}</span>
+                        </div>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -523,7 +578,7 @@ function AcceptRideContent() {
                 )}
               </div>
 
-              {/* Vehicle Details */}
+              {/* Location Details */}
               <div className="space-y-3">
                 <h5 className="text-sm font-semibold text-muted-foreground uppercase">
                   Location Details
@@ -572,7 +627,7 @@ function AcceptRideContent() {
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground">Vehicle Type</p>
                       <p className="text-sm font-semibold text-foreground">
-                        {riderInfo.vehicleType}
+                        {vehicleType || type}
                       </p>
                     </div>
                   </div>
@@ -584,7 +639,7 @@ function AcceptRideContent() {
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground">Model</p>
                       <p className="text-sm font-semibold text-foreground">
-                        {riderInfo.vehicleModel}
+                        {vehicleModel || "Unknown Model"}
                       </p>
                     </div>
                   </div>
@@ -596,7 +651,7 @@ function AcceptRideContent() {
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground">Registration</p>
                       <p className="text-sm font-semibold text-foreground">
-                        {riderInfo.vehicleRegisterNumber}
+                        {vehicleRegisterNumber || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -611,7 +666,7 @@ function AcceptRideContent() {
                    className="w-full h-12 text-base font-semibold"
                  >
                    <Phone className="w-5 h-5 mr-2" />
-                   Chat with {riderInfo.fullName.split(" ")[0]}
+                   Chat with {passengerInfo.fullName.split(" ")[0]}
                  </Button>
 
                 <Button
@@ -624,12 +679,12 @@ function AcceptRideContent() {
                 </Button>
 
                 <Button
-                  onClick={handleCompleteRide}
+                  onClick={handleStartRide}
                   variant="default"
                   className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
                 >
                   <Check className="w-5 h-5 mr-2" />
-                  Complete Ride
+                  Start Ride
                 </Button>
               </div>
             </div>
@@ -641,9 +696,9 @@ function AcceptRideContent() {
                 <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
                   Live Tracking
                 </h5>
-                  <LiveTrackingMap
+                  <RiderLiveTrackingMap
                     rideId={rideId}
-                    riderInfo={riderInfo}
+                    riderInfo={{ location: riderLocation }}
                     vehicleType={type}
                     pickupLocation={pickupLocation}
                     dropLocation={dropLocation}
@@ -671,9 +726,9 @@ function AcceptRideContent() {
                   <div className="w-full p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
                     <div className="flex flex-col items-center text-center">
                       <Navigation className="w-6 h-6 text-primary mb-1" />
-                      <p className="text-xs text-muted-foreground mb-1">Distance</p>
+                      <p className="text-xs text-muted-foreground mb-1">Distance to Pickup</p>
                       <p className="text-xl font-bold text-primary uppercase">
-                        {distance ? `${distance} km` : "--"}
+                        {calculatedEta ? `${distance?.toFixed(1) || '0.0'} km` : "--"}
                       </p>
                     </div>
                   </div>
@@ -681,8 +736,10 @@ function AcceptRideContent() {
                   <div className="w-full p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
                     <div className="flex flex-col items-center text-center">
                       <Clock className="w-6 h-6 text-primary mb-1" />
-                      <p className="text-xs text-muted-foreground mb-1">ETA</p>
-                      <p className="text-xl font-bold text-primary uppercase">{eta}</p>
+                      <p className="text-xs text-muted-foreground mb-1">ETA to Pickup</p>
+                      <p className="text-xl font-bold text-primary uppercase">
+                        {calculatedEta || eta || "--"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -710,8 +767,8 @@ function AcceptRideContent() {
       <ChatModal
         open={isChatOpen}
         onClose={() => setIsChatOpen(false)}
-        riderName={riderInfo.fullName}
-        riderVehicle={`${riderInfo.vehicleType} - ${riderInfo.vehicleRegisterNumber}`}
+        riderName={passengerInfo.fullName}
+        riderVehicle={`${vehicleType || type} - ${vehicleRegisterNumber || "N/A"}`}
         rideId={rideId}
         riderId={riderId}
       />
@@ -719,7 +776,7 @@ function AcceptRideContent() {
   );
 }
 
-export default function AcceptRide() {
+export default function RiderAcceptRide() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
@@ -736,7 +793,7 @@ export default function AcceptRide() {
           </div>
         </div>
       }>
-        <AcceptRideContent />
+        <RiderAcceptRideContent />
       </ErrorBoundary>
     </Suspense>
   );

@@ -247,17 +247,68 @@ const AvailableRidesPage = () => {
           )
         );
         toast.success('Ride accepted successfully!');
+        
+        // Navigate to rider accept-ride page with ride details
+        const ride = rides.find(r => r._id === rideId);
+        if (ride) {
+          const params = new URLSearchParams();
+          
+          // Add ride details
+          params.append('rideId', rideId);
+          params.append('userId', ride.userId || '');
+          params.append('riderId', actualRiderId);
+          params.append('amount', ride.fare?.toString() || '');
+          params.append('vehicleType', ride.vehicleType || '');
+          params.append('distance', '0'); // Will be calculated
+          params.append('arrivalTime', '00h:00m'); // Will be calculated
+          
+          // Add pickup and drop coordinates
+          if (ride.pickup?.coordinates) {
+            const [lng, lat] = ride.pickup.coordinates;
+            params.append('pickup', `${lat},${lng}`);
+          }
+          if (ride.drop?.coordinates) {
+            const [lng, lat] = ride.drop.coordinates;
+            params.append('drop', `${lat},${lng}`);
+          }
+          
+          // Add passenger info from backend response (data.ride.userInfo)
+          const userInfo = data.ride?.userInfo;
+          params.append('passengerName', userInfo?.fullName || ride.passengerName || 'Unknown Passenger');
+          params.append('passengerEmail', userInfo?.email || ride.passengerEmail || '');
+          params.append('passengerPhone', userInfo?.phone || ride.passengerPhone || '');
+          params.append('passengerRating', userInfo?.rating?.toString() || ride.passengerRating || '0');
+          
+          // Add vehicle info
+          params.append('vehicleModel', ride.vehicleModel || 'Unknown Model');
+          params.append('vehicleRegisterNumber', ride.vehicleRegisterNumber || 'N/A');
+          
+          // Add fare details
+          params.append('baseFare', '0');
+          params.append('distanceFare', '0');
+          params.append('timeFare', '0');
+          params.append('tax', '0');
+          params.append('total', ride.fare?.toString() || '0');
+          params.append('mode', 'auto');
+          params.append('promo', '');
+          
+          // Navigate to rider accept-ride page
+          window.location.href = `/dashboard/rider/accept-ride?${params.toString()}`;
+        }
       } else {
         // Handle specific error cases
         if (data.requiresOnline) {
           toast.error('You must be online to accept rides', {
             description: 'Please set your status to online first'
           });
-        } else if (data.hasActiveRide) {
-          toast.error('Active ride in progress', {
-            description: 'Complete your current ride before accepting another'
-          });
-        } else if (data.currentStatus) {
+        } 
+        // COMMENTED OUT: Active ride check - temporarily disabled for testing
+        // else if (data.hasActiveRide) {
+        //   toast.error('Active ride in progress', {
+        //     description: 'Complete your current ride before accepting another'
+        //   });
+        // } 
+        else if (data.currentStatus) {
           toast.error(`Ride is already ${data.currentStatus}`, {
             description: 'This ride is no longer available'
           });

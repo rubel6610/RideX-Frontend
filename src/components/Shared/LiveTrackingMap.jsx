@@ -14,37 +14,19 @@ const RoutePolyline = ({ startLocation, endLocation, color, weight, opacity, das
       if (!startLocation || !endLocation) return;
       
       setIsLoading(true);
-      try {
-        // Use OSRM API for real road routing
-        const start = `${startLocation.lng},${startLocation.lat}`;
-        const end = `${endLocation.lng},${endLocation.lat}`;
-        const url = `https://router.project-osrm.org/route/v1/driving/${start};${end}?overview=full&geometries=geojson`;
-        
-        console.log("🛣️ Fetching route from OSRM:", url);
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.routes && data.routes.length > 0) {
-          const coordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-          setRouteCoordinates(coordinates);
-          console.log("✅ Route coordinates fetched:", coordinates.length, "points");
-        } else {
-          console.warn("❌ No route found, using straight line");
-          setRouteCoordinates([
-            [startLocation.lat, startLocation.lng],
-            [endLocation.lat, endLocation.lng]
-          ]);
-        }
-      } catch (error) {
-        console.error("❌ Route fetching failed:", error);
-        // Fallback to straight line
-        setRouteCoordinates([
-          [startLocation.lat, startLocation.lng],
-          [endLocation.lat, endLocation.lng]
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
+      
+      // Use straight line directly for stability
+      // OSRM API calls are disabled to prevent network errors
+      console.log("🛣️ Using straight line route for stability");
+      
+      // Set straight line coordinates immediately
+      setRouteCoordinates([
+        [startLocation.lat, startLocation.lng],
+        [endLocation.lat, endLocation.lng]
+      ]);
+      
+      console.log("✅ Straight line route set");
+      setIsLoading(false);
     };
 
     fetchRoute();
@@ -362,16 +344,25 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
     console.log("🛣️ Fetching road route from:", startLat, startLng, "to:", endLat, endLng);
     
     try {
-      // Try OSRM first (free and reliable)
+      // Try OSRM first (free and reliable) with timeout and better error handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const response = await fetch(
         `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
         { 
-          timeout: 10000,
+          signal: controller.signal,
           headers: {
             'Accept': 'application/json',
           }
         }
       );
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       console.log("🛣️ OSRM response status:", response.status);
       
@@ -386,7 +377,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         }
       }
     } catch (error) {
-      console.warn("OSRM failed:", error);
+      console.warn("OSRM failed:", error.message);
     }
 
     try {
@@ -414,7 +405,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         }
       }
     } catch (error) {
-      console.warn("OpenRouteService failed:", error);
+      console.warn("OpenRouteService failed:", error.message);
     }
     
     // Final fallback: straight line (better than curved)
