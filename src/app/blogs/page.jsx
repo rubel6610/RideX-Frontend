@@ -289,7 +289,7 @@ export default function BlogPage() {
       {/* Header Section */}
       <header className="max-w-4xl mx-auto text-center pb-10 pt-16 space-y-4">
         <h1 className="text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight">
-          Ridex Blog: Stories and Insights
+          Ridex Blogs Stories and Insights
         </h1>
 
         {/* Responsive Search Box */}

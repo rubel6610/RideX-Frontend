@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { RefreshCw, Save, Sparkles } from "lucide-react";
+import { RefreshCw, Save, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/utils/api";
 import gsap from "gsap";
@@ -11,18 +11,18 @@ export default function CreateBlogPage() {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isImageLoading, setIsImageLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [regenerationCount, setRegenerationCount] = useState(0);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  const [isUploading, setIsUploading] = useState(false);
   
   // Refs for animation
   const pageRef = useRef(null);
   const titleRef = useRef(null);
   const contentRef = useRef(null);
-  const imageRef = useRef(null);
   const buttonRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Animation effect
   useEffect(() => {
@@ -45,16 +45,6 @@ export default function CreateBlogPage() {
     }
   }, [generatedContent]);
 
-  // Animate image when loaded
-  useEffect(() => {
-    if (imageUrl && imageRef.current) {
-      gsap.fromTo(imageRef.current,
-        { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }
-      );
-    }
-  }, [imageUrl]);
-
   // Animate buttons on interaction
   const animateButton = (e) => {
     const button = e.currentTarget;
@@ -69,7 +59,48 @@ export default function CreateBlogPage() {
     }));
   };
 
-  // Generate blog content using AI and automatically generate image
+  // Handle image upload to ImgBB
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Upload to ImgBB
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setImageUrl(data.data.url);
+        toast.success("Image uploaded successfully!");
+      } else {
+        throw new Error(data.error?.message || "Failed to upload image");
+      }
+    } catch (err) {
+      console.error("Image upload error:", err);
+      setError(err.message || "Failed to upload image");
+      toast.error(err.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Generate blog content using AI (without image generation)
   const handleGenerate = async () => {
     if (!context.trim()) {
       toast.error("Please enter a topic context");
@@ -79,7 +110,6 @@ export default function CreateBlogPage() {
     try {
       setIsLoading(true);
       setError(null);
-      setImageUrl(null);
       setGeneratedContent(null);
       
       // Add a timestamp to the context to ensure different results on regeneration
@@ -87,14 +117,11 @@ export default function CreateBlogPage() {
         ? `${context} (attempt ${regenerationCount + 1})`
         : context;
       
-      // Generate blog content
+      // Generate blog content (title and description only)
       const response = await api.post("/generate-blog", { context: contextWithTimestamp });
       
       if (response.data.success) {
         setGeneratedContent(response.data.data);
-        
-        // Automatically generate image after content is generated
-        await generateImageForContent(response.data.data.imagePrompt);
       } else {
         // Show toast error when AI fails
         toast.error(response.data.message || "Failed to generate content with AI");
@@ -107,46 +134,6 @@ export default function CreateBlogPage() {
     }
   };
 
-  // Generate image automatically based on content
-  const generateImageForContent = async (imagePrompt) => {
-    try {
-      setIsImageLoading(true);
-      
-      // Add ride-sharing specific terms to make images more relevant
-      const rideSharingTerms = [
-        "ride sharing", "ridex", "transportation", "passenger", "driver",
-        "vehicle", "taxi", "cab", "car service", "urban transport"
-      ];
-      
-      // Check if prompt already contains ride-sharing terms
-      const hasRideTerms = rideSharingTerms.some(term =>
-        imagePrompt.toLowerCase().includes(term)
-      );
-      
-      // If not, add relevant terms
-      const enhancedPrompt = hasRideTerms
-        ? imagePrompt
-        : `${imagePrompt} ${rideSharingTerms[Math.floor(Math.random() * rideSharingTerms.length)]}`;
-      
-      // Generate image using the enhanced prompt
-      const imageResponse = await api.post("/generate-image", {
-        prompt: enhancedPrompt
-      });
-      
-      if (imageResponse.data.success) {
-        setImageUrl(imageResponse.data.imageUrl);
-      }
-    } catch (err) {
-      console.error("Image generation error:", err);
-      // Don't show error to user since this is automatic
-    } finally {
-      // Keep loading state for a brief moment to show the loader
-      setTimeout(() => {
-        setIsImageLoading(false);
-      }, 500);
-    }
-  };
-
   // Save the generated blog to database
   const handleSave = async () => {
     if (!generatedContent) {
@@ -154,11 +141,16 @@ export default function CreateBlogPage() {
       return;
     }
 
+    if (!imageUrl) {
+      toast.error("Please upload an image");
+      return;
+    }
+
     try {
       setIsSaving(true);
       setError(null);
       
-      // Use the already generated image URL
+      // Save blog with title, description, and manually uploaded image
       const response = await api.post("/save-blog", {
         title: generatedContent.title,
         description: generatedContent.description,
@@ -173,6 +165,9 @@ export default function CreateBlogPage() {
         setGeneratedContent(null);
         setImageUrl(null);
         setRegenerationCount(0);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
         setError(response.data.message || "Failed to save blog");
         toast.error("Failed to save blog");
@@ -212,6 +207,58 @@ export default function CreateBlogPage() {
           <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Blog Context</h2>
 
           <div className="space-y-2 sm:space-y-4">
+            {/* Image Upload Section */}
+            <div>
+              <label className="block text-sm sm:text-base font-medium mb-2 text-foreground">
+                Blog Image
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                  id="image-upload"
+                  disabled={isUploading}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition-colors cursor-pointer ${
+                    isUploading
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  }`}
+                >
+                  {isUploading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      Upload Image
+                    </>
+                  )}
+                </label>
+                {imageUrl && (
+                  <div className="flex items-center">
+                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                  </div>
+                )}
+              </div>
+              {imageUrl && (
+                <div className="mt-2">
+                  <img 
+                    src={imageUrl} 
+                    alt="Uploaded preview" 
+                    className="h-16 w-16 object-cover rounded-lg border border-border"
+                  />
+                </div>
+              )}
+            </div>
+
             <div>
               <label htmlFor="context" className="block text-sm sm:text-base font-medium mb-2 text-foreground">
                 Topic Context
@@ -221,7 +268,7 @@ export default function CreateBlogPage() {
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
                 placeholder="Enter the topic or context for your blog post..."
-                className="w-full h-40 lg:h-60 p-2 sm:p-4 leading-4.5 rounded-lg border border-border  bg-background text-foreground focus:outline-primary"
+                className="w-full h-40 lg:h-60 p-2 sm:p-4 leading-4.5 rounded-lg border border-border bg-background text-foreground focus:outline-primary"
               />
             </div>
             
@@ -256,8 +303,8 @@ export default function CreateBlogPage() {
           </div>
         </div>
 
-        {/* Right Column - Preview */}
-        <div className="bg-card rounded-xl border border-border py-6 px-3 sm:px-6 md:px-3 lg:px-6">
+        {/* Right Column - Preview (without image preview) */}
+        <div className="h-fit bg-card rounded-xl border border-border py-6 px-3 sm:px-6 md:px-3 lg:px-6">
           <h2 className="text-2xl sm:text-3xl font-semibold mb-2 xl:mb-4 text-foreground">Preview</h2>
           
           {generatedContent ? (
@@ -283,31 +330,6 @@ export default function CreateBlogPage() {
                 </div>
               </div>
               
-              {/* Image Display */}
-              <div className="bg-muted rounded-lg overflow-hidden">
-                {isImageLoading ? (
-                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-[20%] sm:h-90 md:h-60 lg:h-64 xl:h-90 flex items-center justify-center">
-                    <div className="flex flex-col items-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-2"></div>
-                      <p className="text-muted-foreground text-sm">Generating image...</p>
-                    </div>
-                  </div>
-                ) : imageUrl ? (
-                  <img
-                    ref={imageRef}
-                    src={imageUrl}
-                    alt={generatedContent.imagePrompt}
-                    className="w-full h-[20%] sm:h-90 md:h-60 lg:h-64 xl:h-90 object-cover"
-                    onLoad={() => setIsImageLoading(false)}
-                    onError={() => setIsImageLoading(false)}
-                  />
-                ) : (
-                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-[20%] sm:h-90 md:h-60 lg:h-64 xl:h-90 flex items-center justify-center">
-                    <span className="text-muted-foreground">No image generated</span>
-                  </div>
-                )}
-              </div>
-              
               <div className="flex flex-col sm:flex-row gap-1 sm:gap-3">
                 <button
                   onClick={(e) => { animateButton(e); handleRegenerate(); }}
@@ -324,9 +346,9 @@ export default function CreateBlogPage() {
                 
                 <button
                   onClick={(e) => { animateButton(e); handleSave(); }}
-                  disabled={isSaving}
+                  disabled={isSaving || !imageUrl}
                   className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition-colors flex-1 ${
-                    isSaving
+                    isSaving || !imageUrl
                       ? "bg-muted text-muted-foreground cursor-not-allowed"
                       : "bg-primary text-primary-foreground hover:bg-primary/90"
                   }`}
@@ -352,7 +374,7 @@ export default function CreateBlogPage() {
                 Generate Blog Content
               </h3>
               <p className="text-muted-foreground">
-                Enter a topic context and click "Generate Content" to create your blog post.
+                Upload an image and enter a topic context, then click "Generate Content" to create your blog post.
               </p>
             </div>
           )}
