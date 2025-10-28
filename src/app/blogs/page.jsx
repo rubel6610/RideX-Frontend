@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import api from "@/utils/api";
+import gsap from "gsap";
 
 const ButtonPrimary = ({ children, onClick, disabled }) => (
   <button
@@ -66,6 +67,7 @@ export default function BlogPage() {
           
           // Set featured post (most recent) and side posts
           if (formattedBlogs.length > 0) {
+            // Sort by createdAt in descending order (newest first)
             const sortedBlogs = [...formattedBlogs].sort((a, b) => 
               new Date(b.createdAt) - new Date(a.createdAt)
             );
@@ -95,6 +97,25 @@ export default function BlogPage() {
     fetchBlogs();
   }, [currentPage]);
 
+  // GSAP animation for blog posts
+  useEffect(() => {
+    if (!loading && featuredPost) {
+      // Animate featured post
+      gsap.fromTo(
+        ".featured-post",
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+      );
+      
+      // Animate side posts with stagger
+      gsap.fromTo(
+        ".side-post",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }
+      );
+    }
+  }, [loading, featuredPost, sidePosts]);
+
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
@@ -106,25 +127,38 @@ export default function BlogPage() {
   // Handle post click to swap featured and clicked post
   const handlePostClick = (clickedPost) => {
     if (featuredPost) {
-      // Swap the featured post with the clicked post
-      const newFeaturedPost = clickedPost;
-      const newClickedPost = featuredPost;
+      // Animate the swap
+      gsap.to(".featured-post", { opacity: 0, y: -20, duration: 0.3 });
+      gsap.to(".side-post", { opacity: 0, y: -20, duration: 0.3 });
       
-      setFeaturedPost(newFeaturedPost);
-      
-      // Update side posts to include the previous featured post
-      const updatedSidePosts = sidePosts.map(post => 
-        post.id === clickedPost.id ? newClickedPost : post
-      );
-      
-      setSidePosts(updatedSidePosts);
+      setTimeout(() => {
+        // Swap the featured post with the clicked post
+        const newFeaturedPost = clickedPost;
+        const newClickedPost = featuredPost;
+        
+        setFeaturedPost(newFeaturedPost);
+        
+        // Update side posts to include the previous featured post
+        const updatedSidePosts = sidePosts.map(post => 
+          post.id === clickedPost.id ? newClickedPost : post
+        );
+        
+        setSidePosts(updatedSidePosts);
+      }, 300);
     }
   };
 
   // Handle pagination
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+      // Animate out
+      gsap.to(".blog-content", { opacity: 0, y: 20, duration: 0.3 });
+      
+      setTimeout(() => {
+        setCurrentPage(newPage);
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 300);
     }
   };
 
@@ -177,7 +211,7 @@ export default function BlogPage() {
       <hr className="max-w-6xl mx-auto border-border" />
 
       {/* Blog Posts Section */}
-      <main className="max-w-7xl mx-auto py-12">
+      <main className="max-w-7xl mx-auto py-12 blog-content">
         <h2 className="text-2xl sm:text-4xl lg:text-3xl font-bold uppercase mb-6 text-foreground">
           Recent <span className="text-primary">blog</span> posts
         </h2>
@@ -190,7 +224,7 @@ export default function BlogPage() {
           <div className="flex flex-col lg:flex-row gap-12 sm:gap-8">
             {/* Featured Post - Narrower column but taller image */}
             {featuredPost && (
-              <div className="w-full lg:w-[60%]">
+              <div className="w-full lg:w-[60%] featured-post">
                 <article>
                   <div className="w-full h-[360] sm:h-[440px] lg:h-[460px] xl:h-[520px] overflow-hidden mb-6 rounded-xl">
                     <img
@@ -221,7 +255,7 @@ export default function BlogPage() {
               {sidePosts.map((post) => (
                 <article 
                   key={post.id} 
-                  className="flex flex-col sm:flex-row space-x-4 cursor-pointer hover:bg-muted/50 sm:p-2 rounded-lg transition"
+                  className="flex flex-col sm:flex-row space-x-4 cursor-pointer hover:bg-muted/50 sm:p-2 rounded-lg transition side-post"
                   onClick={() => handlePostClick(post)}
                 >
                   <div className="flex-shrink-0 w-full h-full sm:w-40 sm:h-40 md:w-50 md:h-50 lg:w-40 lg:h-40 xl:w-40 xl:h-40 overflow-hidden rounded-lg">

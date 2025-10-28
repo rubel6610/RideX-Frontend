@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RefreshCw, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/utils/api";
+import gsap from "gsap";
 
 export default function CreateBlogPage() {
   const [context, setContext] = useState("");
@@ -14,6 +15,59 @@ export default function CreateBlogPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [regenerationCount, setRegenerationCount] = useState(0);
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  
+  // Refs for animation
+  const pageRef = useRef(null);
+  const titleRef = useRef(null);
+  const contentRef = useRef(null);
+  const imageRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  // Animation effect
+  useEffect(() => {
+    if (pageRef.current) {
+      // Initial animation for the whole page
+      gsap.fromTo(pageRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+      );
+    }
+  }, []);
+
+  // Animate content when generated
+  useEffect(() => {
+    if (generatedContent && titleRef.current && contentRef.current) {
+      gsap.fromTo([titleRef.current, contentRef.current],
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.2, ease: "power2.out" }
+      );
+    }
+  }, [generatedContent]);
+
+  // Animate image when loaded
+  useEffect(() => {
+    if (imageUrl && imageRef.current) {
+      gsap.fromTo(imageRef.current,
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }
+      );
+    }
+  }, [imageUrl]);
+
+  // Animate buttons on interaction
+  const animateButton = (e) => {
+    const button = e.currentTarget;
+    gsap.to(button, { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1, ease: "power1.inOut" });
+  };
+
+  // Toggle description expansion
+  const toggleDescription = (id) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   // Generate blog content using AI and automatically generate image
   const handleGenerate = async () => {
@@ -24,14 +78,13 @@ export default function CreateBlogPage() {
 
     try {
       setIsLoading(true);
-      setIsImageLoading(true);
       setError(null);
       setImageUrl(null);
       setGeneratedContent(null);
       
       // Add a timestamp to the context to ensure different results on regeneration
-      const contextWithTimestamp = regenerationCount > 0 
-        ? `${context} (attempt ${regenerationCount + 1})` 
+      const contextWithTimestamp = regenerationCount > 0
+        ? `${context} (attempt ${regenerationCount + 1})`
         : context;
       
       // Generate blog content
@@ -57,25 +110,27 @@ export default function CreateBlogPage() {
   // Generate image automatically based on content
   const generateImageForContent = async (imagePrompt) => {
     try {
+      setIsImageLoading(true);
+      
       // Add ride-sharing specific terms to make images more relevant
       const rideSharingTerms = [
-        "ride sharing", "ridex", "transportation", "passenger", "driver", 
+        "ride sharing", "ridex", "transportation", "passenger", "driver",
         "vehicle", "taxi", "cab", "car service", "urban transport"
       ];
       
       // Check if prompt already contains ride-sharing terms
-      const hasRideTerms = rideSharingTerms.some(term => 
+      const hasRideTerms = rideSharingTerms.some(term =>
         imagePrompt.toLowerCase().includes(term)
       );
       
       // If not, add relevant terms
-      const enhancedPrompt = hasRideTerms 
-        ? imagePrompt 
+      const enhancedPrompt = hasRideTerms
+        ? imagePrompt
         : `${imagePrompt} ${rideSharingTerms[Math.floor(Math.random() * rideSharingTerms.length)]}`;
       
       // Generate image using the enhanced prompt
-      const imageResponse = await api.post("/generate-image", { 
-        prompt: enhancedPrompt 
+      const imageResponse = await api.post("/generate-image", {
+        prompt: enhancedPrompt
       });
       
       if (imageResponse.data.success) {
@@ -88,7 +143,7 @@ export default function CreateBlogPage() {
       // Keep loading state for a brief moment to show the loader
       setTimeout(() => {
         setIsImageLoading(false);
-      }, 1000);
+      }, 500);
     }
   };
 
@@ -137,21 +192,28 @@ export default function CreateBlogPage() {
     handleGenerate();
   };
 
+  // Truncate description for preview
+  const truncateDescription = (description, maxLength = 150) => {
+    if (!description) return "";
+    if (description.length <= maxLength) return description;
+    return description.substring(0, maxLength) + "...";
+  };
+
   return (
-    <div className="space-y-6">
+    <div ref={pageRef} className="space-y-6 xl:mt-4">
       <div className="flex items-center space-x-3">
         <Sparkles className="h-8 w-8 text-primary" />
         <h1 className="text-3xl font-bold text-foreground">Create Blog</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-4 xl:gap-6">
         {/* Left Column - Input */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">Blog Context</h2>
-          
-          <div className="space-y-4">
+        <div className="h-fit bg-card rounded-xl border border-border py-6 px-3 sm:px-6 md:px-3 lg:px-6">
+          <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Blog Context</h2>
+
+          <div className="space-y-2 sm:space-y-4">
             <div>
-              <label htmlFor="context" className="block text-sm font-medium mb-2 text-foreground">
+              <label htmlFor="context" className="block text-sm sm:text-base font-medium mb-2 text-foreground">
                 Topic Context
               </label>
               <textarea
@@ -159,7 +221,7 @@ export default function CreateBlogPage() {
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
                 placeholder="Enter the topic or context for your blog post..."
-                className="w-full h-40 p-4 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                className="w-full h-40 lg:h-60 p-2 sm:p-4 leading-4.5 rounded-lg border border-border  bg-background text-foreground focus:outline-primary"
               />
             </div>
             
@@ -170,9 +232,10 @@ export default function CreateBlogPage() {
             )}
             
             <button
-              onClick={handleGenerate}
+              ref={buttonRef}
+              onClick={(e) => { animateButton(e); handleGenerate(); }}
               disabled={isLoading || !context.trim()}
-              className={`flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              className={`flex items-center justify-center gap-2 w-full py-3 px-4 md:-mt-2 rounded-lg font-medium transition-colors ${
                 isLoading || !context.trim()
                   ? "bg-muted text-muted-foreground cursor-not-allowed"
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -194,46 +257,60 @@ export default function CreateBlogPage() {
         </div>
 
         {/* Right Column - Preview */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">Preview</h2>
+        <div className="bg-card rounded-xl border border-border py-6 px-3 sm:px-6 md:px-3 lg:px-6">
+          <h2 className="text-2xl sm:text-3xl font-semibold mb-2 xl:mb-4 text-foreground">Preview</h2>
           
           {generatedContent ? (
-            <div className="space-y-6">
+            <div className="space-y-3 sm:space-y-4 lg:space-y-6">
               <div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
+                <h3 ref={titleRef} className="text-xl sm:text-3xl md:text-2xl xl:text-4xl font-bold text-foreground leading-5.5 sm:leading-7 md:leading-6 xl:leading-8.5 mb-2 sm:mb-3 xl:mb-4">
                   {generatedContent.title}
                 </h3>
-                <p className="text-foreground/80">
-                  {generatedContent.description}
-                </p>
+                <div className="relative">
+                  <p ref={contentRef} className="text-sm sm:text-lg md:text-base xl:text-lg text-foreground/80 leading-4 sm:leading-4.5 xl:leading-5">
+                    {expandedDescriptions.content 
+                      ? generatedContent.description 
+                      : truncateDescription(generatedContent.description)}
+                  </p>
+                  {generatedContent.description.length > 150 && (
+                    <button 
+                      onClick={() => toggleDescription('content')}
+                      className="mt-2 text-sm font-medium text-primary hover:underline focus:outline-none"
+                    >
+                      {expandedDescriptions.content ? 'See Less' : 'See More'}
+                    </button>
+                  )}
+                </div>
               </div>
               
               {/* Image Display */}
               <div className="bg-muted rounded-lg overflow-hidden">
                 {isImageLoading ? (
-                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64 flex items-center justify-center">
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-[20%] sm:h-90 md:h-60 lg:h-64 xl:h-90 flex items-center justify-center">
                     <div className="flex flex-col items-center">
-                      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary mb-4"></div>
-                      <p className="text-foreground font-medium">Generating image...</p>
-                      <p className="text-muted-foreground text-sm mt-2">Please wait</p>
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-2"></div>
+                      <p className="text-muted-foreground text-sm">Generating image...</p>
                     </div>
                   </div>
                 ) : imageUrl ? (
-                  <img 
-                    src={imageUrl} 
+                  <img
+                    ref={imageRef}
+                    src={imageUrl}
                     alt={generatedContent.imagePrompt}
-                    className="w-full h-64 object-cover"
+                    className="w-full h-[20%] sm:h-90 md:h-60 lg:h-64 xl:h-90 object-cover"
+                    onLoad={() => setIsImageLoading(false)}
+                    onError={() => setIsImageLoading(false)}
                   />
                 ) : (
-                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64 flex items-center justify-center">
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-[20%] sm:h-90 md:h-60 lg:h-64 xl:h-90 flex items-center justify-center">
                     <span className="text-muted-foreground">No image generated</span>
                   </div>
                 )}
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-1 sm:gap-3">
                 <button
-                  onClick={handleRegenerate}
+                  onClick={(e) => { animateButton(e); handleRegenerate(); }}
                   disabled={isLoading}
                   className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition-colors ${
                     isLoading
@@ -246,7 +323,7 @@ export default function CreateBlogPage() {
                 </button>
                 
                 <button
-                  onClick={handleSave}
+                  onClick={(e) => { animateButton(e); handleSave(); }}
                   disabled={isSaving}
                   className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition-colors flex-1 ${
                     isSaving
@@ -261,7 +338,7 @@ export default function CreateBlogPage() {
                     </>
                   ) : (
                     <>
-                      <Save className="h-4 w-4" />
+                      <Save className="sm:hidden h-4 w-4" />
                       Confirm & Save
                     </>
                   )}
