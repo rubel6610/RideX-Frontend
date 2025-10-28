@@ -81,19 +81,72 @@ function AcceptRideContent() {
   const [liveEta, setLiveEta] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [urlParams, setUrlParams] = useState({});
+  const [riderLocation, setRiderLocation] = useState({
+    type: "Point",
+    coordinates: [90.4125, 23.8103], // Fallback to Dhaka
+  });
+  const [calculatedEta, setCalculatedEta] = useState(null);
+
+  // Calculate distance between two points using Haversine formula
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in kilometers
+  };
+
+  // Calculate ETA based on distance and vehicle type
+  const calculateETA = (distance) => {
+    if (!distance || distance <= 0) return null;
+    
+    let avgSpeed; // Average speed in km/h
+    switch (type.toLowerCase()) {
+      case 'bike':
+        avgSpeed = 60; // Bike average speed
+        break;
+      case 'car':
+        avgSpeed = 80; // Car average speed
+        break;
+      case 'bus':
+        avgSpeed = 70; // Bus average speed
+        break;
+      default:
+        avgSpeed = 60; // Default speed
+    }
+    
+    const timeInHours = distance / avgSpeed;
+    const timeInMinutes = Math.round(timeInHours * 60);
+    
+    if (timeInMinutes < 60) {
+      return `${timeInMinutes} min`;
+    } else {
+      const hours = Math.floor(timeInMinutes / 60);
+      const minutes = timeInMinutes % 60;
+      return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
+  };
 
   // Parse pickup and drop locations from URL parameters
   useEffect(() => {
-    if (!searchParams) {
-      setIsLoading(false);
-      return;
-    }
+    const parseLocations = async () => {
+      console.log("🔍 useEffect triggered, searchParams:", searchParams);
+      if (!searchParams) {
+        console.warn("❌ searchParams is null/undefined");
+        setIsLoading(false);
+        return;
+      }
 
-    try {
+      try {
       // Create a safe copy of searchParams to avoid read-only issues
       const params = new URLSearchParams(searchParams.toString());
       const pickup = params.get("pickup") || "";
       const drop = params.get("drop") || "";
+      
+      console.log("🔍 URL parsing debug:", { pickup, drop, searchParams: searchParams.toString() });
       
       
       
@@ -126,16 +179,42 @@ function AcceptRideContent() {
       
       setUrlParams(allParams);
       
-      // Parse pickup location
-      if (pickup && pickup.includes(",")) {
+      // Parse pickup location - handle both coordinates and address
+      if (pickup) {
         const coords = pickup.split(",");
+        console.log("📍 Pickup coords:", coords);
+        
+        // Check if it's coordinates (lat,lng) or address string
         if (coords.length === 2) {
           const lat = parseFloat(coords[0]);
           const lng = parseFloat(coords[1]);
+          console.log("📍 Parsed pickup coordinates:", { lat, lng });
           if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
             setPickupLocation({ lat, lng });
+            console.log("✅ Pickup location set from coordinates:", { lat, lng });
+          } else {
+            console.warn("❌ Invalid pickup coordinates:", { lat, lng });
+          }
+        } else {
+          // It's an address string, use geocoding
+          console.log("📍 Converting address to coordinates:", pickup);
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickup)}&limit=1`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+              const lat = parseFloat(data[0].lat);
+              const lng = parseFloat(data[0].lon);
+              setPickupLocation({ lat, lng });
+              console.log("✅ Pickup location set from geocoding:", { lat, lng });
+            } else {
+              console.warn("❌ No coordinates found for address:", pickup);
+            }
+          } catch (error) {
+            console.error("❌ Geocoding failed:", error);
           }
         }
+      } else {
+        console.warn("❌ No pickup parameter:", pickup);
       }
       
       // Parse drop location
@@ -157,7 +236,49 @@ function AcceptRideContent() {
     } finally {
       setIsLoading(false);
     }
+    };
+
+    parseLocations();
   }, [searchParams]);
+
+  // Fetch rider's real-time location
+  useEffect(() => {
+    const fetchRiderLocation = async () => {
+      try {
+        if (!urlParams.riderId) return;
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/${urlParams.riderId}`);
+        if (response.ok) {
+          const riderData = await response.json();
+          if (riderData.location && riderData.location.coordinates) {
+            setRiderLocation(riderData.location);
+            console.log('Rider location updated:', riderData.location.coordinates);
+            
+            // Calculate ETA if pickup location is available
+            if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
+              const distance = calculateDistance(
+                riderData.location.coordinates[1], // lat
+                riderData.location.coordinates[0], // lng
+                pickupLocation.lat,
+                pickupLocation.lng
+              );
+              const eta = calculateETA(distance);
+              setCalculatedEta(eta);
+              console.log('📏 Distance & ETA calculated:', { distance: distance.toFixed(2) + ' km', eta });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch rider location:', error);
+      }
+    };
+
+    // Fetch immediately and then every 5 seconds
+    fetchRiderLocation();
+    const interval = setInterval(fetchRiderLocation, 5000);
+
+    return () => clearInterval(interval);
+  }, [urlParams.riderId]);
 
   // Early return if still loading or searchParams is not available
   if (isLoading || !searchParams) {
@@ -201,19 +322,17 @@ function AcceptRideContent() {
   // Set vehicle icon
   const VehicleIcon = rideTypeIcon[type] || Bike;
 
-  // Rider information fetched from URL
-  const riderInfo ={
+  const riderInfo = {
     fullName: riderName || "N/A",
     email: riderEmail || "",
     vehicleType: vehicleType || type,
     vehicleModel: vehicleModel || "Unknown Model",
     vehicleRegisterNumber: vehicleRegisterNumber || "N/A",
     status: "On the way",
-    location: {
-      type: "Point",
-      coordinates: [90.4125, 23.8103],
-    },
+    location: riderLocation,
   };
+
+  
 
   // ✅ Updated Complete Ride Handler with enhanced error protection
   const handleCompleteRide = () => {
@@ -314,10 +433,10 @@ function AcceptRideContent() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">
-                    {liveEta ? `Your captain is on the way to pickup (${liveEta})` : eta ? `Your captain is on the way to pickup (${eta})` : `Your ${type} is on the way`}
+                    {calculatedEta ? `Your captain is on the way to pickup (${calculatedEta})` : liveEta ? `Your captain is on the way to pickup (${liveEta})` : eta ? `Your captain is on the way to pickup (${eta})` : `Your ${type} is on the way`}
                   </h2>
                   <p className="text-background text-sm">
-                    {liveEta || eta ? "Captain will reach your pickup location soon" : "Track your ride in real-time"}
+                    {calculatedEta || liveEta || eta ? "Captain will reach your pickup location soon" : "Track your ride in real-time"}
                   </p>
                 </div>
               </div>

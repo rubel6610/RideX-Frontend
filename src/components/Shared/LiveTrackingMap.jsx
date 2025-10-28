@@ -1,8 +1,104 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import { Bike, Car, BusFront } from "lucide-react";
 import L from "leaflet";
+
+// RoutePolyline Component for Real Road Paths
+const RoutePolyline = ({ startLocation, endLocation, color, weight, opacity, dashArray }) => {
+  const [routeCoordinates, setRouteCoordinates] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (!startLocation || !endLocation) return;
+      
+      setIsLoading(true);
+      try {
+        // Use OSRM API for real road routing
+        const start = `${startLocation.lng},${startLocation.lat}`;
+        const end = `${endLocation.lng},${endLocation.lat}`;
+        const url = `https://router.project-osrm.org/route/v1/driving/${start};${end}?overview=full&geometries=geojson`;
+        
+        console.log("🛣️ Fetching route from OSRM:", url);
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+          const coordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+          setRouteCoordinates(coordinates);
+          console.log("✅ Route coordinates fetched:", coordinates.length, "points");
+        } else {
+          console.warn("❌ No route found, using straight line");
+          setRouteCoordinates([
+            [startLocation.lat, startLocation.lng],
+            [endLocation.lat, endLocation.lng]
+          ]);
+        }
+      } catch (error) {
+        console.error("❌ Route fetching failed:", error);
+        // Fallback to straight line
+        setRouteCoordinates([
+          [startLocation.lat, startLocation.lng],
+          [endLocation.lat, endLocation.lng]
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRoute();
+  }, [startLocation, endLocation]);
+
+  if (!routeCoordinates) {
+    return null;
+  }
+
+  return (
+    <Polyline
+      positions={routeCoordinates}
+      pathOptions={{
+        color,
+        weight,
+        opacity,
+        dashArray,
+        lineCap: 'round',
+        lineJoin: 'round',
+        className: 'real-road-polyline'
+      }}
+    />
+  );
+};
+
+// MapBoundsUpdater Component to automatically fit map bounds
+const MapBoundsUpdater = ({ riderLocation, pickupLocation }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const locations = [];
+    
+    if (riderLocation && riderLocation.lat && riderLocation.lng) {
+      locations.push([riderLocation.lat, riderLocation.lng]);
+    }
+    
+    if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
+      locations.push([pickupLocation.lat, pickupLocation.lng]);
+    }
+
+    if (locations.length > 0) {
+      const bounds = L.latLngBounds(locations);
+      // Fit bounds with padding and max zoom to prevent over-zooming
+      map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 });
+      console.log("🗺️ Map bounds updated to fit markers:", bounds);
+    } else {
+      // If no locations, set default view (Bogura, zoomed out)
+      map.setView([24.8504, 89.3711], 8);
+      console.log("🗺️ No markers to fit, setting default map view");
+    }
+  }, [map, riderLocation, pickupLocation]);
+
+  return null; // This component doesn't render anything
+};
 
 // Fix default marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -76,12 +172,12 @@ const createVehicleIcon = (vehicleType) => {
 };
 
 const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocation, dropLocation, onEtaUpdate }) => {
+  console.log("🗺️ LiveTrackingMap props:", { rideId, riderInfo, vehicleType, pickupLocation, dropLocation });
+  
   const [riderLocation, setRiderLocation] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
   const [isClient, setIsClient] = useState(false);
   const [eta, setEta] = useState(null);
   const [distance, setDistance] = useState(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [routeStable, setRouteStable] = useState(false);
 
@@ -117,16 +213,11 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
               lat: position.coords.latitude,
               lng: position.coords.longitude
             };
-            setUserLocation(userLoc);
-            setIsLoadingLocation(false);
+            console.log('📍 User location obtained:', userLoc);
           },
           (error) => {
             console.warn("Error getting user location:", error);
-            // Fallback to pickup location if available
-            if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
-              setUserLocation(pickupLocation);
-            }
-            setIsLoadingLocation(false);
+            console.log('📍 Using pickup location as fallback:', pickupLocation);
           },
           {
             enableHighAccuracy: true,
@@ -136,11 +227,8 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         );
       } else {
         console.warn("Geolocation is not supported");
-        // Fallback to pickup location if available
-        if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
-          setUserLocation(pickupLocation);
-        }
-        setIsLoadingLocation(false);
+        // Pickup location is already available as prop
+        console.log('📍 Using pickup location as fallback:', pickupLocation);
       }
     };
 
@@ -450,7 +538,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
 
     // cleanup
     return () => clearInterval(interval);
-  }, [rideId, isClient, pickupLocation, userLocation, vehicleType]);
+  }, [rideId, isClient, pickupLocation, vehicleType]);
 
   // Fetch route coordinates when locations change
   useEffect(() => {
@@ -458,7 +546,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
       if (!riderLocation || !riderLocation.lat || !riderLocation.lng) return;
       
       // Prioritize user location over pickup location
-      const targetLocation = userLocation || pickupLocation;
+      const targetLocation = pickupLocation;
       if (!targetLocation || !targetLocation.lat || !targetLocation.lng) return;
 
       // Don't update route if it's already stable and locations haven't changed significantly
@@ -524,30 +612,28 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
     // Add debounce to prevent too frequent updates
     const timeoutId = setTimeout(fetchRoute, 500);
     return () => clearTimeout(timeoutId);
-  }, [riderLocation, userLocation, pickupLocation]);
+  }, [riderLocation, pickupLocation]);
 
 
-  if (!isClient || isLoadingLocation) {
+  if (!isClient) {
     return (
       <div className="w-full h-[400px] z-40 rounded-xl bg-card border border-border flex items-center justify-center">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-3 animate-pulse">
             {getVehicleIcon()}
           </div>
-          <p className="text-sm text-muted-foreground">
-            {!isClient ? 'Loading map...' : 'Getting your location...'}
-          </p>
+          <p className="text-sm text-muted-foreground">Loading map...</p>
         </div>
       </div>
     );
   }
 
-  // Smart map center calculation to show all markers
+  // Smart map center and bounds calculation to show all markers
   const calculateMapCenter = () => {
     const locations = [];
     
     // Add user/pickup location (combined)
-    const userPickupLocation = userLocation || pickupLocation;
+    const userPickupLocation = pickupLocation;
     if (userPickupLocation && userPickupLocation.lat && userPickupLocation.lng) {
       locations.push([userPickupLocation.lat, userPickupLocation.lng]);
     }
@@ -575,8 +661,10 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
     }
   };
 
+
   const mapCenter = calculateMapCenter();
   
+  console.log("🗺️ Map settings:", { mapCenter });
 
   return (
     <div className="w-full h-[380px] rounded-xl overflow-hidden border border-border shadow-lg">
@@ -623,16 +711,20 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
       `}</style>
       
       <MapContainer
-        key={`${riderLocation?.lat}-${riderLocation?.lng}-${userLocation?.lat}-${userLocation?.lng}-${pickupLocation?.lat}-${pickupLocation?.lng}`}
+        key={`${riderLocation?.lat}-${riderLocation?.lng}-${pickupLocation?.lat}-${pickupLocation?.lng}`}
         center={mapCenter}
-        zoom={15}
+        zoom={8}
         style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
+        zoomControl={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
+        
+        {/* Add MapBoundsUpdater component inside MapContainer */}
+        <MapBoundsUpdater riderLocation={riderLocation} pickupLocation={pickupLocation} />
         
         {/* Rider Marker - Custom vehicle icon */}
         {riderLocation && riderLocation.lat && riderLocation.lng && (
@@ -698,12 +790,11 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
           </Marker>
         )}
 
-        {/* User/Pickup Location Marker - Combined marker */}
-        {(userLocation || pickupLocation) && (
-          <Marker position={[
-            userLocation?.lat || pickupLocation?.lat, 
-            userLocation?.lng || pickupLocation?.lng
-          ]}>
+        {/* Pickup Location Marker */}
+        {pickupLocation && (
+          <>
+            {console.log("📍 Rendering pickup location marker:", pickupLocation)}
+            <Marker position={[pickupLocation.lat, pickupLocation.lng]}>
             <Popup>
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
@@ -723,12 +814,13 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
                     <span className="font-medium">Type:</span> Live GPS Position
                   </p>
                   <p className="text-xs text-gray-500 mt-2 pt-1 border-t border-gray-200">
-                    📍 {(userLocation?.lat || pickupLocation?.lat).toFixed(6)}, {(userLocation?.lng || pickupLocation?.lng).toFixed(6)}
+                    📍 {pickupLocation.lat.toFixed(6)}, {pickupLocation.lng.toFixed(6)}
                   </p>
                 </div>
               </div>
             </Popup>
           </Marker>
+          </>
         )}
 
         {/* Drop Location Marker - Orange with destination icon */}
@@ -761,45 +853,18 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
           </Marker>
         )}
 
-        {/* Route Polyline from Rider to User/Pickup Location */}
-        {routeCoordinates.length > 0 && (
+        {/* Route Polyline from Rider to Pickup Location */}
+        {riderLocation && pickupLocation && (
           <>
-            <Polyline
-              positions={routeCoordinates}
-              pathOptions={{
-                color: '#3b82f6',
-                weight: 8,
-                opacity: 1,
-                dashArray: '20, 10',
-                lineCap: 'round',
-                lineJoin: 'round',
-                className: 'rider-route-polyline'
-              }}
+            {console.log("🎯 Rendering polyline from rider to pickup:", riderLocation, pickupLocation)}
+            <RoutePolyline 
+              startLocation={riderLocation}
+              endLocation={pickupLocation}
+              color="#3b82f6"
+              weight={6}
+              opacity={0.8}
+              dashArray="15, 10"
             />
-            
-            {/* Distance Info Marker at Route Midpoint */}
-            {routeCoordinates.length > 1 && (
-              <Marker 
-                position={routeCoordinates[Math.floor(routeCoordinates.length / 2)]}
-              >
-                <Popup>
-                  <div className="p-2 text-center">
-                    <p className="font-bold text-sm text-blue-600">
-                      {userLocation ? '📍 Route to You' : '📍 Route to Pickup'}
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">
-                      {distance ? `${distance.toFixed(1)} km` : 'Calculating...'}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {eta ? `ETA: ${eta}` : 'Calculating ETA...'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {userLocation ? 'Rider → Your Location' : 'Rider → Pickup Point'}
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
           </>
         )}
 
