@@ -13,6 +13,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "i.ibb.co",
+      },////image host name
+        {
+        protocol: "https",
+        hostname: "cdn-icons-png.flaticon.com",
       },
     ],
   },

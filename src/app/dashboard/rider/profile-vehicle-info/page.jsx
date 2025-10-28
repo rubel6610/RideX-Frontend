@@ -1,107 +1,194 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import axios from "axios";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import Image from "next/image";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { useAuth } from "@/app/hooks/AuthProvider";
+import { X } from "lucide-react";
 
-const API_URL = `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api`;
+export default function RiderVehicleInfo() {
+  const { user } = useAuth();
+  const [rider, setRider] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState({});
 
-export default function ProfileVehicleInfoPage() {
-  const [riders, setRiders] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const defaultImage = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-  // current user id (test purpose)
-  const currentUserId = "66f2c60056b78c1234abcd66";
+ 
 
-  // 🟡 Fetch all riders data from backend
-  const fetchRiders = async () => {
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const fetchRiderData = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/riders");
+        const riders = res.data.riders;
+
+        const matchedRider = riders.find(
+          (r) => r.email.toLowerCase() === user.email.toLowerCase()
+        );
+
+        if (matchedRider) {
+          setRider(matchedRider);
+          setFormData({
+            vehicleType: matchedRider.vehicleType,
+            vehicleModel: matchedRider.vehicleModel,
+            vehicleRegisterNumber: matchedRider.vehicleRegisterNumber,
+            drivingLicense: matchedRider.drivingLicense,
+            image: matchedRider.image || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching rider data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRiderData();
+  }, [user?.email]);
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
     try {
-      setLoading(true);
-      const res = await axios.get(`${API_URL}/riders`);
-      console.log("📦 Riders API Response:", res.data);
+      const res = await axios.put(
+  `http://localhost:5000/api/update-rider/${rider._id}`,
+  {
+    vehicleType: formData.vehicleType,
+    vehicleModel: formData.vehicleModel,
+    vehicleRegisterNumber: formData.vehicleRegisterNumber,
+    drivingLicense: formData.drivingLicense,
+  }
+);
 
-      // ✅ Handle both possible structures safely
-      const fetchedRiders = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.data)
-        ? res.data.data
-        : [];
 
-      setRiders(fetchedRiders);
-    } catch (err) {
-      console.error("❌ Error fetching riders:", err);
-      setError("Failed to load rider data.");
-    } finally {
-      setLoading(false);
+      setRider(res.data.updatedRider);
+      setFormData({
+        vehicleType: res.data.updatedRider.vehicleType,
+        vehicleModel: res.data.updatedRider.vehicleModel,
+        vehicleRegisterNumber: res.data.updatedRider.vehicleRegisterNumber,
+        drivingLicense: res.data.updatedRider.drivingLicense,
+      });
+
+      setEditing(false);
+      toast.success("Rider info updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update rider info");
+      console.error(error);
     }
   };
 
-  useEffect(() => {
-    fetchRiders();
-  }, []);
-
-  // ✅ Safely find current rider
-  const currentRider = Array.isArray(riders)
-    ? riders.find((rider) => rider._id === currentUserId)
-    : null;
-
-  // Loading state
-  if (loading) {
-    return <p className="text-center mt-10 text-blue-500">Loading rider data...</p>;
-  }
-
-  // Error state
-  if (error) {
-    return <p className="text-center mt-10 text-red-500">{error}</p>;
-  }
-
-  // No rider found
-  if (!currentRider) {
-    return <p className="text-center mt-10 text-gray-500">No profile data found.</p>;
-  }
+  if (loading) return <p className="text-center">Loading vehicle info...</p>;
+  if (!rider)
+    return <p className="text-center text-red-500">No rider data found</p>;
 
   return (
-    <div className="max-w-2xl mx-auto p-6 shadow-md bg-accent/50 rounded-2xl hover:border-primary group-hover:bg-accent border border-border">
-      <CardHeader>
-        <h2 className="text-2xl font-semibold">{currentRider.fullName}</h2>
-        <p className="text-sm text-muted-foreground">{currentRider.email}</p>
-      </CardHeader>
+    <div className="flex justify-center mt-8">
+      <Card className="w-full max-w-md shadow-lg rounded-2xl border border-primary relative">
+        {/* Cross icon for cancel edit mode */}
+        {editing && (
+          <button
+            type="button"
+            className="absolute top-3 right-3"
+            onClick={() => setEditing(false)}
+          >
+            <X size={24} />
+          </button>
+        )}
 
-      <CardContent className="space-y-4">
-        {/* Vehicle Info */}
-        <div className="border-t pt-3">
-          <p>
-            <span className="font-medium">Vehicle Type:</span>{" "}
-            {currentRider.vehicleType}
-          </p>
-          <p>
-            <span className="font-medium">Model:</span> {currentRider.vehicleModel}
-          </p>
-          <p>
-            <span className="font-medium">Registration No:</span>{" "}
-            {currentRider.vehicleRegisterNumber}
-          </p>
-          <p>
-            <span className="font-medium">Driving License:</span>{" "}
-            {currentRider.drivingLicense}
-          </p>
-          <p>
-            <span className="font-medium">Status:</span>{" "}
-            <span
-              className={`px-2 py-1 text-xs rounded-md ${
-                currentRider.status === "pending"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              {currentRider.status}
-            </span>
-          </p>
-        </div>
-      </CardContent>
+        <CardHeader className="flex flex-col items-center">
+          <Image
+            src={formData.image || defaultImage}
+            alt="Rider"
+            width={120}
+            height={120}
+            className="rounded-full border-2 border-gray-300 shadow-sm"
+          />
+          <CardTitle className="text-xl font-semibold mt-3">
+            Vehicle Information
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-3 text-gray-700">
+          {editing ? (
+            <form onSubmit={handleUpdate} className="space-y-3">
+              {/*  <Input
+                type="text"
+                value={formData.image}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                placeholder="Image URL"
+              /> */}
+              <Input
+            
+                type="text"
+                value={formData.vehicleType}
+                onChange={(e) =>
+                  setFormData({ ...formData, vehicleType: e.target.value })
+                }
+                placeholder="Vehicle Type"
+              />
+              <Input
+                type="text"
+                value={formData.vehicleModel}
+                onChange={(e) =>
+                  setFormData({ ...formData, vehicleModel: e.target.value })
+                }
+                placeholder="Vehicle Model"
+              />
+              <Input
+                type="text"
+                value={formData.vehicleRegisterNumber}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    vehicleRegisterNumber: e.target.value,
+                  })
+                }
+                placeholder="Register Number"
+              />
+              <Input
+                type="text"
+                value={formData.drivingLicense}
+                onChange={(e) =>
+                  setFormData({ ...formData, drivingLicense: e.target.value })
+                }
+                placeholder="Driving License"
+              />
+              <Button type="submit" className="w-full mt-2">
+                Save Changes
+              </Button>
+            </form>
+          ) : (
+            <>
+              <div className="flex justify-between text-black dark:text-white">
+                <span className="font-medium ">Vehicle Type:</span>
+                <span>{rider.vehicleType}</span>
+              </div>
+              <div className="flex justify-between text-black dark:text-white">
+                <span className="font-medium">Model:</span>
+                <span>{rider.vehicleModel}</span>
+              </div>
+              <div className="flex justify-between text-black dark:text-white">
+                <span className="font-medium">Register No:</span>
+                <span>{rider.vehicleRegisterNumber}</span>
+              </div>
+              <div className="flex justify-between text-black dark:text-white">
+                <span className="font-medium">Driving License:</span>
+                <span>{rider.drivingLicense}</span>
+              </div>
+
+              <div className="flex justify-center mt-4">
+                <Button onClick={() => setEditing(true)}>Edit Info</Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
