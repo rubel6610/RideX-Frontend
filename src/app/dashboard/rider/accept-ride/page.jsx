@@ -222,9 +222,7 @@ function RiderAcceptRideContent() {
   // Parse pickup and drop locations from URL parameters
   useEffect(() => {
     const parseLocations = async () => {
-      console.log("🔍 Rider Accept Ride - useEffect triggered, searchParams:", searchParams);
       if (!searchParams) {
-        console.warn("❌ searchParams is null/undefined");
         setIsLoading(false);
         return;
       }
@@ -234,8 +232,6 @@ function RiderAcceptRideContent() {
       const params = new URLSearchParams(searchParams.toString());
       const pickup = params.get("pickup") || "";
       const drop = params.get("drop") || "";
-      
-      console.log("🔍 Rider Accept Ride - URL parsing debug:", { pickup, drop, searchParams: searchParams.toString() });
       
       // Store all params in state to avoid repeated access
       const allParams = {
@@ -269,27 +265,22 @@ function RiderAcceptRideContent() {
       // Parse pickup location - handle both coordinates and address
       if (pickup) {
         const coords = pickup.split(",");
-        console.log("📍 Rider Accept Ride - Pickup coords:", coords);
         
         // Check if it's coordinates (lat,lng) or address string
         if (coords.length === 2) {
           const lat = parseFloat(coords[0]);
           const lng = parseFloat(coords[1]);
-          console.log("📍 Rider Accept Ride - Parsed pickup coordinates:", { lat, lng });
           if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
             setPickupLocation({ lat, lng });
-            console.log("✅ Rider Accept Ride - Pickup location set from coordinates:", { lat, lng });
             
             // Convert coordinates to address
             const address = await reverseGeocode(lat, lng);
             setPickupAddress(address);
-            console.log("✅ Rider Accept Ride - Pickup address:", address);
           } else {
             console.warn("❌ Rider Accept Ride - Invalid pickup coordinates:", { lat, lng });
           }
         } else {
           // It's an address string, use geocoding
-          console.log("📍 Rider Accept Ride - Converting address to coordinates:", pickup);
           try {
             const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickup)}&limit=1`);
             const data = await response.json();
@@ -298,7 +289,6 @@ function RiderAcceptRideContent() {
               const lng = parseFloat(data[0].lon);
               setPickupLocation({ lat, lng });
               setPickupAddress(pickup); // Use the original address string
-              console.log("✅ Rider Accept Ride - Pickup location set from geocoding:", { lat, lng });
             } else {
               console.warn("❌ Rider Accept Ride - No coordinates found for address:", pickup);
             }
@@ -322,13 +312,11 @@ function RiderAcceptRideContent() {
             // Convert coordinates to address
             const address = await reverseGeocode(lat, lng);
             setDropAddress(address);
-            console.log("✅ Rider Accept Ride - Drop address:", address);
           }
         }
       } else if (drop) {
         // It's an address string
         setDropAddress(drop);
-        console.log("✅ Rider Accept Ride - Drop address set from string:", drop);
       }
     } catch (error) {
       console.error('Rider Accept Ride - Error parsing URL parameters:', error);
@@ -354,7 +342,6 @@ function RiderAcceptRideContent() {
           const riderData = await response.json();
           if (riderData.location && riderData.location.coordinates) {
             setRiderLocation(riderData.location);
-            console.log('Rider Accept Ride - Rider location updated:', riderData.location.coordinates);
             
             // Calculate ETA if pickup location is available
             if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
@@ -367,7 +354,6 @@ function RiderAcceptRideContent() {
               const eta = calculateETA(calculatedDistance, urlParams.vehicleType || 'bike');
               setCalculatedEta(eta);
               setDistance(calculatedDistance);
-              console.log('📏 Rider Accept Ride - Distance & ETA calculated:', { distance: calculatedDistance.toFixed(2) + ' km', eta });
             }
           }
         }
@@ -472,9 +458,16 @@ function RiderAcceptRideContent() {
       return;
     }
 
+    // Debug logging
+    console.log('🔍 Frontend Cancel Ride Debug:', {
+      rideId,
+      riderId,
+      types: { rideId: typeof rideId, riderId: typeof riderId }
+    });
+
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/ride-cancel`,
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/cancel`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -17,7 +17,6 @@ const RoutePolyline = ({ startLocation, endLocation, color, weight, opacity, das
       
       // Use straight line directly for stability
       // OSRM API calls are disabled to prevent network errors
-      console.log("🛣️ Using straight line route for stability");
       
       // Set straight line coordinates immediately
       setRouteCoordinates([
@@ -25,7 +24,6 @@ const RoutePolyline = ({ startLocation, endLocation, color, weight, opacity, das
         [endLocation.lat, endLocation.lng]
       ]);
       
-      console.log("✅ Straight line route set");
       setIsLoading(false);
     };
 
@@ -71,11 +69,9 @@ const MapBoundsUpdater = ({ riderLocation, pickupLocation }) => {
       const bounds = L.latLngBounds(locations);
       // Fit bounds with padding and max zoom to prevent over-zooming
       map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 });
-      console.log("🗺️ Map bounds updated to fit markers:", bounds);
     } else {
       // If no locations, set default view (Bogura, zoomed out)
       map.setView([24.8504, 89.3711], 8);
-      console.log("🗺️ No markers to fit, setting default map view");
     }
   }, [map, riderLocation, pickupLocation]);
 
@@ -92,7 +88,6 @@ L.Icon.Default.mergeOptions({
 
 // Create custom vehicle icons
 const createVehicleIcon = (vehicleType) => {
-  console.log("🎨 Creating vehicle icon for type:", vehicleType);
   
   let iconHtml = '';
   let bgColor = '#3b82f6';
@@ -115,7 +110,6 @@ const createVehicleIcon = (vehicleType) => {
       bgColor = '#3b82f6';
   }
   
-  console.log("🎨 Icon created:", { iconHtml, bgColor });
   
   return L.divIcon({
     html: `
@@ -154,7 +148,6 @@ const createVehicleIcon = (vehicleType) => {
 };
 
 const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocation, dropLocation, onEtaUpdate }) => {
-  console.log("🗺️ LiveTrackingMap props:", { rideId, riderInfo, vehicleType, pickupLocation, dropLocation });
   
   const [riderLocation, setRiderLocation] = useState(null);
   const [isClient, setIsClient] = useState(false);
@@ -195,11 +188,9 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
               lat: position.coords.latitude,
               lng: position.coords.longitude
             };
-            console.log('📍 User location obtained:', userLoc);
           },
           (error) => {
             console.warn("Error getting user location:", error);
-            console.log('📍 Using pickup location as fallback:', pickupLocation);
           },
           {
             enableHighAccuracy: true,
@@ -210,7 +201,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
       } else {
         console.warn("Geolocation is not supported");
         // Pickup location is already available as prop
-        console.log('📍 Using pickup location as fallback:', pickupLocation);
       }
     };
 
@@ -334,14 +324,11 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
     // Add final point
     points.push(waypoints[waypoints.length - 1]);
     
-    console.log("🛣️ Generated curved route with", points.length, "points");
-    console.log("🛣️ Route points:", points);
     return points;
   };
 
   // Get route coordinates with multiple fallback options
   const getRouteCoordinates = async (startLat, startLng, endLat, endLng) => {
-    console.log("🛣️ Fetching road route from:", startLat, startLng, "to:", endLat, endLng);
     
     try {
       // Try OSRM first (free and reliable) with timeout and better error handling
@@ -364,15 +351,12 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      console.log("🛣️ OSRM response status:", response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log("🛣️ OSRM data:", data);
         
         if (data.routes && data.routes[0] && data.routes[0].geometry && data.routes[0].geometry.coordinates) {
           const route = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-          console.log("✅ OSRM route generated with", route.length, "points");
           return route;
         }
       }
@@ -392,15 +376,12 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         }
       );
       
-      console.log("🛣️ OpenRouteService response status:", response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log("🛣️ OpenRouteService data:", data);
         
         if (data.features && data.features[0] && data.features[0].geometry && data.features[0].geometry.coordinates) {
           const route = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-          console.log("✅ OpenRouteService route generated with", route.length, "points");
           return route;
         }
       }
@@ -409,7 +390,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
     }
     
     // Final fallback: straight line (better than curved)
-    console.log("⚠️ Using straight line fallback");
     return [[startLat, startLng], [endLat, endLng]];
   };
 
@@ -490,13 +470,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
                   const etaText = calculateETA(dist);
                   setEta(etaText);
                   
-                  console.log("⏱️ ETA Calculation - Rider to Pickup:", {
-                    riderLocation: newLocation,
-                    pickupLocation: targetLocation,
-                    distance: dist.toFixed(2) + " km",
-                    eta: etaText
-                  });
-                  
                   // Update parent component with live ETA
                   if (onEtaUpdate) {
                     onEtaUpdate(etaText);
@@ -553,12 +526,10 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         
         // Only update if distance changed significantly (more than 100m)
         if (Math.abs(currentDistance - routeDistance) < 0.1) {
-          console.log("🔄 Route is stable, skipping update");
           return;
         }
       }
 
-      console.log("🔄 Generating route from:", riderLocation, "to:", targetLocation);
 
       try {
         // Get real road route and keep it stable
@@ -571,7 +542,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         
         // Only update if we got a valid route with multiple points
         if (route && route.length > 2) {
-          console.log("✅ Real route generated with", route.length, "points");
           setRouteCoordinates(route);
           setRouteStable(true);
         } else {
@@ -582,7 +552,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
             targetLocation.lat,
             targetLocation.lng
           );
-          console.log("🛣️ Using stable curved route with", stableRoute.length, "points");
           setRouteCoordinates(stableRoute);
           setRouteStable(true);
         }
@@ -595,7 +564,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
           targetLocation.lat,
           targetLocation.lng
         );
-        console.log("🛣️ Using stable fallback route with", stableRoute.length, "points");
         setRouteCoordinates(stableRoute);
       }
     };
@@ -655,7 +623,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
 
   const mapCenter = calculateMapCenter();
   
-  console.log("🗺️ Map settings:", { mapCenter });
 
   return (
     <div className="w-full h-[380px] rounded-xl overflow-hidden border border-border shadow-lg">
@@ -784,7 +751,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         {/* Pickup Location Marker */}
         {pickupLocation && (
           <>
-            {console.log("📍 Rendering pickup location marker:", pickupLocation)}
             <Marker position={[pickupLocation.lat, pickupLocation.lng]}>
             <Popup>
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -847,7 +813,6 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         {/* Route Polyline from Rider to Pickup Location */}
         {riderLocation && pickupLocation && (
           <>
-            {console.log("🎯 Rendering polyline from rider to pickup:", riderLocation, pickupLocation)}
             <RoutePolyline 
               startLocation={riderLocation}
               endLocation={pickupLocation}

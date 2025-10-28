@@ -134,8 +134,8 @@ function AcceptRideContent() {
       case 'car':
         avgSpeed = 80; // Car average speed
         break;
-      case 'bus':
-        avgSpeed = 70; // Bus average speed
+      case 'cng':
+        avgSpeed = 70; // cng average speed
         break;
       default:
         avgSpeed = 60; // Default speed
@@ -156,7 +156,6 @@ function AcceptRideContent() {
   // Parse pickup and drop locations from URL parameters
   useEffect(() => {
     const parseLocations = async () => {
-      console.log("🔍 useEffect triggered, searchParams:", searchParams);
       if (!searchParams) {
         console.warn("❌ searchParams is null/undefined");
         setIsLoading(false);
@@ -169,7 +168,6 @@ function AcceptRideContent() {
       const pickup = params.get("pickup") || "";
       const drop = params.get("drop") || "";
       
-      console.log("🔍 URL parsing debug:", { pickup, drop, searchParams: searchParams.toString() });
       
       
       
@@ -205,27 +203,22 @@ function AcceptRideContent() {
       // Parse pickup location - handle both coordinates and address
       if (pickup) {
         const coords = pickup.split(",");
-        console.log("📍 Pickup coords:", coords);
         
         // Check if it's coordinates (lat,lng) or address string
         if (coords.length === 2) {
           const lat = parseFloat(coords[0]);
           const lng = parseFloat(coords[1]);
-          console.log("📍 Parsed pickup coordinates:", { lat, lng });
           if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
             setPickupLocation({ lat, lng });
-            console.log("✅ Pickup location set from coordinates:", { lat, lng });
             
             // Convert coordinates to address
             const address = await reverseGeocode(lat, lng);
             setPickupAddress(address);
-            console.log("✅ Pickup address:", address);
           } else {
             console.warn("❌ Invalid pickup coordinates:", { lat, lng });
           }
         } else {
           // It's an address string, use geocoding
-          console.log("📍 Converting address to coordinates:", pickup);
           try {
             const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickup)}&limit=1`);
             const data = await response.json();
@@ -234,7 +227,6 @@ function AcceptRideContent() {
               const lng = parseFloat(data[0].lon);
               setPickupLocation({ lat, lng });
               setPickupAddress(pickup); // Use the original address string
-              console.log("✅ Pickup location set from geocoding:", { lat, lng });
             } else {
               console.warn("❌ No coordinates found for address:", pickup);
             }
@@ -281,7 +273,6 @@ function AcceptRideContent() {
           const riderData = await response.json();
           if (riderData.location && riderData.location.coordinates) {
             setRiderLocation(riderData.location);
-            console.log('Rider location updated:', riderData.location.coordinates);
             
             // Calculate ETA if pickup location is available
             if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
@@ -293,7 +284,6 @@ function AcceptRideContent() {
               );
               const eta = calculateETA(distance, urlParams.vehicleType || 'bike');
               setCalculatedEta(eta);
-              console.log('📏 Distance & ETA calculated:', { distance: distance.toFixed(2) + ' km', eta });
             }
           }
         }

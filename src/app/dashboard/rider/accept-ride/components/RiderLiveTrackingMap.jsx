@@ -78,7 +78,6 @@ const RiderLiveTrackingMap = ({
     if (riderInfo?.location?.coordinates) {
       const [lng, lat] = riderInfo.location.coordinates;
       setRiderLocation({ lat, lng });
-      console.log('Rider Live Tracking Map - Rider location set:', { lat, lng });
     }
   }, [riderInfo]);
 
@@ -95,11 +94,6 @@ const RiderLiveTrackingMap = ({
       
       setDistance(calculatedDistance);
       setEta(calculatedEta);
-      
-      console.log('Rider Live Tracking Map - Distance & ETA calculated:', { 
-        distance: calculatedDistance.toFixed(2) + ' km', 
-        eta: calculatedEta 
-      });
       
       // Notify parent component
       if (onEtaUpdate) {
@@ -153,11 +147,9 @@ const RiderLiveTrackingMap = ({
         const bounds = L.latLngBounds(locations);
         // Fit bounds with padding and a maximum zoom level to prevent over-zooming
         map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 }); 
-        console.log("🗺️ Rider Map bounds updated to fit markers:", bounds);
       } else {
         // If no locations, set a default view (e.g., Bogura, zoomed out)
         map.setView([24.8504, 89.3711], 8); 
-        console.log("🗺️ No markers to fit, setting default map view.");
       }
     }, [map, riderLocation, pickupLocation, dropLocation]);
 
@@ -177,7 +169,6 @@ const RiderLiveTrackingMap = ({
         
         // Use straight line directly for stability
         // OSRM API calls are disabled to prevent network errors
-        console.log("🛣️ Rider Map - Using straight line route for stability");
         
         // Set straight line coordinates immediately
         setRouteCoordinates([
@@ -185,7 +176,6 @@ const RiderLiveTrackingMap = ({
           [endLocation.lat, endLocation.lng]
         ]);
         
-        console.log("✅ Rider Map - Straight line route set");
         setIsLoading(false);
       };
 
@@ -225,8 +215,6 @@ const RiderLiveTrackingMap = ({
 
   const mapCenter = calculateMapCenter();
   
-  console.log("🗺️ Rider Live Tracking Map props:", { rideId, riderInfo, vehicleType, pickupLocation, dropLocation });
-  console.log("🗺️ Rider Map settings:", { mapCenter });
 
   return (
     <div className="relative h-full w-full rounded-lg overflow-hidden shadow-lg">
@@ -249,7 +237,6 @@ const RiderLiveTrackingMap = ({
         {/* Rider Location Marker */}
         {riderLocation && (
           <>
-            {console.log("🚗 Rendering rider location marker:", riderLocation)}
             <Marker position={[riderLocation.lat, riderLocation.lng]}>
               <Popup>
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -282,7 +269,6 @@ const RiderLiveTrackingMap = ({
         {/* Pickup Location Marker */}
         {pickupLocation && (
           <>
-            {console.log("📍 Rendering pickup location marker:", pickupLocation)}
             <Marker position={[pickupLocation.lat, pickupLocation.lng]}>
               <Popup>
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -315,7 +301,6 @@ const RiderLiveTrackingMap = ({
         {/* Drop Location Marker */}
         {dropLocation && (
           <>
-            {console.log("🎯 Rendering drop location marker:", dropLocation)}
             <Marker position={[dropLocation.lat, dropLocation.lng]}>
               <Popup>
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -348,7 +333,6 @@ const RiderLiveTrackingMap = ({
         {/* Route Polyline from Rider to Pickup Location */}
         {riderLocation && pickupLocation && (
           <>
-            {console.log("🎯 Rendering polyline from rider to pickup:", riderLocation, pickupLocation)}
             <RoutePolyline 
               startLocation={riderLocation}
               endLocation={pickupLocation}
@@ -363,7 +347,6 @@ const RiderLiveTrackingMap = ({
         {/* Route Polyline from Pickup to Drop Location (if both available) */}
         {pickupLocation && dropLocation && (
           <>
-            {console.log("🎯 Rendering polyline from pickup to drop:", pickupLocation, dropLocation)}
             <RoutePolyline 
               startLocation={pickupLocation}
               endLocation={dropLocation}
