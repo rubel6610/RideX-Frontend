@@ -3,10 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ChevronDown,
-  Bike,
-  Car,
-  BusFront,
   X,
   Facebook,
   Linkedin,
@@ -25,7 +21,6 @@ import { useAuth } from '@/app/hooks/AuthProvider';
 const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
     const {user} = useAuth();
   const overlayRef = useRef(null);
-  const [rideByOpen, setRideByOpen] = useState(false);
 
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -41,7 +36,6 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
         !overlayRef.current.contains(e.target.closest('aside'))
       ) {
         toggleSidebar();
-        setRideByOpen(false);
       }
     };
 
@@ -124,49 +118,6 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
                 Home
               </Link>
 
-              {/* Ride By Dropdown */}
-              <div>
-                <button
-                  onClick={() => setRideByOpen(!rideByOpen)}
-                  className="flex justify-between items-center w-full py-2 font-semibold uppercase hover:text-primary"
-                >
-                  <span>Ride By</span>
-                  <ChevronDown
-                    className={`transition-transform duration-300 ${
-                      rideByOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-
-                <div
-                  className={`pl-4 flex flex-col overflow-hidden transition-all duration-300 ${
-                    rideByOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
-                  }`}
-                >
-                  <Link
-                    href="/ride-bike"
-                    className="py-2 flex items-center gap-2 hover:text-primary"
-                    onClick={toggleSidebar}
-                  >
-                    <Bike className="text-primary" /> Bike
-                  </Link>
-                  <Link
-                    href="/ride-cng"
-                    className="py-2 flex items-center gap-2 hover:text-primary"
-                    onClick={toggleSidebar}
-                  >
-                    <BusFront className="text-primary" /> CNG
-                  </Link>
-                  <Link
-                    href="/ride-car"
-                    className="py-2 flex items-center gap-2 hover:text-primary"
-                    onClick={toggleSidebar}
-                  >
-                    <Car className="text-primary" /> Car
-                  </Link>
-                </div>
-              </div>
-
               <Link
                 href="/offers"
                 className="py-2 font-semibold hover:text-primary"
@@ -195,15 +146,13 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
               >
                 Blogs
               </Link>
-              {user?.role === 'user' && (
-    <Link
+              <Link
                 href="/become-rider"
                 className="py-2 font-semibold hover:text-primary"
                 onClick={toggleSidebar}
               >
                 Become a Rider
               </Link>
-              )}
             </div>
           )}
 
