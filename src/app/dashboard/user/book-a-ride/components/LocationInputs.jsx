@@ -13,6 +13,13 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
   const [pickupDisplayName, setPickupDisplayName] = useState("");
   const [dropDisplayName, setDropDisplayName] = useState("");
 
+  // Notify parent component about user input activity
+  useEffect(() => {
+    if (onUserInputActivity) {
+      onUserInputActivity(isUserInputActive);
+    }
+  }, [isUserInputActive, onUserInputActivity]);
+
   // Geocoding function to convert location name to coordinates
   const geocodeLocation = async (locationName) => {
     if (!locationName.trim()) return null;
@@ -187,6 +194,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
                 type="text"
                 value={pickupDisplayName}
                 onChange={(e) => handleInputChange(e.target.value, 'pickup')}
+                onFocus={() => setIsUserInputActive(true)} // Track focus
                 className="w-full flex-1 border-0 rounded-none text-base font-normal focus-visible:ring-0 focus:ring-0 focus:border-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground bg-transparent text-foreground"
                 placeholder="Enter pickup location"
               />
@@ -235,6 +243,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
                 type="text"
                 value={dropDisplayName}
                 onChange={(e) => handleInputChange(e.target.value, 'drop')}
+                onFocus={() => setIsUserInputActive(true)} // Track focus
                 className="flex-1 border-0 rounded-none text-base font-normal focus-visible:ring-0 focus:ring-0 focus:border-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground bg-transparent text-foreground"
                 placeholder="Where to go?"
               />

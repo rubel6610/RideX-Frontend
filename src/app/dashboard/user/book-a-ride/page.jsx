@@ -435,9 +435,9 @@ const BookARideContent = () => {
         <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
          
           <LocationInputs
-            pickup={pickup}
+            pickup={pickupName || pickup}
             setPickup={setPickup}
-            drop={drop}
+            drop={dropName || drop}
             setDrop={setDrop}
             onLocationChange={(location, type) => {
               if (type === "pickup") {
@@ -462,8 +462,8 @@ const BookARideContent = () => {
             />
           </div>
           <ConsolidatedRideCard
-            pickup={pickup}
-            drop={drop}
+            pickup={pickupName || pickup}
+            drop={dropName || drop}
             pickupName={pickupName}
             dropName={dropName}
             selectedType={selectedType}

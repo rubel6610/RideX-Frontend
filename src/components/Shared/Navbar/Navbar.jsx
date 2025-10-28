@@ -30,7 +30,6 @@ import { useAuth } from "@/app/hooks/AuthProvider";
 import useTheme from "@/app/hooks/useTheme";
 import { useFetchData } from "@/app/hooks/useApi";
 import { toast } from "sonner";
-import LanguageToggle from "@/components/Shared/LanguageToggle";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -292,19 +291,17 @@ const Navbar = () => {
           </nav>
 
           <div className="flex items-center gap-0.5 sm:gap-2 lg:gap-1 xl:gap-2">
-            <LanguageToggle />
-
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="relative w-8.5 h-8.5 sm:w-11 lg:w-9 xl:w-11 sm:h-11 lg:h-9 xl:h-11 flex items-center justify-center rounded-full transition-all duration-300 border border-border bg-primary text-white hover:bg-primary/10 hover:text-primary cursor-pointer"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
-              ) : (
-                <Moon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
-              )}
-            </button>
+              <button
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                className="relative w-8.5 h-8.5 sm:w-11 lg:w-9 xl:w-11 sm:h-11 lg:h-9 xl:h-11 flex items-center justify-center rounded-full transition-all duration-300 border border-border bg-primary text-white hover:bg-primary/10 hover:text-primary cursor-pointer"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
+                ) : (
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
+                )}
+              </button>
 
             {user && (
               <div className="relative h-full flex items-center">
