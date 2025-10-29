@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { MapPin, Navigation, MoveVertical, Search, CircleDot } from "lucide-react";
+import { MapPin, Navigation, CircleDot, Search } from "lucide-react";
 
 const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) => {
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
@@ -12,6 +12,13 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
   const [isDropSearching, setIsDropSearching] = useState(false);
   const [pickupDisplayName, setPickupDisplayName] = useState("");
   const [dropDisplayName, setDropDisplayName] = useState("");
+
+  // Notify parent component about user input activity
+  useEffect(() => {
+    if (onUserInputActivity) {
+      onUserInputActivity(isUserInputActive);
+    }
+  }, [isUserInputActive, onUserInputActivity]);
 
   // Geocoding function to convert location name to coordinates
   const geocodeLocation = async (locationName) => {
@@ -135,6 +142,35 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
     }
   };
 
+  // Update display names when pickup/drop values change (e.g., from URL params)
+  useEffect(() => {
+    // If pickup value changes and we don't have a display name yet, try to set it
+    if (pickup && !pickupDisplayName) {
+      // If pickup is coordinates, we might want to reverse geocode it
+      if (pickup.includes(",")) {
+        // It's coordinates, we could reverse geocode but for now just use as is
+        setPickupDisplayName(pickup);
+      } else {
+        // It's a name, use it directly
+        setPickupDisplayName(pickup);
+      }
+    }
+  }, [pickup, pickupDisplayName]);
+
+  useEffect(() => {
+    // If drop value changes and we don't have a display name yet, try to set it
+    if (drop && !dropDisplayName) {
+      // If drop is coordinates, we might want to reverse geocode it
+      if (drop.includes(",")) {
+        // It's coordinates, we could reverse geocode but for now just use as is
+        setDropDisplayName(drop);
+      } else {
+        // It's a name, use it directly
+        setDropDisplayName(drop);
+      }
+    }
+  }, [drop, dropDisplayName]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-2">
@@ -158,6 +194,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
                 type="text"
                 value={pickupDisplayName}
                 onChange={(e) => handleInputChange(e.target.value, 'pickup')}
+                onFocus={() => setIsUserInputActive(true)} // Track focus
                 className="w-full flex-1 border-0 rounded-none text-base font-normal focus-visible:ring-0 focus:ring-0 focus:border-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground bg-transparent text-foreground"
                 placeholder="Enter pickup location"
               />
@@ -206,6 +243,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
                 type="text"
                 value={dropDisplayName}
                 onChange={(e) => handleInputChange(e.target.value, 'drop')}
+                onFocus={() => setIsUserInputActive(true)} // Track focus
                 className="flex-1 border-0 rounded-none text-base font-normal focus-visible:ring-0 focus:ring-0 focus:border-0 focus:outline-none focus:shadow-none placeholder:text-muted-foreground bg-transparent text-foreground"
                 placeholder="Where to go?"
               />

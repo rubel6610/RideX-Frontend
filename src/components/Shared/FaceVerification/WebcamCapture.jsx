@@ -20,17 +20,13 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
   }, []);
 
   const startWebcam = async () => {
-    console.log("Starting webcam...");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: 640, height: 480 },
         audio: false,
       });
       
-      console.log("Webcam stream obtained:", stream);
-      
       if (!isMountedRef.current) {
-        console.log("Component unmounted, stopping stream");
         stream.getTracks().forEach(track => track.stop());
         return;
       }
@@ -38,24 +34,16 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
       streamRef.current = stream;
       
       if (videoRef.current) {
-        console.log("Attaching stream to video element");
         videoRef.current.srcObject = stream;
         videoRef.current.muted = true;
         videoRef.current.playsInline = true;
         videoRef.current.autoplay = true;
         
         videoRef.current.onloadedmetadata = () => {
-          console.log("Video metadata loaded", {
-            width: videoRef.current.videoWidth,
-            height: videoRef.current.videoHeight,
-            readyState: videoRef.current.readyState
-          });
-          
           if (!isMountedRef.current || !videoRef.current) return;
           
           videoRef.current.play()
             .then(() => {
-              console.log("Video playing successfully");
               if (isMountedRef.current) {
                 // Animate the loading screen out
                 if (loadingRef.current) {
@@ -66,7 +54,6 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
                       if (isMountedRef.current) {
                         setIsReady(true);
                         if (onStreamReady) {
-                          console.log("Calling onStreamReady callback");
                           onStreamReady(videoRef.current);
                         }
                       }
@@ -75,7 +62,6 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
                 } else {
                   setIsReady(true);
                   if (onStreamReady) {
-                    console.log("Calling onStreamReady callback");
                     onStreamReady(videoRef.current);
                   }
                 }
@@ -83,13 +69,12 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
             })
             .catch((err) => {
               if (err.name !== 'AbortError') {
-                console.error("Video play error:", err);
+                // Handle error silently
               }
             });
         };
       }
     } catch (err) {
-      console.error("Camera access error:", err);
       // Animate error message
       if (loadingRef.current) {
         gsap.fromTo(loadingRef.current, 
@@ -123,11 +108,11 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
   };
 
   return (
-    <div className="absolute inset-0 w-full h-full bg-black overflow-hidden">
+    <div className="absolute inset-0 w-full h-full bg-black overflow-hidden rounded-full">
       {!isReady && (
         <div 
           ref={loadingRef}
-          className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10"
+          className="absolute inset-0 flex items-center justify-center bg-black z-10 rounded-full"
         >
           <div className="text-white text-lg">Loading camera...</div>
         </div>
@@ -136,14 +121,14 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
         ref={videoRef}
         playsInline
         muted
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover rounded-full"
         style={{ transform: "scaleX(-1)" }}
       />
       
       {/* Face detection overlay */}
       {faceBounds && progress < 100 && (
         <div 
-          className="absolute border-2 border-green-500 rounded-lg pointer-events-none"
+          className="absolute border-2 border-yellow-400 rounded-full pointer-events-none animate-ping"
           style={{
             left: `${(faceBounds.x / videoRef.current?.videoWidth || 0) * 100}%`,
             top: `${(faceBounds.y / videoRef.current?.videoHeight || 0) * 100}%`,
@@ -151,13 +136,6 @@ export default function WebcamCapture({ onStreamReady, progress, faceBounds, vid
             height: `${(faceBounds.height / videoRef.current?.videoHeight || 0) * 100}%`,
           }}
         />
-      )}
-      
-      {/* Progress indicator overlay */}
-      {progress > 0 && progress < 100 && (
-        <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-          Positioning: {Math.round(progress)}%
-        </div>
       )}
     </div>
   );
