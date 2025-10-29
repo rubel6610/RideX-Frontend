@@ -90,38 +90,35 @@ function AcceptRideContent() {
     }
 
     try {
-      // Create a safe copy of searchParams to avoid read-only issues
-      const params = new URLSearchParams(searchParams.toString());
-      const pickup = params.get("pickup") || "";
-      const drop = params.get("drop") || "";
-      
-      
+      // Extract parameters safely without trying to modify the read-only object
+      const pickup = searchParams.get("pickup") || "";
+      const drop = searchParams.get("drop") || "";
       
       // Store all params in state to avoid repeated access
       const allParams = {
         pickup,
         drop,
-        type: params.get("vehicleType") || "Bike",
-        fare: params.get("amount") || "",
-        distance: params.get("distance") || "",
-        eta: params.get("arrivalTime") || "00h:00m",
-        rideId: params.get("rideId") || "",
-        userId: params.get("userId") || "",
-        riderId: params.get("riderId") || "",
-        riderName: params.get("riderName") || "",
-        riderEmail: params.get("riderEmail") || "",
-        vehicleType: params.get("vehicleType") || "",
-        vehicleModel: params.get("vehicleModel") || "",
-        vehicleRegisterNumber: params.get("vehicleRegisterNumber") || "",
-        completedRides: params.get("completedRides") || "0",
-        ratings: params.get("ratings") || "0",
-        baseFare: params.get("baseFare") || "0",
-        distanceFare: params.get("distanceFare") || "0",
-        timeFare: params.get("timeFare") || "0",
-        tax: params.get("tax") || "0",
-        total: params.get("total") || "0",
-        mode: params.get("mode") || "auto",
-        promo: params.get("promo") || ""
+        type: searchParams.get("vehicleType") || "Bike",
+        fare: searchParams.get("amount") || "",
+        distance: searchParams.get("distance") || "",
+        eta: searchParams.get("arrivalTime") || "00h:00m",
+        rideId: searchParams.get("rideId") || "",
+        userId: searchParams.get("userId") || "",
+        riderId: searchParams.get("riderId") || "",
+        riderName: searchParams.get("riderName") || "",
+        riderEmail: searchParams.get("riderEmail") || "",
+        vehicleType: searchParams.get("vehicleType") || "",
+        vehicleModel: searchParams.get("vehicleModel") || "",
+        vehicleRegisterNumber: searchParams.get("vehicleRegisterNumber") || "",
+        completedRides: searchParams.get("completedRides") || "0",
+        ratings: searchParams.get("ratings") || "0",
+        baseFare: searchParams.get("baseFare") || "0",
+        distanceFare: searchParams.get("distanceFare") || "0",
+        timeFare: searchParams.get("timeFare") || "0",
+        tax: searchParams.get("tax") || "0",
+        total: searchParams.get("total") || "0",
+        mode: searchParams.get("mode") || "auto",
+        promo: searchParams.get("promo") || ""
       };
       
       setUrlParams(allParams);
