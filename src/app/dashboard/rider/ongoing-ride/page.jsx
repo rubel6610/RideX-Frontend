@@ -135,19 +135,50 @@ function OngoingRideContent() {
         }
       });
 
-      // Listen for chat messages
-      socket.on('ride_chat_message', (data) => {
-        console.log('Chat message received:', data);
-        if (data.rideId === urlParams.rideId) {
-          toast.info(`New message from ${data.senderName}`);
+      // Join ride chat room for real-time chat
+      socket.emit('join_ride_chat', {
+        rideId: urlParams.rideId,
+        userId: user.id,
+        userType: 'rider'
+      });
+      console.log('Rider joined ride chat room:', urlParams.rideId);
+
+      // Listen for chat messages from user (auto-open chat modal)
+      socket.on('receive_ride_message', (data) => {
+        console.log('Chat message received in ongoing-ride:', data);
+        if (data.rideId === urlParams.rideId && data.message.senderType === 'user') {
+          // Auto-open chat modal when user sends message
+          setIsChatOpen(true);
+          toast.info('New message from passenger', {
+            description: data.message.text.substring(0, 50) + (data.message.text.length > 50 ? "..." : ""),
+            duration: 3000,
+          });
         }
-        });
+      });
+
+      // Also listen for new_message_notification (when user sends from accept-ride)
+      socket.on('new_message_notification', (data) => {
+        console.log('New message notification received:', data);
+        if (data.rideId === urlParams.rideId) {
+          // Auto-open chat modal when user sends message
+          setIsChatOpen(true);
+          toast.info('New message from passenger', {
+            description: data.message || "You have a new message",
+            duration: 3000,
+          });
+        }
+      });
 
         return () => {
         socket.off('ride_status_update');
         socket.off('passenger_location_update');
-        socket.off('ride_chat_message');
-        socket.disconnect();
+        socket.off('receive_ride_message');
+        socket.off('new_message_notification');
+        socket.emit('leave_ride_chat', {
+          rideId: urlParams.rideId,
+          userId: user.id,
+          userType: 'rider'
+        });
       };
     } catch (error) {
       console.error('Error initializing socket:', error);

@@ -669,7 +669,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
   
 
   return (
-    <div className="w-full h-[380px] rounded-xl overflow-hidden border border-border shadow-lg">
+    <div className="w-full h-[380px] rounded-xl overflow-hidden border border-border shadow-lg" style={{ zIndex: 1, position: 'relative' }}>
       {/* Add CSS for polyline styling */}
       <style jsx>{`
         .rider-route-polyline {
@@ -679,7 +679,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
           stroke-dasharray: 20, 10 !important;
           stroke-linecap: round !important;
           stroke-linejoin: round !important;
-          z-index: 1000 !important;
+          z-index: 10 !important;
           animation: dash 1.5s linear infinite;
           filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.7));
         }
@@ -690,7 +690,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
           stroke-dasharray: 8, 4 !important;
           stroke-linecap: round !important;
           stroke-linejoin: round !important;
-          z-index: 999 !important;
+          z-index: 9 !important;
           filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.3));
         }
         @keyframes dash {
@@ -705,10 +705,40 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         .custom-vehicle-marker {
           background: transparent !important;
           border: none !important;
+          z-index: 10 !important;
         }
         .custom-vehicle-marker:hover {
           transform: scale(1.1);
           transition: transform 0.2s ease;
+        }
+        /* Ensure Leaflet map elements don't overlap notification bell */
+        .leaflet-container {
+          z-index: 1 !important;
+          position: relative !important;
+        }
+        .leaflet-pane {
+          z-index: 1 !important;
+        }
+        .leaflet-map-pane {
+          z-index: 1 !important;
+        }
+        .leaflet-tile-pane {
+          z-index: 1 !important;
+        }
+        .leaflet-overlay-pane {
+          z-index: 2 !important;
+        }
+        .leaflet-marker-pane {
+          z-index: 3 !important;
+        }
+        .leaflet-tooltip-pane {
+          z-index: 4 !important;
+        }
+        .leaflet-popup-pane {
+          z-index: 5 !important;
+        }
+        .leaflet-control-container {
+          z-index: 6 !important;
         }
       `}</style>
       
@@ -716,7 +746,7 @@ const LiveTrackingMap = ({ rideId, riderInfo, vehicleType = "Car", pickupLocatio
         key={`${riderLocation?.lat}-${riderLocation?.lng}-${pickupLocation?.lat}-${pickupLocation?.lng}`}
         center={mapCenter}
         zoom={8}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", zIndex: 1, position: "relative" }}
         scrollWheelZoom={true}
         zoomControl={true}
       >

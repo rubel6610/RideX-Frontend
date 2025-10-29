@@ -47,6 +47,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
 import ChatModal from "@/components/Shared/ChatModal";
+import { initSocket } from "@/components/Shared/socket/socket";
 
 // Dynamically import map component to prevent SSR issues
 const LiveTrackingMap = dynamic(
@@ -88,6 +89,61 @@ function AcceptRideContent() {
   const [calculatedEta, setCalculatedEta] = useState(null);
   const [pickupAddress, setPickupAddress] = useState("");
   const [dropAddress, setDropAddress] = useState("");
+
+  // Initialize Socket.IO for real-time chat notifications
+  useEffect(() => {
+    if (!user?.id || !urlParams.rideId) return;
+
+    try {
+      const socket = initSocket(user.id, false);
+      
+      // Join ride chat room
+      socket.emit('join_ride_chat', {
+        rideId: urlParams.rideId,
+        userId: user.id,
+        userType: 'user'
+      });
+      console.log('User joined ride chat room:', urlParams.rideId);
+
+      // Listen for chat messages from rider (auto-open chat modal)
+      socket.on('receive_ride_message', (data) => {
+        console.log('Chat message received in accept-ride:', data);
+        if (data.rideId === urlParams.rideId && data.message.senderType === 'rider') {
+          // Auto-open chat modal when rider sends message
+          setIsChatOpen(true);
+          toast.info('New message from rider', {
+            description: data.message.text.substring(0, 50) + (data.message.text.length > 50 ? "..." : ""),
+            duration: 3000,
+          });
+        }
+      });
+
+      // Also listen for new_message_notification (when rider sends from ongoing-ride)
+      socket.on('new_message_notification', (data) => {
+        console.log('New message notification received:', data);
+        if (data.rideId === urlParams.rideId) {
+          // Auto-open chat modal when rider sends message
+          setIsChatOpen(true);
+          toast.info('New message from rider', {
+            description: data.message || "You have a new message",
+            duration: 3000,
+          });
+        }
+      });
+
+      return () => {
+        socket.off('receive_ride_message');
+        socket.off('new_message_notification');
+        socket.emit('leave_ride_chat', {
+          rideId: urlParams.rideId,
+          userId: user.id,
+          userType: 'user'
+        });
+      };
+    } catch (error) {
+      console.error('Error initializing socket for chat:', error);
+    }
+  }, [user, urlParams.rideId]);
 
   // Geocoding function to convert coordinates to address
   const reverseGeocode = async (lat, lng) => {

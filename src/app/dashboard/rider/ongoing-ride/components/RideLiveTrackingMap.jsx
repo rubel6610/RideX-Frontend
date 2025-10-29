@@ -370,7 +370,7 @@ const RiderLiveTrackingMap = ({
   });
 
   return (
-    <div className="relative h-96 w-full rounded-lg overflow-hidden shadow-lg">
+    <div className="relative h-96 w-full rounded-lg overflow-hidden shadow-lg" style={{ zIndex: 1, position: 'relative' }}>
       {/* Add CSS for polyline styling */}
       <style jsx>{`
         .rider-route-polyline {
@@ -380,7 +380,7 @@ const RiderLiveTrackingMap = ({
           stroke-dasharray: 15, 10 !important;
           stroke-linecap: round !important;
           stroke-linejoin: round !important;
-          z-index: 1000 !important;
+          z-index: 10 !important;
           animation: dash 1.5s linear infinite;
           filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.7));
         }
@@ -391,7 +391,7 @@ const RiderLiveTrackingMap = ({
           stroke-dasharray: 5, 5 !important;
           stroke-linecap: round !important;
           stroke-linejoin: round !important;
-          z-index: 999 !important;
+          z-index: 9 !important;
           filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.3));
         }
         @keyframes dash {
@@ -403,13 +403,42 @@ const RiderLiveTrackingMap = ({
           stroke-width: 6px !important;
           stroke-opacity: 1 !important;
         }
+        /* Ensure Leaflet map elements don't overlap notification bell */
+        .leaflet-container {
+          z-index: 1 !important;
+          position: relative !important;
+        }
+        .leaflet-pane {
+          z-index: 1 !important;
+        }
+        .leaflet-map-pane {
+          z-index: 1 !important;
+        }
+        .leaflet-tile-pane {
+          z-index: 1 !important;
+        }
+        .leaflet-overlay-pane {
+          z-index: 2 !important;
+        }
+        .leaflet-marker-pane {
+          z-index: 3 !important;
+        }
+        .leaflet-tooltip-pane {
+          z-index: 4 !important;
+        }
+        .leaflet-popup-pane {
+          z-index: 5 !important;
+        }
+        .leaflet-control-container {
+          z-index: 6 !important;
+        }
       `}</style>
       
       <MapContainer
         key={`${riderLocation?.lat}-${riderLocation?.lng}-${pickupLocation?.lat}-${pickupLocation?.lng}`}
         center={mapCenter} // Initial center, will be overridden by MapBoundsUpdater
         zoom={8} // Initial zoom, will be overridden by MapBoundsUpdater
-        style={{ height: "384px", width: "100%" }}
+        style={{ height: "384px", width: "100%", zIndex: 1, position: "relative" }}
         scrollWheelZoom={true}
         zoomControl={true}
       >
@@ -573,7 +602,7 @@ const RiderLiveTrackingMap = ({
       </MapContainer>
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
+      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300" style={{ zIndex: 7 }}>
         <div className="flex items-center gap-4 text-xs font-medium">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-500 rounded-full shadow-sm"></div>
@@ -592,7 +621,7 @@ const RiderLiveTrackingMap = ({
 
       {/* Distance and ETA Info */}
       {distance && eta && (
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
+        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300" style={{ zIndex: 8 }}>
           <div className="text-center">
             <p className="font-bold text-sm text-blue-600">
               📍 Distance to Pickup
