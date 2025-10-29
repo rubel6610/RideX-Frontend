@@ -47,101 +47,136 @@ const onSubmit = async (data) => {
 
   return (
     <GuestOnlyRoute>
-      <div className="mt-28 container mx-auto mb-16">
-        {/* title and logo */}
-        <div className="flex flex-col items-center space-y-2 my-6">
-          <Image src={CarLogo} alt="car-logo" width={60} height={60} />
-          <h2 className="text-3xl text-primary font-bold">Welcome Back</h2>
-          <p className="text-black dark:text-white text-lg">
-            Rejoin to get started
-          </p>
-        </div>
-
-        {/* login page form */}
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="shadow-lg p-8 rounded-xl space-y-4 max-w-xl mx-auto border border-primary"
-        >
-          {/* error message */}
-          {errorMsg && (
-            <p className="text-red-500 text-center bg-red-50 dark:bg-red-900/20 p-2 rounded">
-              {errorMsg}
-            </p>
-          )}
-
-          {/* email field */}
-          <div>
-            <label className="block mb-2 font-medium">Email</label>
-            <Input
-              type="email"
-              placeholder="your@email.com"
-              className="border border-primary"
-              {...register("email", { 
-                required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address"
-                }
-              })}
-            />
-            {errors.email && (
-              <span className="text-red-500 text-sm mt-1 block">
-                {errors.email.message}
-              </span>
-            )}
-          </div>
-
-          {/* password field */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="font-medium">Password</label>
-              {/* 👉 Forgot Password Link */}
-              <Link 
-                href="/forgot-password" 
-                className="text-sm text-primary hover:underline"
-              >
-                Forgot password?
-              </Link>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center py-8 px-4">
+        <div className="container mx-auto max-w-md">
+          {/* title and logo */}
+          <div className="flex flex-col items-center space-y-4 mb-10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full animate-pulse"></div>
+              <div className="relative z-10 bg-gradient-to-br from-primary/20 to-primary/5 p-6 rounded-full">
+                <Image src={CarLogo} alt="car-logo" width={70} height={70} className="drop-shadow-2xl" />
+              </div>
             </div>
-            <Input
-              type="password"
-              placeholder="Enter your password"
-              className="border border-primary"
-              {...register("password", { 
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters"
-                }
-              })}
-            />
-            {errors.password && (
-              <span className="text-red-500 text-sm mt-1 block">
-                {errors.password.message}
-              </span>
-            )}
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
+              Welcome Back
+            </h2>
+            <p className="text-muted-foreground text-sm md:text-base font-medium">
+              Sign in to continue your journey
+            </p>
           </div>
 
-          {/* sign In button */}
-          <Button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-4 rounded transition duration-200"
-            disabled={loading}
+          {/* login page form */}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="bg-card/50 backdrop-blur-xl shadow-2xl p-8 md:p-10 rounded-3xl space-y-6 border border-primary/20 relative overflow-hidden"
           >
-            {loading ? "Logging in..." : "Sign In"}
-          </Button>
+            {/* Decorative gradient orbs */}
+            <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
+            
+            <div className="relative z-10 space-y-6">
+            {/* error message */}
+            {errorMsg && (
+              <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded-xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
+                <div className="bg-destructive/20 p-2 rounded-full">
+                  <span className="text-xl">⚠</span>
+                </div>
+                <p className="font-medium flex-1">{errorMsg}</p>
+              </div>
+            )}
 
-          {/* toggle sign Up page */}
-          <p className="text-center text-foreground mt-4">
-            Don&apos;t have an account? Please{" "}
-            <Link 
-              href="/register" 
-              className="text-primary underline hover:text-primary/80 cursor-pointer"
+            {/* email field */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <span className="text-primary">✉</span> Email Address
+                <span className="text-destructive">*</span>
+              </label>
+              <Input
+                type="email"
+                placeholder="your@email.com"
+                className="w-full h-12 border-primary/20 focus:border-primary bg-background/50 transition-all duration-300 hover:border-primary/40"
+                {...register("email", { 
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Invalid email address"
+                  }
+                })}
+              />
+              {errors.email && (
+                <p className="text-destructive text-xs flex items-center gap-1.5 mt-1.5">
+                  <span>⚠</span> {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* password field */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <span className="text-primary">🔒</span> Password
+                  <span className="text-destructive">*</span>
+                </label>
+                {/* 👉 Forgot Password Link */}
+                <Link 
+                  href="/forgot-password" 
+                  className="text-xs text-primary font-semibold hover:text-primary/80 transition-colors hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                className="w-full h-12 border-primary/20 focus:border-primary bg-background/50 transition-all duration-300 hover:border-primary/40"
+                {...register("password", { 
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters"
+                  }
+                })}
+              />
+              {errors.password && (
+                <p className="text-destructive text-xs flex items-center gap-1.5 mt-1.5">
+                  <span>⚠</span> {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            {/* sign In button */}
+            <Button
+              type="submit"
+              className="w-full h-13 text-base font-bold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg hover:shadow-2xl transition-all duration-300 mt-4 rounded-xl"
+              disabled={loading}
             >
-              Sign Up
-            </Link>
-          </p>
-        </form>
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="animate-spin text-xl">⟳</span> Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  Sign In <span className="text-lg">→</span>
+                </span>
+              )}
+            </Button>
+
+            {/* toggle sign Up page */}
+            <div className="text-center pt-6 border-t border-primary/10">
+              <p className="text-muted-foreground text-sm">
+                Don&apos;t have an account?{" "}
+                <Link 
+                  href="/register" 
+                  className="text-primary font-bold hover:text-primary/80 transition-colors inline-flex items-center gap-1 hover:gap-2 duration-300"
+                >
+                  Create Account
+                  <span className="text-base">→</span>
+                </Link>
+              </p>
+            </div>
+            </div>
+          </form>
+        </div>
       </div>
     </GuestOnlyRoute>
   );
