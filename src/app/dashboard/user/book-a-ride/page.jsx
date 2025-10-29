@@ -302,7 +302,7 @@ const BookARideContent = () => {
             if (data?.rideInfo?.riderInfo?.ratings) params.append('ratings', data.rideInfo.riderInfo.ratings.toString());
             if (data?.rideInfo?.riderInfo?.completedRides) params.append('completedRides', data.rideInfo.riderInfo.completedRides.toString());
 
-            router.push(`/dashboard/user/book-a-ride/accept-ride?${params.toString()}`);
+            router.push(`/dashboard/user/ongoing-ride?${params.toString()}`);
           } catch (paramError) {
             console.error("Error building URL parameters:", paramError);
             toast.error("Failed to navigate to ride details");

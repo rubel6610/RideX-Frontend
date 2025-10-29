@@ -72,7 +72,7 @@ const rideTypeIcon = {
   Car: Car,
 };
 
-function AcceptRideContent() {
+function OngoingRideContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -97,17 +97,27 @@ function AcceptRideContent() {
     try {
       const socket = initSocket(user.id, false);
       
+      // ✅ Handle socket connection errors
+      socket.on('connect_error', (error) => {
+        console.warn('⚠️ Socket connection error (will retry):', error.message);
+        // Don't show toast, socket will auto-retry
+      });
+
+      socket.on('error', (error) => {
+        console.warn('⚠️ Socket error:', error);
+      });
+      
       // Join ride chat room
       socket.emit('join_ride_chat', {
         rideId: urlParams.rideId,
         userId: user.id,
         userType: 'user'
       });
-      console.log('User joined ride chat room:', urlParams.rideId);
+      console.log('✅ User joined ride chat room:', urlParams.rideId);
 
       // Listen for chat messages from rider (auto-open chat modal)
       socket.on('receive_ride_message', (data) => {
-        console.log('Chat message received in accept-ride:', data);
+        console.log('Chat message received in ongoing-ride:', data);
         if (data.rideId === urlParams.rideId && data.message.senderType === 'rider') {
           // Auto-open chat modal when rider sends message
           setIsChatOpen(true);
@@ -131,9 +141,32 @@ function AcceptRideContent() {
         }
       });
 
+      // 🔥 Listen for ride status changes (completed/cancelled)
+      socket.on('ride_status_changed', (data) => {
+        console.log('Ride status changed:', data);
+        if (data.rideId === urlParams.rideId) {
+          toast.info(`Ride status: ${data.status}`);
+          
+          // Handle different status updates
+          if (data.status === 'cancelled_by_rider' || data.status === 'cancelled') {
+            toast.error('Ride cancelled by rider');
+            clearStoredRide(urlParams.rideId);
+            router.push('/dashboard/user/book-a-ride');
+          } else if (data.status === 'completed') {
+            toast.success('Ride completed successfully!');
+            clearStoredRide(urlParams.rideId);
+            // Navigate to payment page
+            handleCompleteRide();
+          }
+        }
+      });
+
       return () => {
         socket.off('receive_ride_message');
         socket.off('new_message_notification');
+        socket.off('ride_status_changed');
+        socket.off('connect_error');
+        socket.off('error');
         socket.emit('leave_ride_chat', {
           rideId: urlParams.rideId,
           userId: user.id,
@@ -141,7 +174,8 @@ function AcceptRideContent() {
         });
       };
     } catch (error) {
-      console.error('Error initializing socket for chat:', error);
+      console.warn('⚠️ Socket initialization error:', error.message);
+      // Don't crash the app, socket features will just be unavailable
     }
   }, [user, urlParams.rideId]);
 
@@ -209,18 +243,192 @@ function AcceptRideContent() {
     }
   };
 
+  // 🔥 Load ride params from localStorage or URL
+  const loadRideParams = () => {
+    try {
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') return null;
+      
+      // First, try to get from URL params
+      if (searchParams) {
+        const params = new URLSearchParams(searchParams.toString());
+        const rideId = params.get("rideId");
+        
+        if (rideId) {
+          // ✅ Save to localStorage for future use (USER END)
+          const allParams = Object.fromEntries(params.entries());
+          localStorage.setItem(`user_ongoing_ride_${rideId}`, JSON.stringify(allParams));
+          console.log('✅ Saved ride data to localStorage:', rideId);
+          return params;
+        }
+      }
+      
+      // If no URL params, check localStorage
+      const storedRides = Object.keys(localStorage).filter(key => key.startsWith('user_ongoing_ride_'));
+      
+      if (storedRides.length > 0) {
+        // Get the most recent ride (last key)
+        const latestRideKey = storedRides[storedRides.length - 1];
+        const storedParams = JSON.parse(localStorage.getItem(latestRideKey) || '{}');
+        
+        if (storedParams.rideId) {
+          console.log('✅ Loaded ride data from localStorage:', storedParams.rideId);
+          // Create URLSearchParams from stored data
+          const params = new URLSearchParams();
+          Object.entries(storedParams).forEach(([key, value]) => {
+            if (value) params.set(key, value);
+          });
+          return params;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error loading ride params:', error);
+      return null;
+    }
+  };
+
+  // 🔥 Fetch ongoing ride from backend if no params available
+  const fetchOngoingRideFromBackend = async (userId) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user-rides/${userId}`);
+      
+      if (!response.ok) {
+        return null;
+      }
+      
+      const data = await response.json();
+      const rides = data?.rides || [];
+      
+      // Find accepted or ongoing ride
+      const ongoingRide = rides.find(ride => 
+        (ride.status === 'accepted' || ride.status === 'pending' || ride.status === 'started')
+      );
+      
+      if (!ongoingRide) {
+        return null;
+      }
+      
+      // Fetch rider info
+      const riderResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/${ongoingRide.riderId}`
+      );
+      const riderData = await riderResponse.ok ? await riderResponse.json() : null;
+      
+      // Construct params from backend data
+      const pickupCoords = ongoingRide.pickup?.coordinates || [];
+      const dropCoords = ongoingRide.drop?.coordinates || [];
+      
+      const params = new URLSearchParams();
+      params.set('rideId', ongoingRide._id || '');
+      params.set('userId', userId || '');
+      params.set('riderId', ongoingRide.riderId || '');
+      params.set('amount', (ongoingRide.fare || 0).toString());
+      params.set('vehicleType', ongoingRide.vehicleType || 'Bike');
+      params.set('distance', (ongoingRide.distance || 0).toString());
+      params.set('arrivalTime', '00h:00m');
+      
+      if (pickupCoords.length === 2) {
+        params.set('pickup', `${pickupCoords[1]},${pickupCoords[0]}`);
+      }
+      
+      if (dropCoords.length === 2) {
+        params.set('drop', `${dropCoords[1]},${dropCoords[0]}`);
+      }
+      
+      params.set('riderName', riderData?.fullName || 'Unknown Rider');
+      params.set('riderEmail', riderData?.email || '');
+      params.set('vehicleModel', riderData?.vehicleModel || '');
+      params.set('vehicleRegisterNumber', riderData?.vehicleRegisterNumber || '');
+      params.set('ratings', (riderData?.ratings || 0).toString());
+      params.set('completedRides', (riderData?.completedRides || 0).toString());
+      params.set('baseFare', '0');
+      params.set('distanceFare', '0');
+      params.set('timeFare', '0');
+      params.set('tax', '0');
+      params.set('total', (ongoingRide.fare || 0).toString());
+      params.set('mode', 'auto');
+      params.set('promo', ongoingRide.promoCode || '');
+      
+      // ✅ Save to localStorage (browser only)
+      const rideId = ongoingRide._id;
+      if (rideId && typeof window !== 'undefined') {
+        localStorage.setItem(`user_ongoing_ride_${rideId}`, JSON.stringify(Object.fromEntries(params.entries())));
+        console.log('✅ Saved ride data from backend to localStorage:', rideId);
+      }
+      
+      return params;
+    } catch (error) {
+      console.error('Error fetching ongoing ride from backend:', error);
+      return null;
+    }
+  };
+
+  // 🔥 Clear localStorage when ride is cancelled/completed
+  const clearStoredRide = (rideId) => {
+    try {
+      if (typeof window === 'undefined') return;
+      
+      if (!rideId) {
+        console.warn('⚠️ clearStoredRide: No rideId provided');
+        return;
+      }
+      
+      const key = `user_ongoing_ride_${rideId}`;
+      console.log('🗑️ Attempting to clear localStorage:', key);
+      
+      // Check if key exists before removing
+      const existingData = localStorage.getItem(key);
+      if (existingData) {
+        localStorage.removeItem(key);
+        console.log('✅ Successfully cleared ride data from localStorage:', rideId);
+      } else {
+        console.warn('⚠️ No data found in localStorage for key:', key);
+      }
+      
+      // Also clear any old keys (cleanup)
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('user_ongoing_ride_')) {
+          console.log('🧹 Cleaning up old key:', k);
+          localStorage.removeItem(k);
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Error clearing localStorage:', error);
+    }
+  };
+
   // Parse pickup and drop locations from URL parameters
   useEffect(() => {
     const parseLocations = async () => {
-      if (!searchParams) {
-        console.warn("❌ searchParams is null/undefined");
+      if (!user?.id) {
         setIsLoading(false);
         return;
       }
 
       try {
-      // Create a safe copy of searchParams to avoid read-only issues
-      const params = new URLSearchParams(searchParams.toString());
+        let params = loadRideParams();
+        
+        // If no params from URL or localStorage, try fetching from backend
+        if (!params) {
+          params = await fetchOngoingRideFromBackend(user.id);
+        }
+        
+        // If still no params, show no ongoing ride message
+        if (!params) {
+          setIsLoading(false);
+          toast.info("No ongoing ride", {
+            description: "You don't have any active rides at the moment."
+          });
+          // Redirect to book-a-ride after 2 seconds
+          setTimeout(() => {
+            router.push("/dashboard/user/book-a-ride");
+          }, 2000);
+          return;
+        }
+        
       const pickup = params.get("pickup") || "";
       const drop = params.get("drop") || "";
       
@@ -316,13 +524,57 @@ function AcceptRideContent() {
     };
 
     parseLocations();
-  }, [searchParams]);
+  }, [searchParams, user]);
+
+  // 🔥 CRITICAL: Poll ride status to check if cancelled by rider (Hybrid Approach)
+  useEffect(() => {
+    if (!urlParams.rideId) return;
+
+    const checkRideStatus = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${urlParams.rideId}`);
+        if (response.ok) {
+          const rideData = await response.json();
+          
+          // Check if ride was cancelled by rider
+          if (rideData.status === 'cancelled_by_rider' || rideData.status === 'cancelled') {
+            console.log('🔍 Polling detected: Ride cancelled by rider');
+            toast.error('Ride cancelled by rider');
+            clearStoredRide(urlParams.rideId);
+            setTimeout(() => {
+              router.push('/dashboard/user/book-a-ride');
+            }, 1000);
+          }
+          // Check if ride was completed
+          else if (rideData.status === 'completed') {
+            console.log('🔍 Polling detected: Ride completed');
+            toast.success('Ride completed successfully!');
+            clearStoredRide(urlParams.rideId);
+            // Navigate to payment
+            handleCompleteRide();
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Ride status check error:', error.message);
+      }
+    };
+
+    //  Check every 3 seconds
+    const statusInterval = setInterval(checkRideStatus, 3000);
+    checkRideStatus(); // Check immediately
+
+    return () => clearInterval(statusInterval);
+  }, [urlParams.rideId, router]);
 
   // Fetch rider's real-time location
   useEffect(() => {
     const fetchRiderLocation = async () => {
       try {
-        if (!urlParams.riderId) return;
+        // ✅ Validate riderId before fetching
+        if (!urlParams.riderId || urlParams.riderId === 'undefined' || urlParams.riderId === 'null') {
+          console.warn('⚠️ No valid riderId available for location fetch');
+          return;
+        }
         
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/${urlParams.riderId}`);
         if (response.ok) {
@@ -342,9 +594,12 @@ function AcceptRideContent() {
               setCalculatedEta(eta);
             }
           }
+        } else {
+          console.warn('⚠️ Failed to fetch rider location, status:', response.status);
         }
       } catch (error) {
-        console.error('Failed to fetch rider location:', error);
+        console.warn('⚠️ Rider location fetch error (will retry):', error.message);
+        // Don't show error toast, just log and continue
       }
     };
 
@@ -353,7 +608,7 @@ function AcceptRideContent() {
     const interval = setInterval(fetchRiderLocation, 5000);
 
     return () => clearInterval(interval);
-  }, [urlParams.riderId]);
+  }, [urlParams.riderId, pickupLocation]);
 
   // Early return if still loading or searchParams is not available
   if (isLoading || !searchParams) {
@@ -409,9 +664,12 @@ function AcceptRideContent() {
 
   
 
-  // ✅ Updated Complete Ride Handler with enhanced error protection
+  //  Updated Complete Ride Handler with enhanced error protection
   const handleCompleteRide = () => {
     try {
+      // 🔥 Clear localStorage before navigating to payment
+      clearStoredRide(rideId);
+      
       // Create new URLSearchParams object from scratch
       const queryParams = new URLSearchParams();
       
@@ -462,7 +720,7 @@ function AcceptRideContent() {
     }
   };
 
-  // ✅ Updated Cancel Ride Handler
+  //  Updated Cancel Ride Handler
   const handleCancelRide = async () => {
     if (!rideId || !userId) {
       toast.error("Missing ride information");
@@ -483,6 +741,8 @@ function AcceptRideContent() {
       
       if (result.success) {
         toast.success("Ride cancelled successfully");
+        // 🔥 Clear localStorage
+        clearStoredRide(rideId);
         // Redirect back to book a ride
         router.push("/dashboard/user/book-a-ride");
       } else {
@@ -765,7 +1025,7 @@ function AcceptRideContent() {
   );
 }
 
-export default function AcceptRide() {
+export default function OngoingRide() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
@@ -782,7 +1042,7 @@ export default function AcceptRide() {
           </div>
         </div>
       }>
-        <AcceptRideContent />
+        <OngoingRideContent />
       </ErrorBoundary>
     </Suspense>
   );
