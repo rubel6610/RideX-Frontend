@@ -39,7 +39,18 @@ const BookARideContent = () => {
     const getCurrentLocation = async () => {
       try {
         const saved = localStorage.getItem("currentLocation");
-        if (saved) return setCurrentLocation(JSON.parse(saved));
+        if (saved) {
+          const parsedLocation = JSON.parse(saved);
+          setCurrentLocation(parsedLocation);
+          
+          // Set current location as default pickup if no pickup is set
+          if (!pickup) {
+            setPickup(parsedLocation.coordinates);
+            setPickupName(parsedLocation.name);
+            setIsCurrentLocationActive(true);
+          }
+          return;
+        }
 
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
@@ -58,6 +69,13 @@ const BookARideContent = () => {
               };
               setCurrentLocation(loc);
               localStorage.setItem("currentLocation", JSON.stringify(loc));
+              
+              // Set current location as default pickup if no pickup is set
+              if (!pickup) {
+                setPickup(`${latitude},${longitude}`);
+                setPickupName(data?.display_name || `${latitude},${longitude}`);
+                setIsCurrentLocationActive(true);
+              }
             },
             () => {
               const def = {
@@ -68,6 +86,13 @@ const BookARideContent = () => {
               };
               setCurrentLocation(def);
               localStorage.setItem("currentLocation", JSON.stringify(def));
+              
+              // Set default location as pickup if no pickup is set
+              if (!pickup) {
+                setPickup("23.8103,90.4125");
+                setPickupName("Dhaka, Bangladesh");
+                setIsCurrentLocationActive(true);
+              }
             }
           );
         }
@@ -76,7 +101,7 @@ const BookARideContent = () => {
       }
     };
     getCurrentLocation();
-  }, []);
+  }, [pickup]);
 
   // ✅ Counter animation for modal loader
   useEffect(() => {
@@ -104,8 +129,16 @@ const BookARideContent = () => {
       const typeP = params.get("type");
       const modeP = params.get("mode");
 
-      if (p1) setPickup(p1);
-      if (p2) setDrop(p2);
+      if (p1) {
+        // If pickup location is provided from hero page, use it
+        setPickup(p1);
+        setPickupName(p1); // Initially set name to the value, will be updated when geocoded
+      }
+      if (p2) {
+        // If drop location is provided from hero page, use it
+        setDrop(p2);
+        setDropName(p2); // Initially set name to the value, will be updated when geocoded
+      }
       if (promoP) {
         setPromo(promoP);
         setAppliedPromo(promoP);
@@ -132,22 +165,77 @@ const BookARideContent = () => {
       );
     };
 
-    if (!pickup || !drop || !isValidCoordinate(pickup) || !isValidCoordinate(drop)) {
+    // If we have both pickup and drop but they're not valid coordinates, try to geocode them
+    if (pickup && drop && (!isValidCoordinate(pickup) || !isValidCoordinate(drop))) {
+      const geocodeLocation = async (locationName) => {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1&countrycodes=bd`
+          );
+          const data = await response.json();
+
+          if (data && data.length > 0) {
+            const { lat, lon } = data[0];
+            return `${lat},${lon}`;
+          }
+          return null;
+        } catch (error) {
+          console.error('Geocoding error:', error);
+          return null;
+        }
+      };
+
+      const processLocations = async () => {
+        let newPickup = pickup;
+        let newDrop = drop;
+
+        // Geocode pickup if it's not coordinates
+        if (pickup && !isValidCoordinate(pickup)) {
+          const geocodedPickup = await geocodeLocation(pickup);
+          if (geocodedPickup) {
+            newPickup = geocodedPickup;
+            setPickup(newPickup);
+          }
+        }
+
+        // Geocode drop if it's not coordinates
+        if (drop && !isValidCoordinate(drop)) {
+          const geocodedDrop = await geocodeLocation(drop);
+          if (geocodedDrop) {
+            newDrop = geocodedDrop;
+            setDrop(newDrop);
+          }
+        }
+
+        // If both are now valid coordinates, calculate fare
+        if (newPickup && newDrop && isValidCoordinate(newPickup) && isValidCoordinate(newDrop)) {
+          try {
+            const type = selectedType.toLowerCase();
+            const result = await calculateFare(newPickup, newDrop, type, appliedPromo);
+            setRideData(result);
+          } catch (error) {
+            toast.error("Fare calculation failed");
+          }
+        }
+      };
+
+      processLocations();
+    } else if (pickup && drop && isValidCoordinate(pickup) && isValidCoordinate(drop)) {
+      // If both are already valid coordinates, calculate fare immediately
+      const fetchDistance = async () => {
+        try {
+          const type = selectedType.toLowerCase();
+          const result = await calculateFare(pickup, drop, type, appliedPromo);
+          setRideData(result);
+        } catch (error) {
+          toast.error("Fare calculation failed");
+        }
+      };
+
+      fetchDistance();
+    } else {
       setRideData(null);
-      return;
     }
-
-    const fetchDistance = async () => {
-      try {
-        const type = selectedType.toLowerCase();
-        const result = await calculateFare(pickup, drop, type, appliedPromo);
-        setRideData(result);
-      } catch (error) {
-        toast.error("Fare calculation failed");
-      }
-    };
-
-    fetchDistance();
   }, [pickup, drop, selectedType, appliedPromo]);
 
   // ✅ Auto-cancel after 60 seconds
@@ -338,15 +426,18 @@ const BookARideContent = () => {
     }
   }, [rideId, user]);
 
+  // Debug logging
+  console.log('BookARideContent - pickup:', pickup, 'drop:', drop);
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
         <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
          
           <LocationInputs
-            pickup={pickup}
+            pickup={pickupName || pickup}
             setPickup={setPickup}
-            drop={drop}
+            drop={dropName || drop}
             setDrop={setDrop}
             onLocationChange={(location, type) => {
               if (type === "pickup") {
@@ -371,8 +462,8 @@ const BookARideContent = () => {
             />
           </div>
           <ConsolidatedRideCard
-            pickup={pickup}
-            drop={drop}
+            pickup={pickupName || pickup}
+            drop={dropName || drop}
             pickupName={pickupName}
             dropName={dropName}
             selectedType={selectedType}
