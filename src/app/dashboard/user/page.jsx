@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { Settings, Star, MapPin, Clock, DollarSign } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -15,13 +16,14 @@ import {
   Line,
 } from "recharts";
 import CountUp from "react-countup";
+import { useAuth } from "@/app/hooks/AuthProvider";
 
-/* ---------- utils ---------- */
+
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-/* ---------- shadcn/ui inline card ---------- */
+
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
@@ -54,56 +56,79 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- Dummy chart data ---------- */
-const areaData = [
-  { month: "Jan", spending: 120 },
-  { month: "Feb", spending: 200 },
-  { month: "Mar", spending: 180 },
-  { month: "Apr", spending: 260 },
-  { month: "May", spending: 300 },
-  { month: "Jun", spending: 400 },
-];
 
-const barData = [
-  { day: "Mon", rides: 2 },
-  { day: "Tue", rides: 3 },
-  { day: "Wed", rides: 1 },
-  { day: "Thu", rides: 4 },
-  { day: "Fri", rides: 2 },
-  { day: "Sat", rides: 5 },
-  { day: "Sun", rides: 3 },
-];
-
-const lineData = [
-  { week: "W1", rating: 4.0 },
-  { week: "W2", rating: 4.2 },
-  { week: "W3", rating: 3.8 },
-  { week: "W4", rating: 4.5 },
-  { week: "W5", rating: 4.3 },
-];
-
-/* ---------- PassengerDash ---------- */
 export default function PassengerDash() {
-  const stats = [
-    { title: "Total Rides", icon: MapPin, value: 145 },
-    { title: "Active Bookings", icon: Clock, value: 3 },
-    { title: "Total Spent", icon: DollarSign, value: 12000 },
-    { title: "Avg. Rating", icon: Star, value: 4.3 },
+  const { user } = useAuth(); 
+  const [stats, setStats] = useState({
+    totalRides: 0,
+    totalSpent: 0,
+    avgRating: 0
+  });
+  const [monthlySpending, setMonthlySpending] = useState([]);
+  const [weeklyRidesData, setWeeklyRidesData] = useState([]);
+  const [ratingsOverTime, setRatingsOverTime] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    async function fetchAnalytics() {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/analytics/user/${user.id}`
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          const { totalRides, totalSpent, avgRating, monthlySpending, weeklyRides, ratingsOverTime } = data.analytics;
+          
+          setStats({
+            totalRides,
+            totalSpent,
+            avgRating
+          });
+          
+          setMonthlySpending(monthlySpending || []);
+          setWeeklyRidesData(weeklyRides || []);
+          setRatingsOverTime(ratingsOverTime || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch analytics:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnalytics();
+  }, [user]);
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
+
+  const statsData = [
+    { title: "Total Rides", icon: MapPin, value: stats.totalRides },
+    { title: "Total Spent", icon: DollarSign, value: stats.totalSpent },
+    { title: "Avg. Rating", icon: Star, value: stats.avgRating },
   ];
 
   return (
     <div className="space-y-4">
-      {/* Heading + Spinner */}
       <div className="flex items-center space-x-3">
         <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
           <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />
-          PASSENGER ANALYSIS
+          PASSENGER DASHBOARD
         </h1>
       </div>
 
-      {/* Top Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((item, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {statsData.map((item, idx) => (
           <Card key={idx} className="flex flex-col justify-center p-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{item.title}</CardTitle>
@@ -111,84 +136,71 @@ export default function PassengerDash() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-extrabold ml-8 pb-2">
-                <CountUp
-                  end={item.value}
-                  duration={2.2}
-                  delay={0.4}
-                  separator=","
-                  decimals={item.title === "Avg. Rating" ? 1 : 0}
-                />
+                {item.title === "Total Spent" ? (
+                  <CountUp end={Number(item.value)} duration={2.2} delay={0.4} separator="," prefix="৳ " />
+                ) : (
+                  <CountUp end={Number(item.value)} duration={2.2} delay={0.4} separator="," decimals={item.title === "Avg. Rating" ? 1 : 0} />
+                )}
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Bottom Row (3 charts same size) */}
+      {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Spending Area Chart */}
+        {/* Monthly Spending */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
             <CardTitle>Monthly Spending</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData}>
+              <AreaChart data={monthlySpending}>
                 <defs>
                   <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" className="[stop-color:#87e64b]" stopOpacity={0.7} />
-                    <stop offset="95%" className="[stop-color:#87e64b]" stopOpacity={0.1} />
+                    <stop offset="5%" stopColor="#87e64b" stopOpacity={0.7} />
+                    <stop offset="95%" stopColor="#87e64b" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="spending"
-                  stroke="#6bcf32"
-                  fill="url(#colorSpend)"
-                />
+                <Tooltip formatter={(value) => `৳ ${value}`} />
+                <Area type="monotone" dataKey="amount" stroke="#6bcf32" fill="url(#colorSpend)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Rides Bar Chart */}
+        {/* Weekly Rides */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
             <CardTitle>Weekly Rides</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
+              <BarChart data={weeklyRidesData}>
                 <XAxis dataKey="day" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="rides" className="fill-[#ef4444]" />
+                <Bar dataKey="rides" fill="#ef4444" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Ratings Line Chart */}
+        {/* Ratings Over Time */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
             <CardTitle>Ratings Over Time</CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
+              <LineChart data={ratingsOverTime}>
                 <XAxis dataKey="week" />
-                <YAxis domain={[3, 5]} />
+                <YAxis domain={[1, 5]} />
                 <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="rating"
-                  stroke="#87e64b"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                />
+                <Line type="monotone" dataKey="rating" stroke="#87e64b" strokeWidth={3} dot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

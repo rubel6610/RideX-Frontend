@@ -26,6 +26,26 @@ const PaymentSuccessPage = () => {
   const userId = searchParams.get("userId") || user?.id || "";
   const transactionId = searchParams.get("transactionId") || "TXN123456789";
 
+  // Mark ride as completed on page load
+  useEffect(() => {
+    if (!rideId) return;
+
+    const markRideCompleted = async () => {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rideId }),
+        });
+        console.log("✅ Ride marked as completed");
+      } catch (error) {
+        console.error("Error marking ride as completed:", error);
+      }
+    };
+
+    markRideCompleted();
+  }, [rideId]);
+
   // Submit review function
   const handleSubmitReview = async () => {
     // Validation

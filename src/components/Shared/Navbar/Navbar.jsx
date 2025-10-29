@@ -46,7 +46,7 @@ const Navbar = () => {
   const rideByRef = useRef(null);
   const accountRef = useRef(null);
 
-  const { data } = useFetchData(
+  const { data,isLoading } = useFetchData(
     "users",
     "/user",
     { email: user?.email },
@@ -55,14 +55,12 @@ const Navbar = () => {
 
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? "hidden" : "auto";
-    // ✅ Auto-close dropdowns if sidebar opens
     if (sidebarOpen) {
       setRideByOpen(false);
       setAccountOpen(false);
     }
   }, [sidebarOpen]);
 
-  // ✅ Topbar scroll animation
   useEffect(() => {
     if (!user && topbarRef.current) {
       const handleScroll = () => {
@@ -83,18 +81,15 @@ const Navbar = () => {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   const toggleRideBy = () => {
-    // ✅ close account dropdown if open
     if (accountOpen) setAccountOpen(false);
     setRideByOpen((prev) => !prev);
   };
 
   const toggleAccount = () => {
-    // ✅ close rideby dropdown if open
     if (rideByOpen) setRideByOpen(false);
     setAccountOpen((prev) => !prev);
   };
 
-  // ✅ GSAP animation for dropdowns (RideBy & Account)
   useEffect(() => {
     const ridePanel = rideByRef.current;
     if (ridePanel) {
@@ -132,8 +127,9 @@ const Navbar = () => {
     return () => document.removeEventListener("keydown", handleKey);
   }, []);
 
+  // Only exact path gets active style
   const activeStyle = (path) =>
-    pathname?.startsWith(path)
+    pathname === path
       ? "text-primary font-semibold"
       : "hover:text-primary transition-colors duration-300";
 
@@ -156,7 +152,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* ---------- TOPBAR ---------- */}
       {!user && (
         <div
           ref={topbarRef}
@@ -207,14 +202,12 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* ---------- MAIN NAVBAR ---------- */}
       <header
         className={`fixed left-0 right-0 z-[90] bg-background transition-all duration-500 border-b border-border ${
           user ? "top-0" : isScrolled ? "top-0 shadow-sm" : "mt-0"
         }`}
       >
         <div className="max-w-[1440px] mx-auto flex justify-between items-center h-20 sm:h-24 px-3 sm:px-6 xl:px-8">
-          {/* Left: Logo */}
           <div className="flex items-center gap-4">
             <Link href="/" className="dark:hidden">
               <Image src={logo} alt="RideX Logo" width={110} height={44} />
@@ -224,13 +217,11 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Center: Navigation */}
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6 text-sm xl:text-lg font-semibold uppercase tracking-wide">
             <Link href="/" className={activeStyle("/")}>
               Home
             </Link>
 
-            {/* Ride By dropdown */}
             <div className="relative h-full flex items-center cursor-pointer">
               <button
                 onClick={toggleRideBy}
@@ -249,7 +240,7 @@ const Navbar = () => {
                 id="rideby-panel"
                 ref={rideByRef}
                 role="menu"
-                className="absolute top-full right-0 mt-[11px] w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden origin-top z-[80]" // ✅ reduced z-index
+                className="absolute top-full right-0 mt-[11px] w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden origin-top z-[80]"
                 style={{ opacity: 0, pointerEvents: "none" }}
               >
                 {["/ride-bike", "/ride-cng", "/ride-car"].map((path, i) => {
@@ -261,7 +252,7 @@ const Navbar = () => {
                       key={path}
                       href={path}
                       className={`flex items-center gap-3 justify-between w-full px-6 py-3 transition-all duration-300 ${
-                        pathname.startsWith(path)
+                        pathname === path
                           ? "font-semibold bg-primary/10 text-primary"
                           : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
                       }`}
@@ -300,7 +291,6 @@ const Navbar = () => {
             )}
           </nav>
 
-          {/* Right: Theme + Language + User + Menu */}
           <div className="flex items-center gap-0.5 sm:gap-2 lg:gap-1 xl:gap-2">
             <LanguageToggle />
 
@@ -331,7 +321,7 @@ const Navbar = () => {
                   id="account-panel"
                   ref={accountRef}
                   role="menu"
-                  className="absolute top-full right-0 mt-[23px] sm:mt-[25px] w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden origin-top z-[80]" // ✅ reduced z-index
+                  className="absolute top-full right-0 mt-[23px] sm:mt-[25px] w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden origin-top z-[80]"
                   style={{ opacity: 0, pointerEvents: "none" }}
                 >
                   {["/dashboard/my-profile", `/dashboard/${user?.role}`].map(
@@ -344,7 +334,7 @@ const Navbar = () => {
                           key={path}
                           href={path}
                           className={`flex items-center gap-3 justify-between px-6 py-3 ${
-                            pathname.startsWith(path)
+                            pathname === path
                               ? "font-semibold bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
                           }`}
@@ -376,7 +366,6 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* Hamburger */}
             <button
               aria-label="Open menu"
               onClick={toggleSidebar}

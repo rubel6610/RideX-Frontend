@@ -36,7 +36,9 @@ function RegisterPage() {
         imgForm.append("image", data.image[0]);
 
         const res = await fetch(
-          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY || process.env.IMGBB_KEY}`,
+          `https://api.imgbb.com/1/upload?key=${
+            process.env.NEXT_PUBLIC_IMGBB_KEY || process.env.IMGBB_KEY
+          }`,
           {
             method: "POST",
             body: imgForm,
@@ -52,12 +54,15 @@ function RegisterPage() {
         }
       }
 
+      // Remove the image file object before sending to backend
+      const { image, ...rest } = data;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data }),
+          body: JSON.stringify(rest),
         }
       );
 
@@ -76,30 +81,7 @@ function RegisterPage() {
       console.error("Error submitting form:", error);
       toast.error("Something went wrong. Please try again later.");
     }
-
-    // নতুন অবজেক্ট বানাও image বাদ দিয়ে
-    const { image, ...rest } = data;
-
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/auth/register`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(rest), // ✅ এখানে আর circular হবে না
-      }
-    );
-
-    const userdata = await res.json();
-    if (res.ok) {
-      alert("Registered successfully!");
-    } else {
-      alert(userdata.message);
-    }
-  } catch (error) {
-    console.error("Error submitting form:", error);
-  }
-};
-
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -310,7 +292,11 @@ function RegisterPage() {
                 className="absolute top-7.5 right-3"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
               >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showConfirmPassword ? (
+                  <EyeOff size={18} />
+                ) : (
+                  <Eye size={18} />
+                )}
               </button>
               {errors.confirmPassword && (
                 <p className="text-red-500 text-sm">
@@ -342,17 +328,18 @@ function RegisterPage() {
           >
             Register
           </Button>
-          {/* toggle sign Up page */}
-            <p className="text-center text-foreground mt-4">
+
+          {/* Toggle Sign In */}
+          <p className="text-center text-foreground mt-4">
             Already have an account? Please{" "}
-            <Link 
-              href="/signIn" 
+            <Link
+              href="/signIn"
               className="text-primary underline hover:text-primary/80 cursor-pointer"
             >
               Sign In
-            </Link></p>
+            </Link>
+          </p>
         </form>
-         
       </div>
     </GuestOnlyRoute>
   );

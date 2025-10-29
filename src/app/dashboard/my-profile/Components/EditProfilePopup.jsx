@@ -24,11 +24,21 @@ import {
   MapPin,
   Home,
 } from "lucide-react";
+import { useUpdateData } from "@/app/hooks/useApi";
 
 const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+
+  const updateUserMutation = useUpdateData("user", {
+    onSuccess: () => {
+      onClose();
+    },
+    onError: () => {
+      alert("Failed to save profile. Please try again.");
+    },
+  });
 
   const {
     register,
@@ -143,21 +153,9 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
       }
 
       const updatedData = { ...data, photoUrl };
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/${profile._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData),
-      });
-
-      if (!res.ok) throw new Error("Failed to update profile");
-
-      onClose();
+      await updateUserMutation.mutateAsync({ id: profile._id, ...updatedData });
     } catch (error) {
       console.error("Error saving profile:", error);
-      alert("Failed to save profile. Please try again.");
     } finally {
       setLoading(false);
     }

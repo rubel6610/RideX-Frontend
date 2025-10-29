@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { Settings, CaptionsOff, Clock, Bike, DollarSign } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -15,6 +16,7 @@ import {
   Line,
 } from "recharts";
 import CountUp from "react-countup";
+import { useAuth } from "@/app/hooks/AuthProvider";
 
 /* ---------- utils ---------- */
 function cn(...classes) {
@@ -54,41 +56,60 @@ const CardContent = ({ className, ...props }) => (
   <div className={cn("pr-4 pt-0 -ml-4", className)} {...props} />
 );
 
-/* ---------- Dummy chart data ---------- */
-const areaData = [
-  { month: "Jan", earnings: 590 },
-  { month: "Feb", earnings: 770 },
-  { month: "Mar", earnings: 660 },
-  { month: "Apr", earnings: 900 },
-  { month: "May", earnings: 8950 },
-  { month: "Jun", earnings: 9200 },
-];
-
-const barData = [
-  { day: "Mon", rides: 5 },
-  { day: "Tue", rides: 7 },
-  { day: "Wed", rides: 6 },
-  { day: "Thu", rides: 8 },
-  { day: "Fri", rides: 5 },
-  { day: "Sat", rides: 9 },
-  { day: "Sun", rides: 6 },
-];
-
-const lineData = [
-  { week: "W1", rating: 4.1 },
-  { week: "W2", rating: 4.3 },
-  { week: "W3", rating: 4.0 },
-  { week: "W4", rating: 4.5 },
-  { week: "W5", rating: 4.4 },
-];
-
-/* ---------- RiderDash ---------- */
 export default function RiderDash() {
+  const { user } = useAuth();
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    async function fetchAnalytics() {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/analytics/rider/${user.id}`
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          setAnalytics(data.analytics);
+        }
+      } catch (err) {
+        console.error("Failed to fetch rider analytics:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnalytics();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
   const stats = [
-    { title: "Completed Rides", icon: Bike, value: 120 },
-    { title: "Active Rides", icon: Clock, value: 2 },
-    { title: "Canceled Rides", icon: CaptionsOff, value: 30 },
-    { title: "Total Earnings", icon: DollarSign, value: 45000 },
+    { title: "Completed Rides", icon: Bike, value: analytics?.completedRides || 0 },
+    { title: "Active Rides", icon: Clock, value: analytics?.activeRides || 0 },
+    { title: "Canceled Rides", icon: CaptionsOff, value: analytics?.canceledRides || 0 },
+    { title: "Total Earnings", icon: DollarSign, value: analytics?.totalEarnings || 0 },
+  ];
+
+  const areaData = analytics?.monthlyEarnings || [];
+  const barData = analytics?.weeklyRides || [];
+  const lineData = [
+    { week: "W1", rating: 4.1 },
+    { week: "W2", rating: 4.3 },
+    { week: "W3", rating: 4.0 },
+    { week: "W4", rating: 4.5 },
+    { week: "W5", rating: 4.4 },
   ];
 
   return (
@@ -116,7 +137,8 @@ export default function RiderDash() {
                   duration={2.2}
                   delay={0.4}
                   separator=","
-                  decimals={item.title === "Avg. Rating" ? 1 : 0}
+                  decimals={item.title === "Total Earnings" ? 0 : 0}
+                  prefix={item.title === "Total Earnings" ? "৳ " : ""}
                 />
               </p>
             </CardContent>
@@ -174,7 +196,7 @@ export default function RiderDash() {
         {/* Ratings Line Chart */}
         <Card className="h-[280px] md:h-[300px]">
           <CardHeader className="mt-5">
-            <CardTitle>Ratings Over Time</CardTitle>
+            <CardTitle>Ratings Over Time </CardTitle>
           </CardHeader>
           <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
