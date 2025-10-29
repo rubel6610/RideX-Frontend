@@ -94,7 +94,7 @@ export default function MonitorLiveRides() {
     // if (isLoading) return <TableSkeleton />;
 
   return (
-    <Card className="rounded-2xl shadow-sm border border-border/40 bg-card backdrop-blur-sm">
+    <div className="rounded-2xl shadow-sm">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4">
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-80">
@@ -185,6 +185,6 @@ export default function MonitorLiveRides() {
           </Table>
         </div>
       </CardContent>
-    </Card>
+    </div>
   );
 }

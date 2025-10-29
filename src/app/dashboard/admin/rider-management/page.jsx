@@ -50,6 +50,12 @@ export default function RiderManagementClient() {
     rejected: riders.filter((r) => r.status?.toLowerCase() === "rejected").length,
   };
 
+  const riderStaticData = [
+          { key: "pending", label: "Pending Riders", count: statusCounts.pending },
+          { key: "approved", label: "Approved Riders", count: statusCounts.approved },
+          { key: "rejected", label: "Rejected Riders", count: statusCounts.rejected },
+        ];
+
   if (isLoading) return <TableSkeleton />;
   if (error) return <div className="p-6 text-red-600">Error: {error.message}</div>;
 
@@ -69,11 +75,7 @@ export default function RiderManagementClient() {
       </div>
 
       <div className="flex flex-wrap gap-2 sm:gap-4">
-        {[
-          { key: "pending", label: "Pending Riders", count: statusCounts.pending },
-          { key: "approved", label: "Approved Riders", count: statusCounts.approved },
-          { key: "rejected", label: "Rejected Riders", count: statusCounts.rejected },
-        ].map((tab) => (
+        {riderStaticData?.map((tab) => (
           <Button
             key={tab.key}
             variant={statusFilter === tab.key ? "default" : "outline"}
