@@ -61,7 +61,7 @@ const MyProfile = () => {
         <div className="flex flex-col items-center pt-10 pb-6 bg-background rounded-t-2xl">
           <div className="relative">
             <img
-              src={profile.photoUrl}
+              src={profile?.photoUrl}
               alt="Profile"
               className="w-28 h-28 rounded-full object-cover border-4 border-primary shadow"
             />

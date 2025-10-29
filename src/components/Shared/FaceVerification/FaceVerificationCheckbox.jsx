@@ -27,6 +27,13 @@ export default function FaceVerificationCheckbox({ onOpenModal, isVerified }) {
     }
   };
 
+  // Update checkbox state when verification status changes
+  useEffect(() => {
+    if (isVerified) {
+      setIsChecked(true);
+    }
+  }, [isVerified]);
+
   // Animate label on verification status change
   useEffect(() => {
     if (isVerified && labelRef.current) {

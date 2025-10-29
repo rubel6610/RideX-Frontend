@@ -7,14 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import {
   Select,
   SelectContent,
@@ -111,7 +104,7 @@ export default function UserManagement() {
         </div>
 
         {/* Role Tabs */}
-        <div className="flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start">
+        <div className="overflow-x-auto flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start">
           {[
             { key: "all", label: "All Users", count: roleCounts.all },
             { key: "admin", label: "Admins", count: roleCounts.admin },
@@ -136,7 +129,7 @@ export default function UserManagement() {
         </div>
 
         {/* Search Section */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="overflow-x-auto flex flex-col sm:flex-row items-center gap-3">
           <Input
             placeholder="Search by name or email..."
             value={search}
@@ -149,78 +142,82 @@ export default function UserManagement() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
-          <Table className="min-w-full">
-            <TableHeader>
-              <TableRow className="bg-accent/30">
-                <TableHead className="whitespace-nowrap">Name</TableHead>
-                <TableHead className="whitespace-nowrap">Email</TableHead>
-                <TableHead className="text-center whitespace-nowrap">
-                  Role
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap">
-                  Action
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+        <div className="border border-accent mt-10 rounded-xl">
+          {/* Scroll indicator for mobile */}
+          <div className="text-center py-1.5 bg-accent/20 lg:hidden">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">← Swipe to scroll →</p>
+          </div>
+          <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
+            <table className="w-full text-xs sm:text-sm min-w-[600px]">
+              <thead className="bg-accent text-left sticky top-0 z-10">
+                <tr>
+                  <th className="px-2 sm:px-4 py-2">Name</th>
+                  <th className="px-2 sm:px-4 py-2">Email</th>
+                  <th className="px-2 sm:px-4 py-2 text-center">Role</th>
+                  <th className="px-2 sm:px-4 py-2 text-center">Action</th>
+                </tr>
+              </thead>
 
-            <TableBody>
-              {pagination.currentData.length > 0 ? (
-                pagination.currentData.map((user) => (
-                  <TableRow key={user._id}>
-                    <TableCell className="font-medium whitespace-nowrap">
-                      {user.fullName || "N/A"}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {user.email || "N/A"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge
-                        variant={
-                          user.role === "admin"
-                            ? "default"
-                            : user.role === "rider"
-                            ? "secondary"
-                            : "outline"
-                        }
-                        className="capitalize"
-                      >
-                        {user.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="flex justify-center">
-                      <Select
-                        defaultValue={user.role}
-                        disabled={mutation.isPending}
-                        onValueChange={(value) =>
-                          mutation.mutate({ id: user._id, role: value })
-                        }
-                      >
-                        <SelectTrigger className="w-[110px] sm:w-[120px] text-xs sm:text-sm">
-                          <SelectValue placeholder="Role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="rider">Rider</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center py-6 text-muted-foreground"
-                  >
-                    No {roleFilter} users found
-                    {search && ` matching "${search}"`}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              <tbody>
+                {pagination.currentData.length > 0 ? (
+                  pagination.currentData.map((user) => (
+                    <tr key={user._id} className="border-t">
+                      <td className="px-2 sm:px-4 py-2 font-medium">
+                        {user.fullName || "N/A"}
+                      </td>
+                      <td className="px-2 sm:px-4 py-2">
+                        {user.email || "N/A"}
+                      </td>
+                      <td className="px-2 sm:px-4 py-2 text-center">
+                        <Badge
+                          variant={
+                            user.role === "admin"
+                              ? "default"
+                              : user.role === "rider"
+                              ? "secondary"
+                              : "outline"
+                          }
+                          className="capitalize text-xs"
+                        >
+                          {user.role}
+                        </Badge>
+                      </td>
+                      <td className="px-2 sm:px-4 py-2">
+                        <div className="flex justify-center">
+                          <Select
+                            defaultValue={user.role}
+                            disabled={mutation.isPending}
+                            onValueChange={(value) =>
+                              mutation.mutate({ id: user._id, role: value })
+                            }
+                          >
+                            <SelectTrigger className="w-[90px] sm:w-[120px] text-xs">
+                              <SelectValue placeholder="Role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="rider">Rider</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="4"
+                      className="text-center py-6 text-muted-foreground"
+                    >
+                      No {roleFilter} users found
+                      {search && ` matching "${search}"`}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
         {filteredUsers.length > 0 && (
           <PaginationControls pagination={pagination} />

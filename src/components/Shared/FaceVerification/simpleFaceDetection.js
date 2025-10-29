@@ -10,7 +10,7 @@ export function detectSimpleFace(videoElement, canvasElement) {
   }
 
   try {
-    const ctx = canvasElement.getContext("2d");
+    const ctx = canvasElement.getContext("2d", { willReadFrequently: true });
     canvasElement.width = videoElement.videoWidth;
     canvasElement.height = videoElement.videoHeight;
 
@@ -93,20 +93,12 @@ export function detectSimpleFace(videoElement, canvasElement) {
       }
     }
 
-    console.log("Face Detection:", {
-      totalFacePixels,
-      facePercentage: facePercentage.toFixed(2),
-      hasFullFace,
-      faceBounds
-    });
-
     return {
       hasFullFace: hasFullFace,
       progress: hasFullFace ? 100 : 0,
       faceBounds: faceBounds
     };
   } catch (error) {
-    console.error("Face detection error:", error);
     return null;
   }
 }
@@ -134,8 +126,9 @@ export async function captureFaceOnlyWithBgRemoval(videoElement, canvasElement, 
     const paddedWidth = Math.min(videoElement.videoWidth - paddedX, sourceWidth + padding * 2);
     const paddedHeight = Math.min(videoElement.videoHeight - paddedY, sourceHeight + padding * 2);
     
-    canvasElement.width = 300;
-    canvasElement.height = 300;
+    // Change to 500x500 for standard picture size
+    canvasElement.width = 500;
+    canvasElement.height = 500;
     
     ctx.translate(canvasElement.width, 0);
     ctx.scale(-1, 1);
@@ -152,9 +145,8 @@ export async function captureFaceOnlyWithBgRemoval(videoElement, canvasElement, 
     );
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-    return canvasElement.toDataURL("image/jpeg", 0.7);
+    return canvasElement.toDataURL("image/jpeg", 0.6);
   } catch (error) {
-    console.error("Face capture error:", error);
     return null;
   }
 }

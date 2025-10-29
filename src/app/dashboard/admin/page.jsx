@@ -89,17 +89,17 @@ export default function AdminDash() {
   ];
 
   return (
-    <div className="space-y-8 container mx-auto">
+    <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
       {/* Heading */}
-      <div className="flex items-center space-x-3">
-        <h1 className="flex gap-2 text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
-          <Settings className="h-10 w-10 text-destructive dark:text-primary animate-spin-slow" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <h1 className="flex gap-2 text-2xl sm:text-3xl md:text-4xl font-extrabold text-neutral-800 dark:text-neutral-100">
+          <Settings className="h-8 w-8 sm:h-10 sm:w-10 text-destructive dark:text-primary animate-spin-slow" />
           SEE ANALYSIS
         </h1>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((item, idx) => (
           <Card key={idx} className="flex flex-col justify-center p-2">
             <CardHeader className="flex flex-row items-center justify-between">

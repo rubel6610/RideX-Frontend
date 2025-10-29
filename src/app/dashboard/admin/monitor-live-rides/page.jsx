@@ -1,21 +1,12 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-// import { TableSkeleton } from "@/app/hooks/Skeleton/TableSkeleton";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -94,71 +85,84 @@ export default function MonitorLiveRides() {
     // if (isLoading) return <TableSkeleton />;
 
   return (
-    <div className="rounded-2xl shadow-sm">
-      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-80">
+    <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Monitor Live Rides</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Track all ongoing rides in real-time</p>
+        </div>
+        <div className="w-full sm:w-auto">
+          <div className="relative">
             <Input
               placeholder="Search by Ride ID, Rider or Passenger..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pr-10"
+              className="w-full sm:w-80 pr-10"
             />
             <Search
               className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60"
               size={16}
             />
           </div>
-          {query && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={() => setQuery("")}
-            >
-              Clear
-            </Button>
-          )}
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table className="min-w-full">
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="w-10">#</TableHead>
-                <TableHead>Ride ID</TableHead>
-                <TableHead>Rider Name</TableHead>
-                <TableHead>Passenger Name</TableHead>
-                <TableHead>Current Ride / Tip</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      {query && (
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => setQuery("")}
+          >
+            Clear Search
+          </Button>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="border border-accent mt-10 rounded-xl">
+        {/* Scroll indicator for mobile */}
+        <div className="text-center py-1.5 bg-accent/20 lg:hidden">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">← Swipe to scroll →</p>
+        </div>
+        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
+          <table className="w-full text-xs sm:text-sm min-w-[700px]">
+            <thead className="bg-accent text-left sticky top-0 z-10">
+              <tr>
+                <th className="px-2 sm:px-4 py-2">#</th>
+                <th className="px-2 sm:px-4 py-2">Ride ID</th>
+                <th className="px-2 sm:px-4 py-2">Rider Name</th>
+                <th className="px-2 sm:px-4 py-2">Passenger Name</th>
+                <th className="px-2 sm:px-4 py-2">Current Ride / Tip</th>
+                <th className="px-2 sm:px-4 py-2 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
               {filtered.map((ride, idx) => (
-                <TableRow
+                <tr
                   key={ride.id}
-                  className="hover:bg-muted/40 transition-colors cursor-pointer"
+                  className="border-t"
                   onClick={() =>
                     console.log("open details for", ride.id)
                   }
                 >
-                  <TableCell className="text-sm">{idx + 1}</TableCell>
-                  <TableCell className="font-medium text-sm">
+                  <td className="px-2 sm:px-4 py-2">{idx + 1}</td>
+                  <td className="px-2 sm:px-4 py-2 font-medium">
                     {ride.id}
-                  </TableCell>
-                  <TableCell className="text-sm">{ride.riderName}</TableCell>
-                  <TableCell className="text-sm">{ride.passengerName}</TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-2 sm:px-4 py-2">{ride.riderName}</td>
+                  <td className="px-2 sm:px-4 py-2">{ride.passengerName}</td>
+                  <td className="px-2 sm:px-4 py-2">
                     <div className="flex flex-wrap items-center gap-2">
                       {renderStatusBadge(ride.status)}
                       <span className="text-xs text-muted-foreground">
                         Tip: {ride.tip ? `৳${ride.tip}` : "—"}
                       </span>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </td>
+                  <td className="px-2 sm:px-4 py-2 text-right">
                     <Button
                       variant="outline"
                       size="sm"
@@ -167,24 +171,24 @@ export default function MonitorLiveRides() {
                     >
                       Message
                     </Button>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ))}
 
               {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-6 text-sm text-muted-foreground"
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="text-center py-6 text-muted-foreground"
                   >
                     No rides found.
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
-      </CardContent>
+      </div>
     </div>
   );
 }

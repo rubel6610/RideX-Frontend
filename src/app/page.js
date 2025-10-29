@@ -11,10 +11,8 @@ const Home = () => {
       <Hero />
       <FeaturedSection />
       <LuxuryCarsSection />
-      {/* <Banner/> */}
       <FeaturedDrivers />
       <CategoryRides />
-      {/* <BeRidersAndPassenger /> */}
     </div>
   );
 };
