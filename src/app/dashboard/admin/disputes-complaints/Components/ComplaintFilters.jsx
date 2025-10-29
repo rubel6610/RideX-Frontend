@@ -1,9 +1,7 @@
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
-export default function ComplaintFilters({ searchTerm, setSearchTerm, statusFilter, setStatusFilter, typeFilter, setTypeFilter }) {
+export default function ComplaintFilters({ searchTerm, setSearchTerm }) {
   return (
     <div className="bg-background rounded-lg border border-accent p-4">
       <div className="flex flex-col lg:flex-row gap-4 items-end">
@@ -19,38 +17,6 @@ export default function ComplaintFilters({ searchTerm, setSearchTerm, statusFilt
             />
           </div>
         </div>
-
-        <div className="w-full lg:w-48">
-          <label className="text-sm font-medium mb-2 block">Status</label>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger><SelectValue placeholder="All Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="In Review">In Review</SelectItem>
-              <SelectItem value="Resolved">Resolved</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="w-full lg:w-48">
-          <label className="text-sm font-medium mb-2 block">Type</label>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger><SelectValue placeholder="All Types" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="Driver Misbehavior">Driver Misbehavior</SelectItem>
-              <SelectItem value="Fare Dispute">Fare Dispute</SelectItem>
-              <SelectItem value="Lost Item">Lost Item</SelectItem>
-              <SelectItem value="Vehicle Condition">Vehicle Condition</SelectItem>
-              <SelectItem value="Route Issue">Route Issue</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Button variant="outline" onClick={() => { setSearchTerm(''); setStatusFilter('all'); setTypeFilter('all'); }}>
-          Clear Filters
-        </Button>
       </div>
     </div>
   );
