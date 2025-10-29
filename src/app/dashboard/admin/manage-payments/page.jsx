@@ -27,7 +27,7 @@ export default function PaymentManagement() {
         const processedPayments = (Array.isArray(data) ? data : []).map(payment => ({
           ...payment,
           status: payment.status || 'Pending',
-          riderPaid: payment.riderPaid || payment.Paid || 'Pending'
+          paid: payment.paid === true || payment.paid === 'Paid' || payment.riderPaid === 'Paid' || false
         }));
         setPayments(processedPayments);
         // Fetch user and rider details
@@ -117,12 +117,12 @@ export default function PaymentManagement() {
         setPayments(prevPayments => 
           prevPayments.map(payment => 
             payment._id === paymentId 
-              ? { ...payment, riderPaid: 'Paid' } 
+              ? { ...payment, paid: true, riderPaid: 'Paid' } 
               : payment
           )
         );
         // Show success message
-        console.log("Rider paid successfully");
+        alert("Rider paid successfully! Transaction recorded.");
       } else {
         console.error("Failed to mark rider as paid:", result.message);
         // Show error message to user
@@ -184,20 +184,20 @@ export default function PaymentManagement() {
                       {payment.riderEmail}
                 </TableCell>
                 <TableCell>৳{payment?.rideDetails?.fareBreakdown?.totalAmount || 0}</TableCell>
-                <TableCell>৳{payment?.rideDetails.fareBreakdown?.riderCommission || 0}</TableCell>
+                <TableCell>৳{payment?.rideDetails?.fareBreakdown?.riderCommission || 0}</TableCell>
                 <TableCell>৳{payment?.rideDetails?.fareBreakdown?.platformCommission || 0}</TableCell>
                 <TableCell className="text-right">
                   <Badge 
                     variant={
-                      payment.status === 'Paid' ? 'default' : 
-                      'secondary'
+                      payment.paid === true ? 'default' : 'secondary'
                     }
                   >
-                    {payment.paid === 'Paid' ? 'Paid' : 'Pending'}
+                    {payment.paid === true ? 'Paid' : 'Pending'}
                   </Badge>
                 </TableCell>
+
                 <TableCell className="text-right">
-                  {payment.status === 'Paid' && payment.paid !== 'Paid' && (
+                  {payment.status === 'Paid' && payment.paid !== true && (
                     <Button 
                       size="sm" 
                       onClick={() => handlePayRider(payment._id)}
@@ -206,10 +206,11 @@ export default function PaymentManagement() {
                       {processing.has(payment._id) ? 'Processing...' : 'Pay'}
                     </Button>
                   )}
-                  {payment.paid === 'Paid' && (
+                  {payment.paid === true && (
                     <Badge variant="default">Paid</Badge>
                   )}
                 </TableCell>
+
               </TableRow>
             ))}
           </TableBody>
