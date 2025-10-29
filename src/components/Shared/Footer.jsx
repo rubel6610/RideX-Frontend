@@ -26,11 +26,11 @@ export default function Footer() {
 
   return (
     <footer className="relative w-full text-white overflow-hidden bg-black">
-      {/* Background Image */}
+      {/* Background with gradient instead of missing image */}
       <div
         className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/src/Assets/footer-bg.png')"
+          background: "linear-gradient(135deg, #1a1a1a 0%, #000000 100%)"
         }}
       />
 

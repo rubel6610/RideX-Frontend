@@ -44,7 +44,6 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
 
   useEffect(() => {
     if (isOpen && isVideoReady && videoRef.current) {
-      console.log("Video ready, showing message");
       setShowMessage(true);
       
       // Animate the modal entrance
@@ -83,12 +82,10 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
       intervalRef.current = null;
     }
     
-    console.log("Starting detection");
     startTimeRef.current = Date.now();
     
     intervalRef.current = setInterval(() => {
       if (!isMountedRef.current || !videoRef.current || !canvasRef.current) {
-        console.log("Detection stopped");
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
@@ -107,11 +104,8 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
           
           setProgress(progressValue);
           setFaceBounds(detectedBounds);
-          console.log("Full face detected - Progress:", progressValue);
           
           if (progressValue >= 100 && !captureTimeoutRef.current) {
-            console.log("100% reached - saving bounds and waiting 2 seconds before capture");
-            
             savedFaceBoundsRef.current = detectedBounds;
             
             if (intervalRef.current) {
@@ -120,7 +114,6 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
             }
             
             captureTimeoutRef.current = setTimeout(() => {
-              console.log("2 seconds passed - capturing now");
               if (isMountedRef.current) {
                 handleAutoCapture();
               }
@@ -130,10 +123,8 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
           startTimeRef.current = Date.now();
           setProgress(0);
           setFaceBounds(null);
-          console.log("No full face detected - resetting timer");
         }
       } else {
-        console.log("No detection result");
         startTimeRef.current = Date.now();
         setProgress(0);
         setFaceBounds(null);
@@ -142,32 +133,24 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
   };
 
   const handleAutoCapture = async () => {
-    console.log("handleAutoCapture called");
-    
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
 
     if (!isMountedRef.current || !videoRef.current || !canvasRef.current) {
-      console.log("Missing refs - cannot capture");
       return;
     }
 
     const boundsToUse = savedFaceBoundsRef.current || faceBounds;
     
     if (!boundsToUse) {
-      console.log("No face bounds available - cannot capture");
       return;
     }
 
-    console.log("Capturing with bounds:", boundsToUse);
     const screenshot = await captureFaceOnlyWithBgRemoval(videoRef.current, canvasRef.current, boundsToUse);
     
     if (screenshot) {
-      console.log("Captured Face Screenshot successfully");
-      console.log("Screenshot size:", screenshot.length, "characters");
-
       setCaptureSuccess(true);
 
       // Animate success message
@@ -178,8 +161,36 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
         );
       }
 
-      if (onCapture) {
-        onCapture(screenshot);
+      // Upload to ImgBB and get hosted URL
+      try {
+        const formData = new FormData();
+        formData.append('image', screenshot.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+        
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data?.url) {
+          // Pass the hosted URL instead of base64 data
+          if (onCapture) {
+            onCapture(result.data.url);
+          }
+        } else {
+          // Fallback to base64 if ImgBB upload fails
+          console.error('ImgBB upload failed:', result);
+          if (onCapture) {
+            onCapture(screenshot);
+          }
+        }
+      } catch (error) {
+        console.error('ImgBB upload error:', error);
+        // Fallback to base64 if ImgBB upload fails
+        if (onCapture) {
+          onCapture(screenshot);
+        }
       }
 
       setTimeout(() => {
@@ -188,7 +199,6 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
         }
       }, 500);
     } else {
-      console.error("Failed to capture screenshot");
       setTimeout(() => {
         if (isMountedRef.current) {
           setProgress(0);
@@ -261,57 +271,56 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
 
   return (
     <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4">
-      <div 
-        ref={modalRef}
-        className="relative w-full h-full md:w-[90%] lg:w-[70%] md:h-[90vh] lg:h-[85vh] md:rounded-3xl lg:rounded-3xl overflow-hidden bg-black shadow-2xl border-4 border-teal-500/30"
-      >
-        <button
-          onClick={handleClose}
-          className="absolute top-6 right-6 text-white bg-destructive p-4 rounded-full hover:bg-destructive/90 hover:scale-110 transition-transform z-[100000] shadow-xl"
-        >
-          <X size={24} />
-        </button>
-
+      {/* Position to the left on extra small screens, center on larger screens */}
+      <div className="relative flex flex-col items-start">
         <div 
-          ref={progressBarRef}
-          className="absolute top-6 right-24 z-[100000]"
+          ref={modalRef}
+          className="w-[80vw] h-[80vw] max-w-[300px] max-h-[300px] rounded-full overflow-hidden bg-black shadow-2xl border-4 border-white"
         >
-          <CircularProgress progress={progress} />
+
+          {showMessage && (
+            <div 
+              ref={messageRef}
+              className="absolute inset-0 flex items-center justify-center z-[100001] pointer-events-none"
+            >
+              <div className="bg-black/70 text-white px-6 py-4 rounded-full">
+                <div className="text-xl font-bold text-center">HOLD</div>
+              </div>
+            </div>
+          )}
+
+          {progress === 100 && !captureSuccess && (
+            <div 
+              ref={captureIndicatorRef}
+              className="absolute inset-0 border-4 border-yellow-400 rounded-full z-[99998] pointer-events-none animate-ping"
+            />
+          )}
+
+          {captureSuccess && (
+            <div 
+              ref={successMessageRef}
+              className="absolute inset-0 flex items-center justify-center z-[100001] pointer-events-none"
+            >
+              <div className="bg-black/70 text-white px-6 py-4 rounded-full">
+                <div className="text-3xl text-center mb-1">✓</div>
+                <div className="text-lg font-bold text-center">DONE</div>
+              </div>
+            </div>
+          )}
+
+          <WebcamCapture onStreamReady={handleStreamReady} progress={progress} faceBounds={faceBounds} videoRef={videoRef} />
+
+          <canvas ref={canvasRef} className="hidden" />
         </div>
-
-        {showMessage && (
+        
+        {/* Only the circular progress bar below the circle */}
+        <div className="mx-auto mt-6">
           <div 
-            ref={messageRef}
-            className="absolute inset-0 flex items-center justify-center z-[100001] pointer-events-none"
+            ref={progressBarRef}
           >
-            <div className="bg-blue-600 text-white px-20 py-12 rounded-3xl shadow-2xl animate-pulse">
-              <div className="text-5xl font-bold text-center">HOLD FOR CAPTURE</div>
-            </div>
+            <CircularProgress progress={progress} />
           </div>
-        )}
-
-        {progress === 100 && !captureSuccess && (
-          <div 
-            ref={captureIndicatorRef}
-            className="absolute inset-0 border-8 border-green-500 z-[99998] pointer-events-none animate-pulse"
-          />
-        )}
-
-        {captureSuccess && (
-          <div 
-            ref={successMessageRef}
-            className="absolute inset-0 flex items-center justify-center z-[100001] pointer-events-none"
-          >
-            <div className="bg-green-600 text-white px-16 py-12 rounded-3xl shadow-2xl">
-              <div className="text-7xl text-center mb-6">✓</div>
-              <div className="text-4xl font-bold text-center">CAPTURED!</div>
-            </div>
-          </div>
-        )}
-
-        <WebcamCapture onStreamReady={handleStreamReady} progress={progress} faceBounds={faceBounds} videoRef={videoRef} />
-
-        <canvas ref={canvasRef} className="hidden" />
+        </div>
       </div>
     </div>
   );
