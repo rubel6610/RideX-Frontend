@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -19,8 +19,7 @@ export default function RiderVehicleInfo() {
 
   const defaultImage = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
- 
-
+  // Fetch rider data
   useEffect(() => {
     if (!user?.email) return;
 
@@ -39,8 +38,7 @@ export default function RiderVehicleInfo() {
             vehicleType: matchedRider.vehicleType,
             vehicleModel: matchedRider.vehicleModel,
             vehicleRegisterNumber: matchedRider.vehicleRegisterNumber,
-            drivingLicense: matchedRider.drivingLicense,
-            image: matchedRider.image || "",
+            image: matchedRider.frontFace || "",
           });
         }
       } catch (error) {
@@ -53,26 +51,26 @@ export default function RiderVehicleInfo() {
     fetchRiderData();
   }, [user?.email]);
 
+  // Update rider data
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.put(
-  `http://localhost:5000/api/update-rider/${rider._id}`,
-  {
-    vehicleType: formData.vehicleType,
-    vehicleModel: formData.vehicleModel,
-    vehicleRegisterNumber: formData.vehicleRegisterNumber,
-    drivingLicense: formData.drivingLicense,
-  }
-);
-
+        `http://localhost:5000/api/update-rider/${rider._id}`,
+        {
+          vehicleType: formData.vehicleType,
+          vehicleModel: formData.vehicleModel,
+          vehicleRegisterNumber: formData.vehicleRegisterNumber,
+          frontFace: formData.image, // Update image too
+        }
+      );
 
       setRider(res.data.updatedRider);
       setFormData({
         vehicleType: res.data.updatedRider.vehicleType,
         vehicleModel: res.data.updatedRider.vehicleModel,
         vehicleRegisterNumber: res.data.updatedRider.vehicleRegisterNumber,
-        drivingLicense: res.data.updatedRider.drivingLicense,
+        image: res.data.updatedRider.frontFace || "",
       });
 
       setEditing(false);
@@ -90,7 +88,7 @@ export default function RiderVehicleInfo() {
   return (
     <div className="flex justify-center mt-8">
       <Card className="w-full max-w-md shadow-lg rounded-2xl border border-primary relative">
-        {/* Cross icon for cancel edit mode */}
+        {/* Cancel edit button */}
         {editing && (
           <button
             type="button"
@@ -117,14 +115,14 @@ export default function RiderVehicleInfo() {
         <CardContent className="space-y-3 text-gray-700">
           {editing ? (
             <form onSubmit={handleUpdate} className="space-y-3">
-              {/*  <Input
-                type="text"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="Image URL"
-              /> */}
               <Input
-            
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setFormData({ ...formData, imageFile: e.target.files[0] })
+                }
+              />
+              <Input
                 type="text"
                 value={formData.vehicleType}
                 onChange={(e) =>
@@ -151,14 +149,6 @@ export default function RiderVehicleInfo() {
                 }
                 placeholder="Register Number"
               />
-              <Input
-                type="text"
-                value={formData.drivingLicense}
-                onChange={(e) =>
-                  setFormData({ ...formData, drivingLicense: e.target.value })
-                }
-                placeholder="Driving License"
-              />
               <Button type="submit" className="w-full mt-2">
                 Save Changes
               </Button>
@@ -166,7 +156,7 @@ export default function RiderVehicleInfo() {
           ) : (
             <>
               <div className="flex justify-between text-black dark:text-white">
-                <span className="font-medium ">Vehicle Type:</span>
+                <span className="font-medium">Vehicle Type:</span>
                 <span>{rider.vehicleType}</span>
               </div>
               <div className="flex justify-between text-black dark:text-white">
@@ -176,10 +166,6 @@ export default function RiderVehicleInfo() {
               <div className="flex justify-between text-black dark:text-white">
                 <span className="font-medium">Register No:</span>
                 <span>{rider.vehicleRegisterNumber}</span>
-              </div>
-              <div className="flex justify-between text-black dark:text-white">
-                <span className="font-medium">Driving License:</span>
-                <span>{rider.drivingLicense}</span>
               </div>
 
               <div className="flex justify-center mt-4">
