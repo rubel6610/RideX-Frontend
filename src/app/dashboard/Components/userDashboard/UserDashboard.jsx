@@ -59,7 +59,7 @@ const UserDashboard = ({ collapsed }) => {
         { href: "/dashboard/user", Icon:  LayoutDashboard, label: "Dashboard" },
         { href: "/dashboard/user/book-a-ride", Icon: Users, label: "Book A Ride" },
         { href: "/dashboard/user/ride-history", Icon: TrendingUp, label: "Ride History" },
-      
+        { href: "/dashboard/user/ongoing-ride", Icon: MapPin, label: "Ongoing Ride" },
 
         //  general menu
         {href: "/dashboard/my-profile", Icon: User, label: `${user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Profile`},
