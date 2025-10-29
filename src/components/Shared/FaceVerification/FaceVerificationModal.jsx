@@ -163,8 +163,9 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
 
       // Upload to ImgBB and get hosted URL
       try {
+        console.log("Uploading face capture to ImgBB...");
         const formData = new FormData();
-        formData.append('image', screenshot.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+        formData.append('image', screenshot.split(',')[1]); 
         
         const response = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`, {
           method: 'POST',
@@ -179,14 +180,13 @@ export default function FaceVerificationModal({ isOpen, onClose, onCapture }) {
             onCapture(result.data.url);
           }
         } else {
-          // Fallback to base64 if ImgBB upload fails
-          console.error('ImgBB upload failed:', result);
           if (onCapture) {
             onCapture(screenshot);
           }
         }
       } catch (error) {
         console.error('ImgBB upload error:', error);
+        console.log("Using base64 fallback for face capture due to error");
         // Fallback to base64 if ImgBB upload fails
         if (onCapture) {
           onCapture(screenshot);

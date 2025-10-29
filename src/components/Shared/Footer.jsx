@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { Facebook, Linkedin, Twitter, Youtube, Mail, Phone, Clock, ArrowUp } from 'lucide-react';
 import logo from '../../Assets/logo-white-text.webp';
+import darkLogo from '../../Assets/logo-dark.webp'
 import Image from "next/image";
 
 export default function Footer() {
@@ -50,7 +51,14 @@ export default function Footer() {
                   alt="RideX Logo"
                   width={120}
                   height={50}
-                  className="object-contain"
+                  className="dark:hidden object-contain"
+                />
+                <Image
+                  src={darkLogo}
+                  alt="RideX Logo"
+                  width={120}
+                  height={50}
+                  className="hidden dark:block object-contain"
                 />
               </div>
 

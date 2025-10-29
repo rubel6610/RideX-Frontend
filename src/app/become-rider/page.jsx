@@ -90,6 +90,8 @@ export default function BecomeRiderPage() {
         frontFace: capturedFaceImage // This will now be an ImgBB URL or base64 fallback
       };
 
+      console.log("Sending become-rider request with payload:", payload);
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/become-rider`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,6 +99,8 @@ export default function BecomeRiderPage() {
       });
 
       const result = await res.json();
+      console.log("Become-rider response:", result);
+      
       if (res.ok) {
         // Animate success message
         if (formContainerRef.current) {
@@ -116,6 +120,7 @@ export default function BecomeRiderPage() {
         alert(result.message);
       }
     } catch (err) {
+      console.error("Become-rider request error:", err);
       alert("Server error");
     } finally {
       setIsSubmitting(false);
@@ -170,6 +175,7 @@ export default function BecomeRiderPage() {
   };
 
   const handleFaceCapture = (imageData) => {
+    console.log("Face capture received:", imageData);
     setCapturedFaceImage(imageData);
     setFaceVerified(true);
     
@@ -284,7 +290,7 @@ export default function BecomeRiderPage() {
   };
 
   return (
-    <div className="flex w-full max-w-7xl mx-auto mt-8 mb-8 rounded-xl shadow-2xl overflow-hidden bg-background md:mt-16 md:mb-16">
+    <div className="flex w-full max-w-7xl mx-auto mt-28 mb-8 rounded-xl shadow-2xl overflow-hidden bg-background md:mt-16 md:mb-16">
       {/* Left Panel (Illustration) - Hidden on mobile */}
       <div className="hidden md:block w-2/5">
         {/* Rider Illustration Image - Full height */}
@@ -304,7 +310,7 @@ export default function BecomeRiderPage() {
       {/* Right Panel (Form) - Full width on mobile */}
       <div className="w-full md:w-3/5 p-4 bg-background md:p-12 md:pl-12 md:pr-6 md:py-6">
         {/* Step Navigation */}
-        <div className="flex space-x-2 mb-4 md:space-x-3">
+        <div className="flex flex-wrap gap-2 md:gap-3 mb-4">
           <Step active={currentStep === 0} number={1} title="Personal Info" />
           <Step active={currentStep === 1} number={2} title="Vehicle Info" />
           <Step active={currentStep === 2} number={3} title="Security Info" />
