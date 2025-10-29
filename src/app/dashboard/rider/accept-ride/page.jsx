@@ -85,10 +85,7 @@ function RiderAcceptRideContent() {
   const [liveEta, setLiveEta] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [urlParams, setUrlParams] = useState({});
-  const [riderLocation, setRiderLocation] = useState({
-    type: "Point",
-    coordinates: [90.4125, 23.8103], // Fallback to Dhaka
-  });
+  const [riderLocation, setRiderLocation] = useState(null);
   const [calculatedEta, setCalculatedEta] = useState(null);
   const [distance, setDistance] = useState(null);
   const [pickupAddress, setPickupAddress] = useState("");
@@ -249,8 +246,6 @@ function RiderAcceptRideContent() {
         passengerPhone: params.get("passengerPhone") || "",
         passengerRating: params.get("passengerRating") || "0",
         vehicleType: params.get("vehicleType") || "",
-        vehicleModel: params.get("vehicleModel") || "",
-        vehicleRegisterNumber: params.get("vehicleRegisterNumber") || "",
         baseFare: params.get("baseFare") || "0",
         distanceFare: params.get("distanceFare") || "0",
         timeFare: params.get("timeFare") || "0",
@@ -397,8 +392,6 @@ function RiderAcceptRideContent() {
     passengerPhone = "",
     passengerRating = "0",
     vehicleType = "",
-    vehicleModel = "",
-    vehicleRegisterNumber = "",
     baseFare = "0",
     distanceFare = "0",
     timeFare = "0",
@@ -608,47 +601,6 @@ function RiderAcceptRideContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 space-y-3">
-                  <h5 className="my-2 text-sm font-semibold text-muted-foreground uppercase">
-                    Vehicle Information
-                  </h5>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <VehicleIcon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">Vehicle Type</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {vehicleType || type}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <Car className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">Model</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {vehicleModel || "Unknown Model"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <Hash className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">Registration</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {vehicleRegisterNumber || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </div>
 
                {/* Buttons */}
@@ -689,13 +641,20 @@ function RiderAcceptRideContent() {
                 <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
                   Live Tracking
                 </h5>
+                {console.log('🗺️ Rider Accept Ride - Map props:', {
+                  rideId,
+                  riderLocation,
+                  type,
+                  pickupLocation,
+                  dropLocation
+                })}
                   <RiderLiveTrackingMap
                     rideId={rideId}
                     riderInfo={{ location: riderLocation }}
-                    vehicleType={type}
                     pickupLocation={pickupLocation}
                     dropLocation={dropLocation}
                     onEtaUpdate={setLiveEta}
+                    vehicleType={vehicleType || type}
                   />
               </div>
 
@@ -761,7 +720,7 @@ function RiderAcceptRideContent() {
         open={isChatOpen}
         onClose={() => setIsChatOpen(false)}
         riderName={passengerInfo.fullName}
-        riderVehicle={`${vehicleType || type} - ${vehicleRegisterNumber || "N/A"}`}
+        riderVehicle={`${vehicleType || type}`}
         rideId={rideId}
         riderId={riderId}
       />

@@ -15,14 +15,58 @@ const RoutePolyline = ({ startLocation, endLocation, color, weight, opacity, das
       
       setIsLoading(true);
       
-      // Use straight line directly for stability
-      // OSRM API calls are disabled to prevent network errors
-      
-      // Set straight line coordinates immediately
-      setRouteCoordinates([
-        [startLocation.lat, startLocation.lng],
-        [endLocation.lat, endLocation.lng]
-      ]);
+      try {
+        // Use OSRM API for real road paths with timeout handling
+        const startLat = startLocation.lat;
+        const startLng = startLocation.lng;
+        const endLat = endLocation.lat;
+        const endLng = endLocation.lng;
+        
+        const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+        
+        
+        // Create AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`OSRM API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]); // Convert [lng, lat] to [lat, lng]
+          
+          console.log("✅ User Map - Real road route generated with", coordinates.length, "points");
+          setRouteCoordinates(coordinates);
+        } else {
+          throw new Error("No route found");
+        }
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log("⏰ User Map - Request timeout, using straight line fallback");
+        } else {
+          console.error("❌ User Map - Route fetching failed:", error.message);
+        }
+        // Fallback to straight line
+        console.log("🔄 User Map - Using straight line fallback");
+        setRouteCoordinates([
+          [startLocation.lat, startLocation.lng],
+          [endLocation.lat, endLocation.lng]
+        ]);
+      }
       
       setIsLoading(false);
     };
