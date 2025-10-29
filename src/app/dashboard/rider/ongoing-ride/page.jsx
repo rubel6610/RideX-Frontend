@@ -98,25 +98,61 @@ function OngoingRideContent() {
     try {
         const socket = initSocket(user.id, false);
 
+      // ✅ Handle socket connection errors
+      socket.on('connect_error', (error) => {
+        console.warn('⚠️ Socket connection error (will retry):', error.message);
+        // Don't show toast, socket will auto-retry
+      });
+
+      socket.on('error', (error) => {
+        console.warn('⚠️ Socket error:', error);
+      });
+
       // Join ride-specific room
       socket.emit('join_ride', urlParams.rideId);
-      console.log('Rider joined ride room:', urlParams.rideId);
+      console.log('✅ Rider joined ride room:', urlParams.rideId);
 
-      // Listen for ride status updates
+      // 🔥 Listen for ride status updates (when user cancels/completes)
       socket.on('ride_status_update', (data) => {
-        console.log('Ride status update received:', data);
+        console.log('✅ Ride status update received:', data);
         if (data.rideId === urlParams.rideId) {
           toast.info(`Ride status: ${data.status}`);
           
           // Handle different status updates
           if (data.status === 'cancelled_by_user' || data.status === 'cancelled') {
-            toast.error('Ride cancelled');
+            toast.error('Ride cancelled by user');
             clearStoredRide(urlParams.rideId);
-            router.push('/dashboard/rider/available-rides');
+            setTimeout(() => {
+              router.push('/dashboard/rider/available-rides');
+            }, 1000);
           } else if (data.status === 'completed') {
             toast.success('Ride completed successfully!');
             clearStoredRide(urlParams.rideId);
-            router.push('/dashboard/rider/available-rides');
+            setTimeout(() => {
+              router.push('/dashboard/rider/available-rides');
+            }, 1000);
+          }
+        }
+      });
+
+      // 🔥 Also listen for ride_status_changed (alternative event)
+      socket.on('ride_status_changed', (data) => {
+        console.log('✅ Ride status changed received:', data);
+        if (data.rideId === urlParams.rideId) {
+          toast.info(`Ride status: ${data.status}`);
+          
+          if (data.status === 'cancelled_by_user' || data.status === 'cancelled') {
+            toast.error('Ride cancelled by user');
+            clearStoredRide(urlParams.rideId);
+            setTimeout(() => {
+              router.push('/dashboard/rider/available-rides');
+            }, 1000);
+          } else if (data.status === 'completed') {
+            toast.success('Ride completed successfully!');
+            clearStoredRide(urlParams.rideId);
+            setTimeout(() => {
+              router.push('/dashboard/rider/available-rides');
+            }, 1000);
           }
         }
       });
@@ -167,13 +203,16 @@ function OngoingRideContent() {
             duration: 3000,
           });
         }
-      });
+        });
 
         return () => {
         socket.off('ride_status_update');
+        socket.off('ride_status_changed');
         socket.off('passenger_location_update');
         socket.off('receive_ride_message');
-        socket.off('new_message_notification');
+            socket.off('new_message_notification');
+        socket.off('connect_error');
+        socket.off('error');
         socket.emit('leave_ride_chat', {
           rideId: urlParams.rideId,
           userId: user.id,
@@ -181,7 +220,8 @@ function OngoingRideContent() {
         });
       };
     } catch (error) {
-      console.error('Error initializing socket:', error);
+      console.warn('⚠️ Socket initialization error:', error.message);
+      // Don't crash the app, socket features will just be unavailable
     }
   }, [user, urlParams.rideId, router]);
 
@@ -366,10 +406,38 @@ function OngoingRideContent() {
     }
   };
 
-  // Clear localStorage when ride is cancelled/completed
+  // 🔥 Clear localStorage when ride is cancelled/completed
   const clearStoredRide = (rideId) => {
-    if (rideId) {
-      localStorage.removeItem(`rider_ongoing_ride_${rideId}`);
+    try {
+      if (typeof window === 'undefined') return;
+      
+      if (!rideId) {
+        console.warn('⚠️ clearStoredRide: No rideId provided');
+        return;
+      }
+      
+      const key = `rider_ongoing_ride_${rideId}`;
+      console.log('🗑️ Attempting to clear localStorage:', key);
+      
+      // Check if key exists before removing
+      const existingData = localStorage.getItem(key);
+      if (existingData) {
+        localStorage.removeItem(key);
+        console.log('✅ Successfully cleared ride data from localStorage:', rideId);
+      } else {
+        console.warn('⚠️ No data found in localStorage for key:', key);
+      }
+      
+      // Also clear any old keys (cleanup)
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('rider_ongoing_ride_')) {
+          console.log('🧹 Cleaning up old key:', k);
+          localStorage.removeItem(k);
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Error clearing localStorage:', error);
     }
   };
 
@@ -493,6 +561,47 @@ function OngoingRideContent() {
 
     parseLocations();
   }, [searchParams, user]);
+
+  // CRITICAL: Poll ride status to check if cancelled (Hybrid Approach)
+  useEffect(() => {
+    if (!urlParams.rideId) return;
+
+    const checkRideStatus = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${urlParams.rideId}`);
+        if (response.ok) {
+          const rideData = await response.json();
+          
+          // Check if ride was cancelled by user
+          if (rideData.status === 'cancelled' || rideData.status === 'cancelled_by_user') {
+            console.log('🔍 Polling detected: Ride cancelled by user');
+            toast.error('Ride cancelled by user');
+            clearStoredRide(urlParams.rideId);
+            setTimeout(() => {
+              router.push('/dashboard/rider/available-rides');
+            }, 1000);
+          }
+          //  Check if ride was completed
+          else if (rideData.status === 'completed') {
+            console.log('🔍 Polling detected: Ride completed');
+            toast.success('Ride completed successfully!');
+            clearStoredRide(urlParams.rideId);
+            setTimeout(() => {
+              router.push('/dashboard/rider/available-rides');
+            }, 1000);
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Ride status check error:', error.message);
+      }
+    };
+
+    // Check every 3 seconds (faster than location polling)
+    const statusInterval = setInterval(checkRideStatus, 3000);
+    checkRideStatus(); // Check immediately
+
+    return () => clearInterval(statusInterval);
+  }, [urlParams.rideId, router]);
 
   // Fetch rider's real-time location
     useEffect(() => {
@@ -621,7 +730,7 @@ function OngoingRideContent() {
     status: "Waiting for pickup",
   };
 
-  // ✅ Start Ride Handler
+  // Start Ride Handler
   const handleStartRide = async () => {
     if (!rideId || !riderId) {
       toast.error("Missing ride information");
@@ -653,7 +762,7 @@ function OngoingRideContent() {
     }
   };
 
-  // ✅ Cancel Ride Handler
+  // Cancel Ride Handler
   const handleCancelRide = async () => {
     if (!rideId || !riderId) {
       toast.error("Missing ride information");
