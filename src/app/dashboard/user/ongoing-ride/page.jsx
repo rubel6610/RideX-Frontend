@@ -39,6 +39,8 @@ import {
   Hash,
   CheckCircle,
   Check,
+  Search,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +74,73 @@ const rideTypeIcon = {
   Car: Car,
 };
 
+// No Ongoing Ride Component
+function NoOngoingRide({ onBookRide }) {
+  return (
+    <div className="flex items-center justify-center min-h-[600px] p-4">
+      <div className="text-center max-w-md">
+        <div className="relative inline-flex items-center justify-center mb-6">
+          {/* Animated background circles */}
+          <div className="absolute w-32 h-32 bg-primary/10 rounded-full animate-pulse"></div>
+          <div className="absolute w-24 h-24 bg-primary/20 rounded-full animate-ping"></div>
+          
+          {/* Icon */}
+          <div className="relative bg-primary p-6 rounded-full shadow-lg">
+            <Car className="w-12 h-12 text-primary-foreground" />
+          </div>
+        </div>
+
+        <h2 className="text-3xl font-bold text-foreground mb-3">
+          No Ongoing Ride
+        </h2>
+        
+        <p className="text-muted-foreground text-lg mb-8">
+          You don't have any active rides at the moment.
+          <br />
+          Ready to book your next ride?
+        </p>
+
+        <div className="space-y-3">
+          <Button
+            onClick={onBookRide}
+            className="w-full h-12 text-base font-semibold"
+          >
+            <Search className="w-5 h-5 mr-2" />
+            Book a Ride Now
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+
+          <p className="text-sm text-muted-foreground">
+            Get started by booking a new ride from your location
+          </p>
+        </div>
+
+        {/* Decorative elements */}
+        <div className="mt-12 flex items-center justify-center gap-8 opacity-50">
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <Bike className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground">Bike</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <Car className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground">CAR</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <BusFront className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground">CNG</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OngoingRideContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -81,6 +150,7 @@ function OngoingRideContent() {
   const [dropLocation, setDropLocation] = useState(null);
   const [liveEta, setLiveEta] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasNoRide, setHasNoRide] = useState(false);
   const [urlParams, setUrlParams] = useState({});
   const [riderLocation, setRiderLocation] = useState({
     type: "Point",
@@ -416,16 +486,10 @@ function OngoingRideContent() {
           params = await fetchOngoingRideFromBackend(user.id);
         }
         
-        // If still no params, show no ongoing ride message
+        // If still no params, show no ongoing ride UI
         if (!params) {
           setIsLoading(false);
-          toast.info("No ongoing ride", {
-            description: "You don't have any active rides at the moment."
-          });
-          // Redirect to book-a-ride after 2 seconds
-          setTimeout(() => {
-            router.push("/dashboard/user/book-a-ride");
-          }, 2000);
+          setHasNoRide(true);
           return;
         }
         
@@ -609,6 +673,15 @@ function OngoingRideContent() {
 
     return () => clearInterval(interval);
   }, [urlParams.riderId, pickupLocation]);
+
+  // Show no ride UI if no active ride found
+  if (!isLoading && hasNoRide) {
+    return (
+      <NoOngoingRide 
+        onBookRide={() => router.push("/dashboard/user/book-a-ride")} 
+      />
+    );
+  }
 
   // Early return if still loading or searchParams is not available
   if (isLoading || !searchParams) {

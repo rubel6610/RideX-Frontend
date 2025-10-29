@@ -11,23 +11,31 @@ export const apiRequest = async (endpoint, method = "GET", data = {}, params = {
     });
     return res.data;
   } catch (error) {
-    // ✅ Enhanced error handling
+    // ✅ Enhanced error handling with better logging
+    const hasResponseData = error.response?.data && 
+      typeof error.response.data === 'object' && 
+      Object.keys(error.response.data).length > 0;
+
+    // Build error details only if we have meaningful data
     const errorDetails = {
       endpoint,
       method,
-      message: error.message || 'Unknown error',
+      message: error.message || error.response?.statusText || 'Unknown error',
       status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
+      ...(hasResponseData && { data: error.response.data })
     };
 
-    // Only log if there's actual error data
-    if (error.response?.data && Object.keys(error.response.data).length > 0) {
+    // Log based on what information we have
+    if (hasResponseData) {
       console.error("❌ API Error:", errorDetails);
+    } else if (error.response?.status) {
+      console.error(`❌ API Error [${error.response.status}]:`, 
+        error.message || error.response.statusText, 
+        `[${method} ${endpoint}]`);
     } else if (error.message) {
       console.error("❌ API Error:", error.message, `[${method} ${endpoint}]`);
     } else {
-      console.error("❌ API Error: Unknown error occurred", `[${method} ${endpoint}]`);
+      console.error("❌ Network/API Error:", `[${method} ${endpoint}]`);
     }
     
     throw error;
