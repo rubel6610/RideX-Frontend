@@ -11,7 +11,7 @@
 
 ## 🌐 Live Demo
 
-- **Live Site**: [Coming Soon]
+- **Live Site**: [Live Link](https://ridex-ride-sharing.vercel.app)
 - **Frontend Repository**: [GitHub - RideX Frontend](https://github.com/yourusername/ridex-frontend)
 - **Backend Repository**: [GitHub - RideX Backend](https://github.com/yourusername/ridex-backend)
 
