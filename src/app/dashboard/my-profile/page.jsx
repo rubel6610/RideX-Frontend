@@ -81,10 +81,10 @@ const MyProfile = () => {
         </div>
 
         {/* Details Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 md:px-6 lg:px-8 py-10">
           {/* Personal Details */}
           <div>
-            <h3 className="text-lg font-semibold text-primary mb-4">
+            <h3 className="text-lg font-semibold text-primary mb-4 border-b-2 border-primary/50">
               Personal details
             </h3>
             <div className="bg-accent/20 rounded-xl border border-primary/10 divide-y divide-border/10">
@@ -103,7 +103,7 @@ const MyProfile = () => {
 
           {/* Account Details */}
           <div>
-            <h3 className="text-lg font-semibold text-primary mb-4">
+            <h3 className="text-lg font-semibold text-primary mb-4 border-b-2 border-primary/50">
               Account Details
             </h3>
             <div className="bg-accent/20 rounded-xl border border-primary/10 divide-y divide-border/10">
