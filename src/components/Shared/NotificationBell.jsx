@@ -179,6 +179,27 @@ export default function NotificationBell() {
       });
     });
 
+    // Listen for payment notifications (for admins)
+    if (user.role === "admin") {
+      socketRef.current.on("new_payment_notification", (data) => {
+        const notification = {
+          id: Date.now(),
+          type: "payment",
+          title: "New Payment Received",
+          message: data.message,
+          time: new Date(),
+          read: false,
+        };
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        toast.success("New Payment Received!", {
+          description: data.message,
+          duration: 5000
+        });
+      });
+    }
+
     // Listen for ride acceptance (for users)
     if (user.role === "user") {
       socketRef.current.on("ride_accepted", (data) => {
@@ -250,6 +271,7 @@ export default function NotificationBell() {
         socketRef.current.off("new_message");
         socketRef.current.off("ride_accepted");
         socketRef.current.off("new_message_notification");
+        socketRef.current.off("new_payment_notification");
       }
     };
   }, [user]);
