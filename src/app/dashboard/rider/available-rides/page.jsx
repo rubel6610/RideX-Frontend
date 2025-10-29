@@ -292,8 +292,8 @@ const AvailableRidesPage = () => {
           params.append('mode', 'auto');
           params.append('promo', '');
           
-          // Navigate to rider accept-ride page
-          window.location.href = `/dashboard/rider/accept-ride?${params.toString()}`;
+          // Navigate to ongoing-ride page
+          window.location.href = `/dashboard/rider/ongoing-ride?${params.toString()}`;
         }
       } else {
         // Handle specific error cases
