@@ -134,7 +134,7 @@ export default function RiderVehicleInfo() {
                 placeholder="Upload Image"
               /> */}
               <Input
-              className='text-white'
+              className='text-black dark:text-white'
                 type="text"
                 value={formData.vehicleType}
                 onChange={(e) =>
@@ -143,7 +143,7 @@ export default function RiderVehicleInfo() {
                 placeholder="Vehicle Type"
               />
               <Input
-                   className='text-white'
+                  className='text-black dark:text-white'
                 type="text"
                 value={formData.vehicleModel}
                 onChange={(e) =>
@@ -152,7 +152,7 @@ export default function RiderVehicleInfo() {
                 placeholder="Vehicle Model"
               />
               <Input
-                   className='text-white'
+                   className='text-black dark:text-white'
                 type="text"
                 value={formData.vehicleRegisterNumber}
                 onChange={(e) =>

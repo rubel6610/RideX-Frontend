@@ -226,11 +226,11 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Scroll to Top Button */}
+      {/* Scroll to Top Button - moved to left bottom as requested */}
       {scrollProgress > 0 && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-50 overflow-hidden"
+          className="fixed bottom-6 left-6 w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-50 overflow-hidden"
           style={{
             background: `conic-gradient(#000000 ${scrollProgress}%, #ffffff ${scrollProgress}%)`
           }}
