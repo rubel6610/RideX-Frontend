@@ -303,6 +303,92 @@ function OngoingRideContent() {
           localStorage.setItem(`rider_ongoing_ride_${rideId}`, JSON.stringify(allParams));
           return params;
         }
+<<<<<<< HEAD
+        fetchRide();
+    }, [riderId]);
+
+    // this is current ride data so this data show in UI - Only show accepted rides
+    const matchedRide = rideData?.find(ride => ride.riderId === currentRider && ride.status === 'accepted') || null;
+    console.log(matchedRide?.userId);
+
+    // passengger data fetch 
+    useEffect(() => {
+        if (!matchedRide?.userId) return;
+
+        const fetchPassenger = async () => {
+            try {
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide.userId}`
+                );
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
+                const data = await res.json();
+                setusers(data);
+                setError(null); // Clear any previous errors
+            } catch (err) {
+                console.error('Error fetching passenger data:', err);
+                setError(err.message);
+            }
+        };
+
+        fetchPassenger();
+    }, [matchedRide?.userId]);
+
+    //  Safely destructure with fallback to prevent null errors
+    const {
+<<<<<<< HEAD
+        fare,
+        vehicleType,
+        status,
+        pickup,
+        drop,
+        acceptedAt,
+        createdAt,
+        assignedAt,
+        riderInfo
+    } = matchedRide;
+    console.log(matchedRide);
+=======
+        fare = null,
+        vehicleType = null,
+        status = null,
+        pickup = null,
+        drop = null,
+        acceptedAt = null,
+        createdAt = null,
+        assignedAt = null,
+        riderInfo = null
+    } = matchedRide || {};
+
+    //  Safely extract coordinates with null checks
+    const CurrentRideLocation = matchedRide?.drop?.coordinates || [];
+    const longitude = CurrentRideLocation[0];
+    const latitude = CurrentRideLocation[1];
+>>>>>>> 6f10498a21f748179b94f9a20ac6cf5f63e40e35
+
+    const fetchLocationName = async (lat, lon) => {
+        try {
+            if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+                return "Invalid coordinates";
+            }
+            
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+            );
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const data = await res.json();
+            return data.display_name || "Location not found";
+        } catch (error) {
+            console.error("Error fetching location name:", error);
+            return "Location unavailable";
+=======
       }
       
       // If no URL params, check localStorage
@@ -320,6 +406,7 @@ function OngoingRideContent() {
             if (value) params.set(key, value);
           });
           return params;
+>>>>>>> d23d3594aa67a3a5d719e91a82832511b2ff1787
         }
       }
       

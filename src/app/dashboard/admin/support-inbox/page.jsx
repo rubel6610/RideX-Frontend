@@ -336,8 +336,8 @@ export default function AdminSupport() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-100px)] bg-background overflow-hidden">
-      <Card className="w-96 m-4 flex flex-col border-border bg-card overflow-hidden">
+    <div className="md:flex h-[calc(100vh-100px)] bg-background ">
+      <Card className="w-96 m-4 flex flex-col border-border bg-card">
         <CardHeader className="border-b border-border bg-card">
           <CardTitle className="flex items-center gap-2 text-white">
             <Users className="h-5 w-5" />
@@ -410,7 +410,7 @@ export default function AdminSupport() {
       </Card>
 
       {/* Chat Area */}
-      <Card className="flex-1 m-4 flex flex-col border-border bg-card overflow-hidden">
+      <Card className="flex-1 m-4 flex flex-col border-border bg-card border">
         {!activeThread ? (
           <div className="flex-1 flex flex-col items-center justify-center text-white/70">
             <MessageCircle className="h-16 w-16 mb-4 text-white/30" />
