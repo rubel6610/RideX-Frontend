@@ -910,7 +910,7 @@ function OngoingRideContent() {
         {/* Main Container */}
         <div className="bg-background rounded-2xl shadow-2xl border border-border overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-accent p-4 md:p-6 text-white">
+          <div className="bg-primary p-4 md:p-6 text-white">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white/20 rounded-full backdrop-blur-sm">

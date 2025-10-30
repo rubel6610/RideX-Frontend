@@ -162,6 +162,7 @@ function OngoingRideContent() {
   const [tripEta, setTripEta] = useState(null); // Trip ETA (pickup to drop)
   const [pickupAddress, setPickupAddress] = useState("");
   const [dropAddress, setDropAddress] = useState("");
+  const [riderRating, setRiderRating] = useState({ rating: 0, totalReviews: 0 });
 
   // Initialize Socket.IO for real-time chat notifications
   useEffect(() => {
@@ -170,7 +171,7 @@ function OngoingRideContent() {
     try {
       const socket = initSocket(user.id, false);
       
-      // ✅ Handle socket connection errors
+      // Handle socket connection errors
       socket.on('connect_error', (error) => {
         console.warn('⚠️ Socket connection error (will retry):', error.message);
         // Don't show toast, socket will auto-retry
@@ -186,7 +187,7 @@ function OngoingRideContent() {
         userId: user.id,
         userType: 'user'
       });
-      console.log('✅ User joined ride chat room:', urlParams.rideId);
+      console.log(' User joined ride chat room:', urlParams.rideId);
 
       // Listen for chat messages from rider (auto-open chat modal)
       socket.on('receive_ride_message', (data) => {
@@ -236,7 +237,7 @@ function OngoingRideContent() {
 
       // 🔥 Listen for ride started event
       socket.on('ride_started', (data) => {
-        console.log('✅ Ride started event received:', data);
+        console.log(' Ride started event received:', data);
         if (data.rideId === urlParams.rideId) {
           toast.success('Your ride has started!', {
             description: 'Your rider is now on the way to drop location'
@@ -361,7 +362,7 @@ function OngoingRideContent() {
     }
   };
 
-  // 🔥 Load ride params from localStorage or URL
+  //  Load ride params from localStorage or URL
   const loadRideParams = () => {
     try {
       // Check if we're in browser environment
@@ -373,10 +374,10 @@ function OngoingRideContent() {
         const rideId = params.get("rideId");
         
         if (rideId) {
-          // ✅ Save to localStorage for future use (USER END)
+          //  Save to localStorage for future use (USER END)
           const allParams = Object.fromEntries(params.entries());
           localStorage.setItem(`user_ongoing_ride_${rideId}`, JSON.stringify(allParams));
-          console.log('✅ Saved ride data to localStorage:', rideId);
+          console.log(' Saved ride data to localStorage:', rideId);
           return params;
         }
       }
@@ -390,7 +391,7 @@ function OngoingRideContent() {
         const storedParams = JSON.parse(localStorage.getItem(latestRideKey) || '{}');
         
         if (storedParams.rideId) {
-          console.log('✅ Loaded ride data from localStorage:', storedParams.rideId);
+          console.log(' Loaded ride data from localStorage:', storedParams.rideId);
           // Create URLSearchParams from stored data
           const params = new URLSearchParams();
           Object.entries(storedParams).forEach(([key, value]) => {
@@ -407,7 +408,7 @@ function OngoingRideContent() {
     }
   };
 
-  // 🔥 Fetch ongoing ride from backend if no params available
+  //  Fetch ongoing ride from backend if no params available
   const fetchOngoingRideFromBackend = async (userId) => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user-rides/${userId}`);
@@ -480,7 +481,7 @@ function OngoingRideContent() {
       params.set('mode', 'auto');
       params.set('promo', ongoingRide.promoCode || '');
       
-      // ✅ Save to localStorage (browser only)
+      //  Save to localStorage (browser only)
       const rideId = ongoingRide._id;
       if (rideId && typeof window !== 'undefined') {
         localStorage.setItem(`user_ongoing_ride_${rideId}`, JSON.stringify(Object.fromEntries(params.entries())));
@@ -494,7 +495,7 @@ function OngoingRideContent() {
     }
   };
 
-  // 🔥 Clear localStorage when ride is cancelled/completed
+  //  Clear localStorage when ride is cancelled/completed
   const clearStoredRide = (rideId) => {
     try {
       if (typeof window === 'undefined') return;
@@ -773,11 +774,72 @@ function OngoingRideContent() {
     return () => clearInterval(statusInterval);
   }, [urlParams.rideId, router]);
 
+  // Fetch rider's ratings
+  useEffect(() => {
+    const fetchRiderRatings = async () => {
+      console.log("Current urlParams:", urlParams); // Debug log for all URL params
+
+      if (!urlParams.riderId) {
+        console.log("No riderId available for fetching ratings");
+        return;
+      }
+
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+        if (!baseUrl) {
+          console.error("Server base URL is not defined in environment variables!");
+          return;
+        }
+        console.log("Base URL:", baseUrl); // Debug log for base URL
+        // Add fallback for local development
+        const serverUrl = baseUrl;
+        const apiUrl = `${serverUrl}/api/ride-reviews`;
+        console.log("Fetching ratings from URL:", apiUrl);
+        
+        const response = await fetch(apiUrl);
+        console.log("Rating API response status:", response.status);
+        
+        const responseText = await response.text(); // Get raw response text first
+        console.log("Raw API response:", responseText);
+        
+        if (response.ok) {
+          const data = JSON.parse(responseText); // Parse the text to JSON
+          console.log("All reviews data:", data);
+          
+          // Filter reviews for the current rider
+          const riderReviews = Array.isArray(data) ? data.filter(review => review.riderId === urlParams.riderId) : [];
+          
+          // Calculate average rating from the filtered reviews
+          const totalReviews = riderReviews.length;
+          const sumRatings = riderReviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+          const avgRating = totalReviews > 0 ? sumRatings / totalReviews : 0;
+          
+          console.log("Calculated ratings:", {
+            averageRating: avgRating,
+            totalReviews: totalReviews
+          });
+          
+          setRiderRating({
+            rating: avgRating,
+            totalReviews: totalReviews
+          });
+        } else {
+          console.warn("Failed to fetch ratings - server returned:", response.status);
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to fetch rider ratings:', error);
+        console.error('Error details:', error.message);
+      }
+    };
+
+    fetchRiderRatings();
+  }, [urlParams.riderId]);
+
   // Fetch rider's real-time location
   useEffect(() => {
     const fetchRiderLocation = async () => {
       try {
-        // ✅ Validate riderId before fetching
+        // Validate riderId before fetching
         if (!urlParams.riderId || urlParams.riderId === 'undefined' || urlParams.riderId === 'null') {
           console.warn('⚠️ No valid riderId available for location fetch');
           return;
@@ -881,11 +943,6 @@ function OngoingRideContent() {
     status: "On the way",
     location: riderLocation,
   };
-
-  // Debug: Log rider photo URL
-  console.log('🖼️ Rider Photo URL:', riderPhoto, 'Full riderInfo:', riderInfo);
-
-  
 
   //  Updated Complete Ride Handler with enhanced error protection
   const handleCompleteRide = () => {
@@ -1062,9 +1119,15 @@ function OngoingRideContent() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          <span className="font-semibold">{riderInfo.rating.toFixed(1)}</span>
+                          <span className="font-semibold">{riderRating.rating.toFixed(1)}</span>
                           <span>•</span>
-                          <span>{riderInfo.completedRides} rides</span>
+                          <span>{riderRating.totalReviews} reviews</span>
+                          {riderInfo.completedRides > 0 && (
+                            <>
+                              <span>•</span>
+                              <span>{riderInfo.completedRides} rides</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </>
