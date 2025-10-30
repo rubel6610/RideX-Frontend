@@ -11,7 +11,7 @@ export default function RideHistory() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 10;
 
   //  Ride History & Reviews fetch
   useEffect(() => {
@@ -67,12 +67,14 @@ export default function RideHistory() {
     currentPage * itemsPerPage
   );
 
+  console.log(itemsPerPage);
+
   //  Skeleton Loader for Table
   const TableSkeleton = () => (
     <tbody>
       {[...Array(itemsPerPage)].map((_, i) => (
         <tr key={i} className="border-t">
-          {[...Array(8)].map((_, j) => (
+          {[...Array(10)].map((_, j) => (
             <td key={j} className="px-4 py-2">
               <Skeleton className="h-4 w-full bg-accent/80 rounded" />
             </td>
@@ -87,7 +89,7 @@ export default function RideHistory() {
     <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
       {/* Summary cards */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Rides */}
         <div className="p-6 bg-accent/30 rounded-2xl flex flex-col items-center justify-center border border-primary">
           <User className="w-8 h-8 text-primary mb-2" />
@@ -146,7 +148,7 @@ export default function RideHistory() {
       </div>
 
       {/* Ride Table */}
-      <div className="overflow-x-auto mr-10 border border-accent  mt-10 rounded-xl">
+      <div className="overflow-x-auto mr-10 border border-border mt-10 rounded-xl">
         <table className="w-full text-sm">
           <thead className="bg-accent text-left">
             <tr>
@@ -179,7 +181,7 @@ export default function RideHistory() {
               {paginatedRides.map((ride) => (
                 <tr
                   key={ride._id}
-                  className="border-t hover:bg-primary "
+                  className="border-t border-border hover:bg-primary "
                 >
                   <td className="px-4 py-2 ">{ride.userEmail || "N/A"}</td>
                   <td className="px-4 py-2">

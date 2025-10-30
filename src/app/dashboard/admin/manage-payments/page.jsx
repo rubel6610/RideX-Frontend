@@ -159,7 +159,7 @@ export default function PaymentManagement() {
         <h1 className="text-3xl font-bold">Manage Payments</h1>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
@@ -176,17 +176,17 @@ export default function PaymentManagement() {
           <TableBody>
             {payments.map((payment, index) => (
               <TableRow key={payment._id}>
-                <TableCell className="font-medium">{index + 1}</TableCell>
-                <TableCell>
+                <TableCell className="font-medium border-t border-border">{index + 1}</TableCell>
+                <TableCell className="border-t border-border">
                   {payment.userEmail}
                 </TableCell>
-                <TableCell>
+                <TableCell className="border-t border-border">
                       {payment.riderEmail}
                 </TableCell>
-                <TableCell>৳{payment?.rideDetails?.fareBreakdown?.totalAmount || 0}</TableCell>
-                <TableCell>৳{payment?.rideDetails?.fareBreakdown?.riderCommission || 0}</TableCell>
-                <TableCell>৳{payment?.rideDetails?.fareBreakdown?.platformCommission || 0}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="border-t border-border">৳{payment?.rideDetails?.fareBreakdown?.totalAmount || 0}</TableCell>
+                <TableCell className="border-t border-border">৳{payment?.rideDetails?.fareBreakdown?.riderCommission || 0}</TableCell>
+                <TableCell className="border-t border-border">৳{payment?.rideDetails?.fareBreakdown?.platformCommission || 0}</TableCell>
+                <TableCell className="text-right border-t border-border">
                   <Badge 
                     variant={
                       payment.paid === true ? 'default' : 'secondary'
@@ -196,7 +196,7 @@ export default function PaymentManagement() {
                   </Badge>
                 </TableCell>
 
-                <TableCell className="text-right">
+                <TableCell className="text-right border-t border-border">
                   {payment.status === 'Paid' && payment.paid !== true && (
                     <Button 
                       size="sm" 

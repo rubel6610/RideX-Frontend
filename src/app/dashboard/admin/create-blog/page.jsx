@@ -205,7 +205,7 @@ export default function CreateBlogPage() {
         {/* Left Column - Input */}
         <div className="h-fit bg-card rounded-xl border border-border py-6 px-3 sm:px-6 md:px-3 lg:px-6">
           <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Blog Context</h2>
-
+ 
           <div className="space-y-2 sm:space-y-4">
             {/* Image Upload Section */}
             <div>

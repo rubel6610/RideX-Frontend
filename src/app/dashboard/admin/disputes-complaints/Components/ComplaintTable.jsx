@@ -36,7 +36,7 @@ export default function ComplaintTable({
           <tbody>
             {data.length > 0 ? (
               data.map((complaint) => (
-                <tr key={complaint.id} className="border-t">
+                <tr key={complaint.id} className="border-t border-border">
                   <td className="px-2 sm:px-4 py-2 font-medium">{complaint.id}</td>
                   <td className="px-2 sm:px-4 py-2">{complaint.type}</td>
                   <td className="px-2 sm:px-4 py-2 text-xs">{complaint.from}</td>

@@ -9,7 +9,7 @@ class ErrorBoundary extends React.Component {
     super(props);
     this.state = { hasError: false };
   }
-  
+
   static getDerivedStateFromError(error) {
     return { hasError: true };
   }
@@ -42,10 +42,12 @@ import {
   Check,
   User,
   Star,
+  Search,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
@@ -75,28 +77,97 @@ const rideTypeIcon = {
   Car: Car,
 };
 
+// No Ongoing Ride Component for Rider
+function NoOngoingRide({ onViewRides }) {
+  return (
+    <div className="flex items-center justify-center min-h-[600px] p-4">
+      <div className="text-center max-w-md">
+        <div className="relative inline-flex items-center justify-center mb-6">
+          {/* Animated background circles */}
+          <div className="absolute w-32 h-32 bg-primary/10 rounded-full animate-pulse"></div>
+          <div className="absolute w-24 h-24 bg-primary/20 rounded-full animate-ping"></div>
+
+          {/* Icon */}
+          <div className="relative bg-primary p-6 rounded-full shadow-lg">
+            <Car className="w-12 h-12 text-primary-foreground" />
+          </div>
+        </div>
+
+        <h2 className="text-3xl font-bold text-foreground mb-3">
+          No Ongoing Ride
+        </h2>
+
+        <p className="text-muted-foreground text-lg mb-8">
+          You don't have any active rides at the moment.
+          <br />
+          Check available ride requests to start earning!
+        </p>
+
+        <div className="space-y-3">
+          <Button
+            onClick={onViewRides}
+            className="w-full h-12 text-base font-semibold"
+          >
+            <Search className="w-5 h-5 mr-2" />
+            View Available Rides
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+
+          <p className="text-sm text-muted-foreground">
+            Browse nearby ride requests and start your journey
+          </p>
+        </div>
+
+        {/* Decorative elements */}
+        <div className="mt-12 flex items-center justify-center gap-8 opacity-50">
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <Bike className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground">Bike</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <Car className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground">CAR</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <BusFront className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground">CNG</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OngoingRideContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-    const { user } = useAuth();
+  const { user } = useAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropLocation, setDropLocation] = useState(null);
   const [liveEta, setLiveEta] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasNoRide, setHasNoRide] = useState(false);
   const [urlParams, setUrlParams] = useState({});
   const [riderLocation, setRiderLocation] = useState(null);
   const [calculatedEta, setCalculatedEta] = useState(null);
   const [distance, setDistance] = useState(null);
   const [pickupAddress, setPickupAddress] = useState("");
   const [dropAddress, setDropAddress] = useState("");
+  const [rideStatus, setRideStatus] = useState("accepted"); // Track ride status
 
   // Initialize Socket.IO for real-time updates
-    useEffect(() => {
+  useEffect(() => {
     if (!user?.id || !urlParams.rideId) return;
 
     try {
-        const socket = initSocket(user.id, false);
+      const socket = initSocket(user.id, false);
 
       // ✅ Handle socket connection errors
       socket.on('connect_error', (error) => {
@@ -117,7 +188,7 @@ function OngoingRideContent() {
         console.log('✅ Ride status update received:', data);
         if (data.rideId === urlParams.rideId) {
           toast.info(`Ride status: ${data.status}`);
-          
+
           // Handle different status updates
           if (data.status === 'cancelled_by_user' || data.status === 'cancelled') {
             toast.error('Ride cancelled by user');
@@ -140,7 +211,7 @@ function OngoingRideContent() {
         console.log('✅ Ride status changed received:', data);
         if (data.rideId === urlParams.rideId) {
           toast.info(`Ride status: ${data.status}`);
-          
+
           if (data.status === 'cancelled_by_user' || data.status === 'cancelled') {
             toast.error('Ride cancelled by user');
             clearStoredRide(urlParams.rideId);
@@ -154,6 +225,17 @@ function OngoingRideContent() {
               router.push('/dashboard/rider/available-rides');
             }, 1000);
           }
+        }
+      });
+
+      // 🔥 Listen for ride started event
+      socket.on('ride_started', (data) => {
+        console.log('✅ Ride started event received:', data);
+        if (data.rideId === urlParams.rideId) {
+          setRideStatus('ongoing');
+          toast.success('Ride is now ongoing!', {
+            description: 'Drive safely to the destination'
+          });
         }
       });
 
@@ -203,14 +285,15 @@ function OngoingRideContent() {
             duration: 3000,
           });
         }
-        });
+      });
 
-        return () => {
+      return () => {
         socket.off('ride_status_update');
         socket.off('ride_status_changed');
+        socket.off('ride_started');
         socket.off('passenger_location_update');
         socket.off('receive_ride_message');
-            socket.off('new_message_notification');
+        socket.off('new_message_notification');
         socket.off('connect_error');
         socket.off('error');
         socket.emit('leave_ride_chat', {
@@ -232,7 +315,7 @@ function OngoingRideContent() {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
       );
       const data = await response.json();
-      
+
       if (data && data.display_name) {
         // Extract meaningful parts of the address
         const addressParts = data.display_name.split(', ');
@@ -251,17 +334,17 @@ function OngoingRideContent() {
     const R = 6371; // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in kilometers
   };
 
   // Calculate ETA based on distance and vehicle type
   const calculateETA = (distance, vehicleType = 'bike') => {
     if (!distance || distance <= 0) return null;
-    
+
     let avgSpeed; // Average speed in km/h
     switch (vehicleType.toLowerCase()) {
       case 'bike':
@@ -276,10 +359,10 @@ function OngoingRideContent() {
       default:
         avgSpeed = 60; // Default speed
     }
-    
+
     const timeInHours = distance / avgSpeed;
     const timeInMinutes = Math.round(timeInHours * 60);
-    
+
     if (timeInMinutes < 60) {
       return `${timeInMinutes} min`;
     } else {
@@ -296,110 +379,23 @@ function OngoingRideContent() {
       if (searchParams) {
         const params = new URLSearchParams(searchParams.toString());
         const rideId = params.get("rideId");
-        
+
         if (rideId) {
           // Save to localStorage for future use
           const allParams = Object.fromEntries(params.entries());
           localStorage.setItem(`rider_ongoing_ride_${rideId}`, JSON.stringify(allParams));
           return params;
         }
-<<<<<<< HEAD
-        fetchRide();
-    }, [riderId]);
-
-    // this is current ride data so this data show in UI - Only show accepted rides
-    const matchedRide = rideData?.find(ride => ride.riderId === currentRider && ride.status === 'accepted') || null;
-    console.log(matchedRide?.userId);
-
-    // passengger data fetch 
-    useEffect(() => {
-        if (!matchedRide?.userId) return;
-
-        const fetchPassenger = async () => {
-            try {
-                const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${matchedRide.userId}`
-                );
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                
-                const data = await res.json();
-                setusers(data);
-                setError(null); // Clear any previous errors
-            } catch (err) {
-                console.error('Error fetching passenger data:', err);
-                setError(err.message);
-            }
-        };
-
-        fetchPassenger();
-    }, [matchedRide?.userId]);
-
-    //  Safely destructure with fallback to prevent null errors
-    const {
-<<<<<<< HEAD
-        fare,
-        vehicleType,
-        status,
-        pickup,
-        drop,
-        acceptedAt,
-        createdAt,
-        assignedAt,
-        riderInfo
-    } = matchedRide;
-    console.log(matchedRide);
-=======
-        fare = null,
-        vehicleType = null,
-        status = null,
-        pickup = null,
-        drop = null,
-        acceptedAt = null,
-        createdAt = null,
-        assignedAt = null,
-        riderInfo = null
-    } = matchedRide || {};
-
-    //  Safely extract coordinates with null checks
-    const CurrentRideLocation = matchedRide?.drop?.coordinates || [];
-    const longitude = CurrentRideLocation[0];
-    const latitude = CurrentRideLocation[1];
->>>>>>> 6f10498a21f748179b94f9a20ac6cf5f63e40e35
-
-    const fetchLocationName = async (lat, lon) => {
-        try {
-            if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
-                return "Invalid coordinates";
-            }
-            
-            // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
-            );
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            return data.display_name || "Location not found";
-        } catch (error) {
-            console.error("Error fetching location name:", error);
-            return "Location unavailable";
-=======
       }
-      
+
       // If no URL params, check localStorage
       const storedRides = Object.keys(localStorage).filter(key => key.startsWith('rider_ongoing_ride_'));
-      
+
       if (storedRides.length > 0) {
         // Get the most recent ride (last key)
         const latestRideKey = storedRides[storedRides.length - 1];
         const storedParams = JSON.parse(localStorage.getItem(latestRideKey) || '{}');
-        
+
         if (storedParams.rideId) {
           // Create URLSearchParams from stored data
           const params = new URLSearchParams();
@@ -407,10 +403,9 @@ function OngoingRideContent() {
             if (value) params.set(key, value);
           });
           return params;
->>>>>>> d23d3594aa67a3a5d719e91a82832511b2ff1787
         }
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error loading ride params:', error);
@@ -422,36 +417,36 @@ function OngoingRideContent() {
   const fetchOngoingRideFromBackend = async (riderId) => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${riderId}`);
-      
+
       if (!response.ok) {
         return null;
       }
-      
+
       const data = await response.json();
       const rides = data?.rides || [];
-      
+
       // Find accepted or ongoing ride
       const ongoingRide = rides.find(ride => {
         const rideRiderId = typeof ride.riderId === 'object' ? ride.riderId.toString() : ride.riderId;
         const currentRiderId = typeof riderId === 'object' ? riderId.toString() : riderId;
-        return rideRiderId === currentRiderId && 
-               (ride.status === 'accepted' || ride.status === 'pending' || ride.status === 'started');
+        return rideRiderId === currentRiderId &&
+          (ride.status === 'accepted' || ride.status === 'pending' || ride.status === 'started');
       });
-      
+
       if (!ongoingRide) {
         return null;
       }
-      
+
       // Fetch passenger info
       const passengerResponse = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?userId=${ongoingRide.userId}`
       );
       const passengerData = await passengerResponse.ok ? await passengerResponse.json() : null;
-      
+
       // Construct params from backend data
       const pickupCoords = ongoingRide.pickup?.coordinates || [];
       const dropCoords = ongoingRide.drop?.coordinates || [];
-      
+
       const params = new URLSearchParams();
       params.set('rideId', ongoingRide._id || '');
       params.set('userId', ongoingRide.userId || '');
@@ -460,19 +455,20 @@ function OngoingRideContent() {
       params.set('vehicleType', ongoingRide.vehicleType || 'Bike');
       params.set('distance', '0');
       params.set('arrivalTime', '00h:00m');
-      
+
       if (pickupCoords.length === 2) {
         params.set('pickup', `${pickupCoords[1]},${pickupCoords[0]}`);
       }
-      
+
       if (dropCoords.length === 2) {
         params.set('drop', `${dropCoords[1]},${dropCoords[0]}`);
       }
-      
+
       params.set('passengerName', passengerData?.fullName || 'Unknown Passenger');
       params.set('passengerEmail', passengerData?.email || '');
       params.set('passengerPhone', passengerData?.phoneNumber || '');
       params.set('passengerRating', (passengerData?.rating || 0).toString());
+      params.set('passengerPhoto', passengerData?.photoUrl || passengerData?.photo || '');
       params.set('baseFare', '0');
       params.set('distanceFare', '0');
       params.set('timeFare', '0');
@@ -480,13 +476,13 @@ function OngoingRideContent() {
       params.set('total', (ongoingRide.fare || 0).toString());
       params.set('mode', 'auto');
       params.set('promo', '');
-      
+
       // Save to localStorage
       const rideId = ongoingRide._id;
       if (rideId) {
         localStorage.setItem(`rider_ongoing_ride_${rideId}`, JSON.stringify(Object.fromEntries(params.entries())));
       }
-      
+
       return params;
     } catch (error) {
       console.error('Error fetching ongoing ride from backend:', error);
@@ -498,15 +494,15 @@ function OngoingRideContent() {
   const clearStoredRide = (rideId) => {
     try {
       if (typeof window === 'undefined') return;
-      
+
       if (!rideId) {
         console.warn('⚠️ clearStoredRide: No rideId provided');
         return;
       }
-      
+
       const key = `rider_ongoing_ride_${rideId}`;
       console.log('🗑️ Attempting to clear localStorage:', key);
-      
+
       // Check if key exists before removing
       const existingData = localStorage.getItem(key);
       if (existingData) {
@@ -515,7 +511,7 @@ function OngoingRideContent() {
       } else {
         console.warn('⚠️ No data found in localStorage for key:', key);
       }
-      
+
       // Also clear any old keys (cleanup)
       Object.keys(localStorage).forEach(k => {
         if (k.startsWith('rider_ongoing_ride_')) {
@@ -523,7 +519,7 @@ function OngoingRideContent() {
           localStorage.removeItem(k);
         }
       });
-      
+
     } catch (error) {
       console.error('❌ Error clearing localStorage:', error);
     }
@@ -539,112 +535,114 @@ function OngoingRideContent() {
 
       try {
         let params = loadRideParams();
-        
+
         // If no params from URL or localStorage, try fetching from backend
         if (!params) {
           params = await fetchOngoingRideFromBackend(user.id);
         }
-        
-        // If still no params, show no ongoing ride message
+
+        // If still no params, show no ongoing ride UI
         if (!params) {
           setIsLoading(false);
+          setHasNoRide(true);
           return;
         }
-        
-      const pickup = params.get("pickup") || "";
-      const drop = params.get("drop") || "";
-      
-      // Store all params in state to avoid repeated access
-      const allParams = {
-        pickup,
-        drop,
-        type: params.get("vehicleType") || "Bike",
-        fare: params.get("amount") || "",
-        distance: params.get("distance") || "",
-        eta: params.get("arrivalTime") || "00h:00m",
-        rideId: params.get("rideId") || "",
-        userId: params.get("userId") || "",
-        riderId: params.get("riderId") || "",
-        passengerName: params.get("passengerName") || "",
-        passengerEmail: params.get("passengerEmail") || "",
-        passengerPhone: params.get("passengerPhone") || "",
-        passengerRating: params.get("passengerRating") || "0",
-        vehicleType: params.get("vehicleType") || "",
-        baseFare: params.get("baseFare") || "0",
-        distanceFare: params.get("distanceFare") || "0",
-        timeFare: params.get("timeFare") || "0",
-        tax: params.get("tax") || "0",
-        total: params.get("total") || "0",
-        mode: params.get("mode") || "auto",
-        promo: params.get("promo") || ""
-      };
-      
-      setUrlParams(allParams);
-      
-      // Parse pickup location - handle both coordinates and address
-      if (pickup) {
-        const coords = pickup.split(",");
-        
-        // Check if it's coordinates (lat,lng) or address string
-        if (coords.length === 2) {
-          const lat = parseFloat(coords[0]);
-          const lng = parseFloat(coords[1]);
-          if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-            setPickupLocation({ lat, lng });
-            
-            // Convert coordinates to address
-            const address = await reverseGeocode(lat, lng);
-            setPickupAddress(address);
+
+        const pickup = params.get("pickup") || "";
+        const drop = params.get("drop") || "";
+
+        // Store all params in state to avoid repeated access
+        const allParams = {
+          pickup,
+          drop,
+          type: params.get("vehicleType") || "Bike",
+          fare: params.get("amount") || "",
+          distance: params.get("distance") || "",
+          eta: params.get("arrivalTime") || "00h:00m",
+          rideId: params.get("rideId") || "",
+          userId: params.get("userId") || "",
+          riderId: params.get("riderId") || "",
+          passengerName: params.get("passengerName") || "",
+          passengerEmail: params.get("passengerEmail") || "",
+          passengerPhone: params.get("passengerPhone") || "",
+          passengerRating: params.get("passengerRating") || "0",
+          passengerPhoto: params.get("passengerPhoto") || "",
+          vehicleType: params.get("vehicleType") || "",
+          baseFare: params.get("baseFare") || "0",
+          distanceFare: params.get("distanceFare") || "0",
+          timeFare: params.get("timeFare") || "0",
+          tax: params.get("tax") || "0",
+          total: params.get("total") || "0",
+          mode: params.get("mode") || "auto",
+          promo: params.get("promo") || ""
+        };
+
+        setUrlParams(allParams);
+
+        // Parse pickup location - handle both coordinates and address
+        if (pickup) {
+          const coords = pickup.split(",");
+
+          // Check if it's coordinates (lat,lng) or address string
+          if (coords.length === 2) {
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+              setPickupLocation({ lat, lng });
+
+              // Convert coordinates to address
+              const address = await reverseGeocode(lat, lng);
+              setPickupAddress(address);
+            } else {
+              console.warn("❌ Ongoing Ride - Invalid pickup coordinates:", { lat, lng });
+            }
           } else {
-            console.warn("❌ Ongoing Ride - Invalid pickup coordinates:", { lat, lng });
+            // It's an address string, use geocoding
+            try {
+              const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickup)}&limit=1`);
+              const data = await response.json();
+              if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                setPickupLocation({ lat, lng });
+                setPickupAddress(pickup); // Use the original address string
+              } else {
+                console.warn("❌ Ongoing Ride - No coordinates found for address:", pickup);
+              }
+            } catch (error) {
+              console.error("❌ Ongoing Ride - Geocoding failed:", error);
+            }
           }
         } else {
-          // It's an address string, use geocoding
-          try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickup)}&limit=1`);
-            const data = await response.json();
-            if (data && data.length > 0) {
-              const lat = parseFloat(data[0].lat);
-              const lng = parseFloat(data[0].lon);
-              setPickupLocation({ lat, lng });
-              setPickupAddress(pickup); // Use the original address string
-            } else {
-              console.warn("❌ Ongoing Ride - No coordinates found for address:", pickup);
+          console.warn("❌ Ongoing Ride - No pickup parameter:", pickup);
+        }
+
+        // Parse drop location
+        if (drop && drop.includes(",")) {
+          const coords = drop.split(",");
+          if (coords.length === 2) {
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+              setDropLocation({ lat, lng });
+
+              // Convert coordinates to address
+              const address = await reverseGeocode(lat, lng);
+              setDropAddress(address);
             }
-          } catch (error) {
-            console.error("❌ Ongoing Ride - Geocoding failed:", error);
           }
+        } else if (drop) {
+          // It's an address string
+          setDropAddress(drop);
         }
-      } else {
-        console.warn("❌ Ongoing Ride - No pickup parameter:", pickup);
+      } catch (error) {
+        console.error('Ongoing Ride - Error parsing URL parameters:', error);
+        toast.error('Failed to load ride details', {
+          description: 'Please try accepting a new ride'
+        });
+      } finally {
+        setIsLoading(false);
       }
-      
-      // Parse drop location
-      if (drop && drop.includes(",")) {
-        const coords = drop.split(",");
-        if (coords.length === 2) {
-          const lat = parseFloat(coords[0]);
-          const lng = parseFloat(coords[1]);
-          if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-            setDropLocation({ lat, lng });
-            
-            // Convert coordinates to address
-            const address = await reverseGeocode(lat, lng);
-            setDropAddress(address);
-          }
-        }
-      } else if (drop) {
-        // It's an address string
-        setDropAddress(drop);
-      }
-    } catch (error) {
-      console.error('Ongoing Ride - Error parsing URL parameters:', error);
-      toast.error('Failed to load ride details', {
-        description: 'Please try accepting a new ride'
-      });
-    } finally {
-      setIsLoading(false);
-    }
     };
 
     parseLocations();
@@ -659,7 +657,7 @@ function OngoingRideContent() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/${urlParams.rideId}`);
         if (response.ok) {
           const rideData = await response.json();
-          
+
           // Check if ride was cancelled by user
           if (rideData.status === 'cancelled' || rideData.status === 'cancelled_by_user') {
             console.log('🔍 Polling detected: Ride cancelled by user');
@@ -692,17 +690,17 @@ function OngoingRideContent() {
   }, [urlParams.rideId, router]);
 
   // Fetch rider's real-time location
-    useEffect(() => {
+  useEffect(() => {
     const fetchRiderLocation = async () => {
       try {
         if (!urlParams.riderId) return;
-        
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/${urlParams.riderId}`);
         if (response.ok) {
           const riderData = await response.json();
           if (riderData.location && riderData.location.coordinates) {
             setRiderLocation(riderData.location);
-            
+
             // Calculate ETA if pickup location is available
             if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
               const calculatedDistance = calculateDistance(
@@ -729,58 +727,67 @@ function OngoingRideContent() {
     return () => clearInterval(interval);
   }, [urlParams.riderId, pickupLocation]);
 
+  // Show no ride UI if no active ride found
+  if (!isLoading && hasNoRide) {
+    return (
+      <NoOngoingRide
+        onViewRides={() => router.push("/dashboard/rider/available-rides")}
+      />
+    );
+  }
+
   // Early return if still loading
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+      <div className="min-h-screen bg-gradient-to-br from-card to-background px-4 py-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
           <p className="text-sm text-muted-foreground">Loading ride details...</p>
-                </div>
-            </div>
-        );
-    }
+        </div>
+      </div>
+    );
+  }
 
   // Show no ongoing ride if no params available
   if (!urlParams.rideId || Object.keys(urlParams).length === 0) {
-        return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] bg-gradient-to-br from-card to-background px-4 py-10">
-        <div className="text-center">
-                <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl"></div>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-28 h-28 text-muted-foreground relative z-10"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
-                        />
-                    </svg>
-                </div>
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-card to-background px-4 py-6 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto">
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl"></div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-24 h-24 md:w-28 md:h-28 text-muted-foreground relative z-10 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+              />
+            </svg>
+          </div>
 
-          <h2 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">No Ongoing Ride</h2>
-          <p className="text-center max-w-md text-muted-foreground text-sm md:text-base px-4 mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">No Ongoing Ride</h2>
+          <p className="text-muted-foreground text-sm md:text-base mb-8">
             You currently have no ongoing rides. Accept a ride from the Available Rides section to see it here.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <a
-                        href="/dashboard/rider/available-rides"
-                        className="px-6 py-3 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:opacity-90 transition-all hover:scale-105 shadow-lg"
-                    >
-                        View Available Rides
-                    </a>
+
+          <div className="flex justify-center">
+            <a
+              href="/dashboard/rider/available-rides"
+              className="px-6 py-3 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:opacity-90 transition-all hover:scale-105 shadow-lg text-sm md:text-base"
+            >
+              View Available Rides
+            </a>
           </div>
-                </div>
-            </div>
-        );
-    }
+        </div>
+      </div>
+    );
+  }
 
   // Extract ride details from URL query parameters with safe fallbacks
   const {
@@ -797,6 +804,7 @@ function OngoingRideContent() {
     passengerEmail = "",
     passengerPhone = "",
     passengerRating = "0",
+    passengerPhoto = "",
     vehicleType = "",
     baseFare = "0",
     distanceFare = "0",
@@ -815,6 +823,7 @@ function OngoingRideContent() {
     email: passengerEmail || "",
     phone: passengerPhone || "",
     rating: parseFloat(passengerRating) || 0,
+    photoUrl: passengerPhoto || "",
     status: "Waiting for pickup",
   };
 
@@ -827,7 +836,7 @@ function OngoingRideContent() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/start-ride`,
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/start`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -836,13 +845,18 @@ function OngoingRideContent() {
       );
 
       const result = await response.json();
-      
+
       if (result.success) {
-        toast.success("Ride started successfully!");
-        // Navigate to ongoing ride page or update UI
-        router.push(`/dashboard/rider/ongoing-ride?rideId=${rideId}`);
+        // Update ride status to ongoing
+        setRideStatus("ongoing");
+        toast.success("Ride started successfully!", {
+          description: "The ride status has been updated to ongoing"
+        });
+        // The socket will handle real-time updates
       } else {
-        toast.error(result.message || "Failed to start ride");
+        toast.error(result.message || "Failed to start ride", {
+          description: result.currentStatus ? `Current status: ${result.currentStatus}` : undefined
+        });
       }
     } catch (error) {
       console.error("Error starting ride:", error);
@@ -875,7 +889,7 @@ function OngoingRideContent() {
       );
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success("Ride cancelled successfully");
         clearStoredRide(rideId);
@@ -890,23 +904,23 @@ function OngoingRideContent() {
     }
   };
 
-    return (
-    <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
-      <div className="w-full max-w-4xl">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-card to-background px-4 py-6">
+      <div className="w-full max-w-4xl mx-auto">
         {/* Main Container */}
         <div className="bg-background rounded-2xl shadow-2xl border border-border overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-accent p-6 text-white">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
-                  <CheckCircle className="w-8 h-8 text-background" />
+          <div className="bg-gradient-to-r from-primary to-accent p-4 md:p-6 text-white">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/20 rounded-full backdrop-blur-sm">
+                  <CheckCircle className="w-7 h-7 text-background" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">
+                  <h2 className="text-lg md:text-xl font-bold">
                     {calculatedEta ? `Pickup passenger in ${calculatedEta}` : liveEta ? `Pickup passenger in ${liveEta}` : eta ? `Pickup passenger in ${eta}` : `Ready to pickup ${type} passenger`}
-                </h2>
-                  <p className="text-background text-sm">
+                  </h2>
+                  <p className="text-background text-xs md:text-sm">
                     {calculatedEta || liveEta || eta ? "Navigate to pickup location" : "Track your ride in real-time"}
                   </p>
                 </div>
@@ -927,34 +941,39 @@ function OngoingRideContent() {
                 >
                   {mode === "auto" ? "Auto" : "Scheduled"}
                 </Badge>
-                </div>
+              </div>
             </div>
           </div>
 
           {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 md:gap-6 md:p-6">
             {/* Passenger Info Section */}
-            <div className="border border-border rounded-xl bg-gradient-to-br from-card to-background p-6 space-y-6">
+            <div className="border border-border rounded-xl bg-gradient-to-br from-card to-background p-4 md:p-6 space-y-4 md:space-y-6 h-full flex flex-col">
               {/* Passenger Profile */}
-              <div className="flex items-center gap-4 pb-4 border-b border-border">
+              <div className="flex items-center gap-3 pb-4 border-b border-border">
                 {passengerInfo ? (
                   <>
-                    <Avatar className="w-20 h-20 border-4 border-primary shadow-lg">
-                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-accent text-white">
+                    <Avatar className="w-16 md:w-20 h-16 md:h-20 border-4 border-primary shadow-lg">
+                      <AvatarImage
+                        src={passengerInfo.photoUrl}
+                        alt={passengerInfo.fullName}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-xl md:text-2xl font-bold bg-gradient-to-br from-primary to-accent text-white">
                         {passengerInfo.fullName?.charAt(0) || "P"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <h4 className="text-3xl font-bold text-foreground mb-1 uppercase">
+                      <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 uppercase">
                         {passengerInfo.fullName}
                       </h4>
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-blue-600 text-white">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className="bg-blue-600 text-white text-xs md:text-sm">
                           {passengerInfo.status}
                         </Badge>
                         <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          <span className="text-sm font-medium">{passengerInfo.rating.toFixed(1)}</span>
+                          <Star className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-500 fill-current" />
+                          <span className="text-xs md:text-sm font-medium">{passengerInfo.rating.toFixed(1)}</span>
                         </div>
                       </div>
                     </div>
@@ -990,14 +1009,14 @@ function OngoingRideContent() {
                       <p className="text-sm font-semibold text-foreground line-clamp-2">
                         {pickupAddress || pickup || "Setting pickup..."}
                       </p>
-                            </div>
-                        </div>
+                    </div>
+                  </div>
 
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
                     <div className="p-2 rounded-full bg-red-500/10">
                       <MapPin className="w-5 h-5 text-red-600" />
                     </div>
-                        <div className="flex-1">
+                    <div className="flex-1">
                       <p className="text-xs font-medium text-muted-foreground mb-1">
                         Drop Location
                       </p>
@@ -1010,16 +1029,95 @@ function OngoingRideContent() {
 
               </div>
 
-               {/* Buttons */}
-               <div className="space-y-3">
-                 <Button
-                   onClick={() => setIsChatOpen(true)}
-                   variant="default"
-                   className="w-full h-12 text-base font-semibold"
-                 >
-                   <Phone className="w-5 h-5 mr-2" />
-                   Chat with {passengerInfo.fullName.split(" ")[0]}
-                 </Button>
+              {/* Ride Details */}
+              <div className="space-y-3">
+                <h5 className="text-sm font-semibold text-muted-foreground uppercase">
+                  Ride Details
+                </h5>
+                {/* Fare - Full width */}
+                <div className="p-3 md:p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                  <div className="flex flex-col items-center text-center">
+                    <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-primary mb-1" />
+                    <p className="text-sm text-muted-foreground mb-1">Fare</p>
+                    <p className="text-2xl md:text-3xl font-bold text-primary uppercase">
+                      {fare ? `৳${fare}` : "--"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Distance and ETA - Two columns */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 md:p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                    <div className="flex flex-col items-center text-center">
+                      <Navigation className="w-5 h-5 md:w-6 md:h-6 text-primary mb-1" />
+                      <p className="text-xs text-muted-foreground mb-1">Distance to Pickup</p>
+                      <p className="text-lg md:text-xl font-bold text-primary uppercase">
+                        {calculatedEta ? `${distance?.toFixed(1) || '0.0'} km` : "--"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 md:p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                    <div className="flex flex-col items-center text-center">
+                      <Clock className="w-5 h-5 md:w-6 md:h-6 text-primary mb-1" />
+                      <p className="text-xs text-muted-foreground mb-1">ETA to Pickup</p>
+                      <p className="text-lg md:text-xl font-bold text-primary uppercase">
+                        {calculatedEta || eta || "--"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {promo && (
+                  <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="bg-green-500 text-white">
+                        PROMO
+                      </Badge>
+                      <span className="text-sm font-semibold text-green-700">
+                        {promo}
+                      </span>
+                    </div>
+                    <span className="text-xs text-green-600">Applied</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Map and Buttons Section */}
+            <div className="h-full flex flex-col border border-border rounded-xl p-4 md:p-6 bg-card/30">
+              {/* Map */}
+              <div className="flex-1 min-h-[300px] md:min-h-[400px]">
+                <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
+                  Live Tracking
+                </h5>
+                {console.log('🗺️ Ongoing Ride - Map props:', {
+                  rideId,
+                  riderLocation,
+                  type,
+                  pickupLocation,
+                  dropLocation
+                })}
+                <RiderLiveTrackingMap
+                  rideId={rideId}
+                  riderInfo={{ location: riderLocation }}
+                  pickupLocation={pickupLocation}
+                  dropLocation={dropLocation}
+                  onEtaUpdate={setLiveEta}
+                  vehicleType={vehicleType || type}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-auto space-y-3">
+                <Button
+                  onClick={() => setIsChatOpen(true)}
+                  variant="default"
+                  className="w-full h-12 text-base font-semibold"
+                >
+                  <Phone className="w-5 h-5 mr-2" />
+                  Chat with {passengerInfo.fullName.split(" ")[0]}
+                </Button>
 
                 <Button
                   onClick={handleCancelRide}
@@ -1033,97 +1131,24 @@ function OngoingRideContent() {
                 <Button
                   onClick={handleStartRide}
                   variant="default"
-                  className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
+                  disabled={rideStatus === "ongoing"}
+                  className={`w-full h-12 text-base font-semibold ${
+                    rideStatus === "ongoing"
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
                 >
                   <Check className="w-5 h-5 mr-2" />
-                  Start Ride
+                  {rideStatus === "ongoing" ? "Ongoing" : "Start Ride"}
                 </Button>
               </div>
             </div>
-
-            {/* Ride Details Section */}
-            <div className="space-y-4 border border-border rounded-xl p-6 bg-card/30">
-              {/* Map */}
-              <div className="mb-6">
-                <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
-                  Live Tracking
-                </h5>
-                {console.log('🗺️ Ongoing Ride - Map props:', {
-                  rideId,
-                  riderLocation,
-                  type,
-                  pickupLocation,
-                  dropLocation
-                })}
-                  <RiderLiveTrackingMap
-                    rideId={rideId}
-                    riderInfo={{ location: riderLocation }}
-                    pickupLocation={pickupLocation}
-                    dropLocation={dropLocation}
-                    onEtaUpdate={setLiveEta}
-                    vehicleType={vehicleType || type}
-                  />
-              </div>
-
-              {/* Ride Details */}
-              <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
-                Ride Details
-              </h5>
-
-              <div className="flex flex-col gap-3">
-                <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                  <div className="flex flex-col items-center text-center">
-                    <DollarSign className="w-6 h-6 text-primary mb-1" />
-                    <p className="text-sm text-muted-foreground mb-1">Fare</p>
-                    <p className="text-2xl font-bold text-primary uppercase">
-                      {fare ? `৳${fare}` : "--"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="w-full flex gap-3">
-                  <div className="w-full p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                    <div className="flex flex-col items-center text-center">
-                      <Navigation className="w-6 h-6 text-primary mb-1" />
-                      <p className="text-xs text-muted-foreground mb-1">Distance to Pickup</p>
-                      <p className="text-xl font-bold text-primary uppercase">
-                        {calculatedEta ? `${distance?.toFixed(1) || '0.0'} km` : "--"}
-                      </p>
-                        </div>
-                    </div>
-
-                  <div className="w-full p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                    <div className="flex flex-col items-center text-center">
-                      <Clock className="w-6 h-6 text-primary mb-1" />
-                      <p className="text-xs text-muted-foreground mb-1">ETA to Pickup</p>
-                      <p className="text-xl font-bold text-primary uppercase">
-                        {calculatedEta || eta || "--"}
-                      </p>
-                    </div>
-                  </div>
-                    </div>
-                </div>
-
-              {promo && (
-                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-green-500 text-white">
-                      PROMO
-                    </Badge>
-                    <span className="text-sm font-semibold text-green-700">
-                      {promo}
-                                </span>
-                  </div>
-                  <span className="text-xs text-green-600">Applied</span>
-                </div>
-              )}
-            </div>
           </div>
-                    </div>
-                </div>
+        </div>
+      </div>
 
-                {/* Chat Modal */}
-                    <ChatModal
+      {/* Chat Modal */}
+      <ChatModal
         open={isChatOpen}
         onClose={() => setIsChatOpen(false)}
         riderName={passengerInfo.fullName}
@@ -1149,7 +1174,7 @@ export default function OngoingRidePage() {
         <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
           <div className="text-center">
             <p className="text-sm text-red-500">Error loading ride details. Please try again.</p>
-            </div>
+          </div>
         </div>
       }>
         <OngoingRideContent />
