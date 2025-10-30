@@ -35,11 +35,15 @@ export default function NotificationBell() {
       const fetchRiderId = async () => {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${user.id}`
+            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/rider/userId?userId=${user.id}`
           );
           const data = await res.json();
-          if (data.rider?._id) {
-            setRiderId(data.rider._id);
+          console.log('Rider data fetched:', data);
+          if (data._id) {
+            setRiderId(data._id);
+            console.log('Rider ID set:', data._id);
+          } else {
+            console.log('No rider ID found in response');
           }
         } catch (err) {
           console.error("Error fetching rider profile for notifications:", err);
@@ -51,18 +55,24 @@ export default function NotificationBell() {
 
   // Separate effect to handle rider room join (when riderId is available)
   useEffect(() => {
+    console.log('Checking rider room join conditions:', { role: user?.role, riderId, socket: socketRef.current });
     if (user?.role === "rider" && riderId && socketRef.current) {
       const joinRiderRoom = () => {
         if (socketRef.current && socketRef.current.connected) {
+          console.log('Emitting join_rider with riderId:', riderId);
           socketRef.current.emit('join_rider', riderId);
-          console.log('🔔 NotificationBell - Rider joined room:', riderId);
+          console.log('🔔 NotificationBell - Rider joined room:', `rider_${riderId}`);
+        } else {
+          console.log('Socket not connected, cannot join rider room');
         }
       };
 
       // If socket is already connected, join immediately
       if (socketRef.current.connected) {
+        console.log('Socket already connected, joining rider room immediately');
         joinRiderRoom();
       } else {
+        console.log('Socket not connected, waiting for connect event');
         // Wait for socket to connect
         socketRef.current.on('connect', joinRiderRoom);
       }
@@ -72,6 +82,8 @@ export default function NotificationBell() {
           socketRef.current.off('connect', joinRiderRoom);
         }
       };
+    } else {
+      console.log('Rider room join conditions not met');
     }
   }, [user?.role, riderId]);
 
@@ -134,6 +146,25 @@ export default function NotificationBell() {
         toast.info("New Message from Passenger", {
           description: data.message || "You have a new message",
           duration: 5000,
+        });
+      });
+      
+      // Listen for rider payment notifications (when admin marks rider as paid)
+      socketRef.current.on("rider_payment_notification", (data) => {
+        const notification = {
+          id: Date.now(),
+          type: "payment",
+          title: "Payment Received",
+          message: data.message,
+          time: new Date(),
+          read: false,
+        };
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        toast.success("Payment Received!", {
+          description: data.message,
+          duration: 5000
         });
       });
     }
@@ -292,6 +323,7 @@ export default function NotificationBell() {
         socketRef.current.off("new_message_notification");
         socketRef.current.off("new_payment_notification");
         socketRef.current.off("payment_success_notification");
+        socketRef.current.off("rider_payment_notification");
       }
     };
   }, [user]);
