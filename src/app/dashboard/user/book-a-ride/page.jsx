@@ -211,10 +211,18 @@ const BookARideContent = () => {
         if (newPickup && newDrop && isValidCoordinate(newPickup) && isValidCoordinate(newDrop)) {
           try {
             const type = selectedType.toLowerCase();
+            console.log('Calculating fare with:', {
+              pickup: newPickup,
+              drop: newDrop,
+              type: type,
+              promoCode: appliedPromo
+            });
             const result = await calculateFare(newPickup, newDrop, type, appliedPromo);
+            console.log('Fare calculation result:', result);
             setRideData(result);
           } catch (error) {
-            toast.error("Fare calculation failed");
+            console.error('Fare calculation error:', error);
+            toast.error("Fare calculation failed: " + (error.message || 'Unknown error'));
           }
         }
       };
@@ -225,10 +233,25 @@ const BookARideContent = () => {
       const fetchDistance = async () => {
         try {
           const type = selectedType.toLowerCase();
+          console.log('Direct fare calculation with:', {
+            pickup,
+            drop,
+            type,
+            promoCode: appliedPromo
+          });
+          
           const result = await calculateFare(pickup, drop, type, appliedPromo);
+          console.log('Direct fare calculation result:', result);
+          
+          if (!result) {
+            throw new Error('No fare calculation result received');
+          }
+          
           setRideData(result);
         } catch (error) {
-          toast.error("Fare calculation failed");
+          console.error('Direct fare calculation error:', error);
+          toast.error(`Fare calculation failed: ${error.message || 'Please try again'}`);
+          setRideData(null);
         }
       };
 

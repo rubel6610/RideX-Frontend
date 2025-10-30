@@ -20,21 +20,23 @@ async function getPromoDiscount(promoCode) {
   if (!promoCode) return 0;
   
   try {
+    console.log('Fetching discount for promo code:', promoCode);
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL || 'http://localhost:5000'}/api/promotions/validate`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: promoCode })
-      }
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/promotions/active`
     );
-    const data = await response.json();
+    const promos = await response.json();
+    console.log('Available promos:', promos);
     
-    if (data.valid && data.discount) {
-      return data.discount / 100; // Convert percentage to decimal
+    // Find the matching active promo
+    const matchingPromo = promos.find(p => p.code === promoCode && p.status === "Active");
+    console.log('Matching promo:', matchingPromo);
+    
+    if (matchingPromo && matchingPromo.discount) {
+      return matchingPromo.discount / 100; // Convert percentage to decimal
     }
   } catch (error) {
     console.error('Error fetching promo discount:', error);
+    throw new Error(`Promo code validation failed: ${error.message}`);
   }
   
   return 0;
@@ -101,6 +103,7 @@ async function getRouteInfo(fromCoords, toCoords, type) {
 
 // Main function
 export async function calculateFare(from, to, type = "bike", promo = "") {
+  console.log('calculateFare called with:', { from, to, type, promo });
   if (!RATE_TABLE[type]) throw new Error(`Invalid vehicle type: ${type}`);
 
   const fromCoords = await geocodeAddress(from);
@@ -147,7 +150,7 @@ export async function calculateFare(from, to, type = "bike", promo = "") {
     arrivalTime: formattedArrival,
     cost,
     vehicle: type.charAt(0).toUpperCase() + type.slice(1),
-    promoApplied: promo && PROMO_CODES[promo] ? promo : null,
+    promoApplied: promo && discount > 0 ? promo : null,
     discountPercent: discount ? discount * 100 : 0,
   };
 
