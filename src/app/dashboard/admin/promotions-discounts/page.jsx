@@ -228,7 +228,7 @@ const PromotionsDiscounts = () => {
             </thead>
             <tbody>
               {filteredPromotions.map((promotion) => (
-                <tr key={promotion._id} className="border-t">
+                <tr key={promotion._id} className="border-t border-border">
                   <td className="px-2 sm:px-4 py-2 font-medium">{promotion.title}</td>
                   <td className="px-2 sm:px-4 py-2">
                     <code

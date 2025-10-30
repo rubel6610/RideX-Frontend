@@ -139,7 +139,7 @@ export default function MonitorLiveRides() {
               {filtered.map((ride, idx) => (
                 <tr
                   key={ride.id}
-                  className="border-t"
+                  className="border-t border-border"
                   onClick={() =>
                     console.log("open details for", ride.id)
                   }
