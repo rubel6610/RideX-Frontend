@@ -76,14 +76,15 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
 
   const resolveLocationName = async (lat, lng) => {
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lng}`
       );
-      const data = await res.json();
-      const locName =
-        data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      const data = await response.json();
+      const locName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       setCurrentLocationName(locName);
-    } catch {
+    } catch (error) {
+      console.error("Error resolving location name:", error);
       setCurrentLocationName(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
     }
   };
@@ -121,17 +122,22 @@ const MapPopup = ({ title, onClose, onSelect, defaultCurrent = false }) => {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchInput) return;
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-        searchInput
-      )}&format=json&limit=1`
-    );
-    const data = await res.json();
-    if (data && data.length > 0) {
-      const { lat, lon } = data[0];
-      setMarkerPos({ lat: parseFloat(lat), lng: parseFloat(lon) });
-    } else {
-      alert("Location not found");
+    try {
+      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/geocode?q=${encodeURIComponent(searchInput)}&limit=1`
+      );
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        setMarkerPos({ lat: parseFloat(lat), lng: parseFloat(lon) });
+      } else {
+        alert("Location not found");
+      }
+    } catch (error) {
+      console.error("Error searching location:", error);
+      alert("Error searching location");
     }
   };
 

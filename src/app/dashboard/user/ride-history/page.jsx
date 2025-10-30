@@ -86,13 +86,10 @@ const fetchLocationName = async (coordinates) => {
   }
   
   try {
-    // Call Nominatim API directly from frontend
+    // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-      {
-        headers: {
-          'User-Agent': 'RideX-App/1.0' // Required by Nominatim usage policy
-        }
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`,{
+        cache:"force-cache"
       }
     );
     
@@ -109,23 +106,6 @@ const fetchLocationName = async (coordinates) => {
     return displayName;
   } catch (error) {
     console.error("Error fetching location:", error);
-    
-    // Fallback: try backend proxy as backup
-    try {
-      const backendResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
-      );
-      
-      if (backendResponse.ok) {
-        const data = await backendResponse.json();
-        const displayName = data.display_name || "Unknown location";
-        locationCache.set(cacheKey, displayName);
-        return displayName;
-      }
-    } catch (backendError) {
-      console.error("Backend fallback also failed:", backendError);
-    }
-    
     return "Unknown location";
   }
 };
