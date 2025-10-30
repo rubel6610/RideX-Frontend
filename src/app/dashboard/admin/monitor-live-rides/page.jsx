@@ -123,12 +123,8 @@ export default function MonitorLiveRides() {
 
       {/* Table */}
       <div className="border border-accent mt-10 rounded-xl">
-        {/* Scroll indicator for mobile */}
-        <div className="text-center py-1.5 bg-accent/20 lg:hidden">
-          <p className="text-[10px] sm:text-xs text-muted-foreground">← Swipe to scroll →</p>
-        </div>
         <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
-          <table className="w-full text-xs sm:text-sm min-w-[700px]">
+          <table className="w-full text-xs sm:text-sm min-w-[300px]">
             <thead className="bg-accent text-left sticky top-0 z-10">
               <tr>
                 <th className="px-2 sm:px-4 py-2">#</th>
