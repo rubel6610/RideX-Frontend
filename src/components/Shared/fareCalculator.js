@@ -147,7 +147,7 @@ export async function calculateFare(from, to, type = "bike", promo = "") {
     arrivalTime: formattedArrival,
     cost,
     vehicle: type.charAt(0).toUpperCase() + type.slice(1),
-    promoApplied: promo && PROMO_CODES[promo] ? promo : null,
+    promoApplied: promo ? promo : null,
     discountPercent: discount ? discount * 100 : 0,
   };
 
