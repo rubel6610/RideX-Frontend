@@ -5,11 +5,14 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
 
 export function initSocket(userId = null, isAdmin = false) {
+  console.log('initSocket called with userId:', userId, 'isAdmin:', isAdmin);
   if (socket?.connected) {
+    console.log('Returning existing connected socket');
     return socket;
   }
 
   if (socket && !socket.connected) {
+    console.log('Connecting existing socket');
     socket.connect();
     return socket;
   }
@@ -24,6 +27,12 @@ export function initSocket(userId = null, isAdmin = false) {
     timeout: 20000,
     forceNew: false,
   });
+  
+  console.log('Socket created with options:', {
+    url: process.env.NEXT_PUBLIC_SERVER_BASE_URL,
+    userId: userId,
+    isAdmin: isAdmin
+  });
 
   socket.on('connect', () => {
     console.log('✅ Socket connected:', socket.id);
@@ -32,11 +41,14 @@ export function initSocket(userId = null, isAdmin = false) {
     if (userId) {
       if (isAdmin) {
         socket.emit('join_admin', userId);
-        console.log('👨‍💼 Admin joined admins room');
+        console.log('👨‍💼 Admin joined admins room with userId:', userId);
       } else {
         socket.emit('join_user', userId);
-        console.log('👤 User joined user room');
+        console.log('👤 User joined user room with userId:', userId);
+        console.log('User room name:', `user_${userId}`);
       }
+    } else {
+      console.log('No userId provided, not joining any room');
     }
   });
 

@@ -261,6 +261,25 @@ export default function NotificationBell() {
           });
         }
       });
+      
+      // Listen for payment success notifications (for users)
+      socketRef.current.on("payment_success_notification", (data) => {
+        const notification = {
+          id: Date.now(),
+          type: "payment_success",
+          title: "Payment Successful",
+          message: data.message,
+          time: new Date(),
+          read: false,
+        };
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        toast.success("Payment Successful!", {
+          description: data.message,
+          duration: 5000
+        });
+      });
     }
 
     return () => {
@@ -272,6 +291,7 @@ export default function NotificationBell() {
         socketRef.current.off("ride_accepted");
         socketRef.current.off("new_message_notification");
         socketRef.current.off("new_payment_notification");
+        socketRef.current.off("payment_success_notification");
       }
     };
   }, [user]);
