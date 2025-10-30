@@ -104,7 +104,7 @@ export default function UserManagement() {
         </div>
 
         {/* Role Tabs */}
-        <div className="overflow-x-auto flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-3">
           {[
             { key: "all", label: "All Users", count: roleCounts.all },
             { key: "admin", label: "Admins", count: roleCounts.admin },
