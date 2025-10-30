@@ -26,35 +26,29 @@ export function initSocket(userId = null, isAdmin = false) {
   });
 
   socket.on('connect', () => {
-    console.log('✅ Socket connected:', socket.id);
     reconnectAttempts = 0;
     
     if (userId) {
       if (isAdmin) {
         socket.emit('join_admin', userId);
-        console.log('👨‍💼 Admin joined admins room');
       } else {
         socket.emit('join_user', userId);
-        console.log('👤 User joined user room');
       }
     }
   });
 
   socket.on('disconnect', (reason) => {
-    console.warn('⚠️ Socket disconnected:', reason);
     if (reason === 'io server disconnect') {
       socket.connect();
     }
   });
 
   socket.on('reconnect', (attemptNumber) => {
-    console.log('🔄 Socket reconnected after', attemptNumber, 'attempts');
     reconnectAttempts = 0;
   });
 
   socket.on('reconnect_attempt', () => {
     reconnectAttempts++;
-    console.log(`🔄 Reconnection attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
   });
 
   socket.on('reconnect_error', (error) => {
@@ -88,6 +82,5 @@ export function disconnectSocket() {
     socket.disconnect();
     socket = null;
     reconnectAttempts = 0;
-    console.log('🔌 Socket disconnected and cleared');
   }
 }

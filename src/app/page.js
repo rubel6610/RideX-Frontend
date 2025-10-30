@@ -7,7 +7,7 @@ import CategoryRides from '@/components/Shared/CategoryRides';
 
 const Home = () => {
   return (
-    <div className="mt-19">
+    <div className="mt-24">
       <Hero />
       <FeaturedSection />
       <LuxuryCarsSection />
