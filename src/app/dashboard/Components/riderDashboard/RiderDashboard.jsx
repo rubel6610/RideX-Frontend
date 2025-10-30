@@ -50,7 +50,7 @@ const RiderDashboard = ({ collapsed }) => {
     { href: "/dashboard/rider/performance-stats", Icon: BarChart3, label: "Performance Stats" },
 
       //  general menu
-    { href: "/dashboard/rider/profile-vehicle-info", Icon: User, label: "Profile & Vehicle Info" },
+    { href: "/dashboard/rider/profile-vehicle-info", Icon: User, label: "Vehicle Info" },
     { href: "/dashboard/rider/support", Icon: HelpCircle, label: "Support" },
   ];
 

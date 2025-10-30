@@ -559,8 +559,9 @@ const RideMap = ({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
+      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lng}`,
         { signal: controller.signal }
       );
       
