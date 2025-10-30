@@ -41,10 +41,12 @@ import {
   Check,
   Search,
   ArrowRight,
+  Star,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
@@ -157,6 +159,7 @@ function OngoingRideContent() {
     coordinates: [90.4125, 23.8103], // Fallback to Dhaka
   });
   const [calculatedEta, setCalculatedEta] = useState(null);
+  const [tripEta, setTripEta] = useState(null); // Trip ETA (pickup to drop)
   const [pickupAddress, setPickupAddress] = useState("");
   const [dropAddress, setDropAddress] = useState("");
 
@@ -231,10 +234,21 @@ function OngoingRideContent() {
         }
       });
 
+      // 🔥 Listen for ride started event
+      socket.on('ride_started', (data) => {
+        console.log('✅ Ride started event received:', data);
+        if (data.rideId === urlParams.rideId) {
+          toast.success('Your ride has started!', {
+            description: 'Your rider is now on the way to drop location'
+          });
+        }
+      });
+
       return () => {
         socket.off('receive_ride_message');
         socket.off('new_message_notification');
         socket.off('ride_status_changed');
+        socket.off('ride_started');
         socket.off('connect_error');
         socket.off('error');
         socket.emit('leave_ride_chat', {
@@ -282,7 +296,7 @@ function OngoingRideContent() {
     return R * c; // Distance in kilometers
   };
 
-  // Calculate ETA based on distance and vehicle type
+  // Calculate ETA based on distance and vehicle type (for rider to pickup)
   const calculateETA = (distance, vehicleType = 'bike') => {
     if (!distance || distance <= 0) return null;
     
@@ -302,6 +316,40 @@ function OngoingRideContent() {
     }
     
     const timeInHours = distance / avgSpeed;
+    const timeInMinutes = Math.round(timeInHours * 60);
+    
+    if (timeInMinutes < 60) {
+      return `${timeInMinutes} min`;
+    } else {
+      const hours = Math.floor(timeInMinutes / 60);
+      const minutes = timeInMinutes % 60;
+      return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
+  };
+
+  // Calculate Trip ETA (pickup to drop) based on distance and vehicle type
+  const calculateTripETA = (pickupLat, pickupLng, dropLat, dropLng, vehicleType) => {
+    if (!pickupLat || !dropLat) return null;
+    
+    const tripDistance = calculateDistance(pickupLat, pickupLng, dropLat, dropLng);
+    if (!tripDistance || tripDistance <= 0) return null;
+    
+    let avgSpeed; // Average speed in km/h
+    switch (vehicleType?.toLowerCase()) {
+      case 'bike':
+        avgSpeed = 40; // Bike average speed in city
+        break;
+      case 'car':
+        avgSpeed = 50; // Car average speed in city
+        break;
+      case 'cng':
+        avgSpeed = 30; // CNG average speed
+        break;
+      default:
+        avgSpeed = 40; // Default speed
+    }
+    
+    const timeInHours = tripDistance / avgSpeed;
     const timeInMinutes = Math.round(timeInHours * 60);
     
     if (timeInMinutes < 60) {
@@ -386,6 +434,9 @@ function OngoingRideContent() {
       );
       const riderData = await riderResponse.ok ? await riderResponse.json() : null;
       
+      // Debug: Log entire rider data from backend
+      console.log('🔍 Complete rider data from backend:', riderData);
+      
       // Construct params from backend data
       const pickupCoords = ongoingRide.pickup?.coordinates || [];
       const dropCoords = ongoingRide.drop?.coordinates || [];
@@ -409,6 +460,14 @@ function OngoingRideContent() {
       
       params.set('riderName', riderData?.fullName || 'Unknown Rider');
       params.set('riderEmail', riderData?.email || '');
+      const photoUrl = riderData?.photoUrl || riderData?.photo || riderData?.photoURL || '';
+      params.set('riderPhoto', photoUrl);
+      console.log('📸 All photo fields:', {
+        photoUrl: riderData?.photoUrl,
+        photo: riderData?.photo,
+        photoURL: riderData?.photoURL,
+        selected: photoUrl
+      });
       params.set('vehicleModel', riderData?.vehicleModel || '');
       params.set('vehicleRegisterNumber', riderData?.vehicleRegisterNumber || '');
       params.set('ratings', (riderData?.ratings || 0).toString());
@@ -512,6 +571,7 @@ function OngoingRideContent() {
         riderId: params.get("riderId") || "",
         riderName: params.get("riderName") || "",
         riderEmail: params.get("riderEmail") || "",
+        riderPhoto: params.get("riderPhoto") || "",
         vehicleType: params.get("vehicleType") || "",
         vehicleModel: params.get("vehicleModel") || "",
         vehicleRegisterNumber: params.get("vehicleRegisterNumber") || "",
@@ -548,18 +608,32 @@ function OngoingRideContent() {
         } else {
           // It's an address string, use geocoding
           try {
+            // Be gentle to the service
+            await new Promise(resolve => setTimeout(resolve, 100));
+            // Use Nominatim without restricted headers to avoid CORS issues in browsers
             const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickup)}&limit=1`);
-            const data = await response.json();
-            if (data && data.length > 0) {
-              const lat = parseFloat(data[0].lat);
-              const lng = parseFloat(data[0].lon);
-              setPickupLocation({ lat, lng });
-              setPickupAddress(pickup); // Use the original address string
+            if (!response.ok) {
+              console.warn('⚠️ Nominatim forward geocoding failed with status:', response.status);
+              setPickupLocation(null);
+              setPickupAddress(pickup);
             } else {
-              console.warn("❌ No coordinates found for address:", pickup);
+              const data = await response.json();
+              if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                setPickupLocation({ lat, lng });
+                setPickupAddress(pickup); // Use the original address string
+              } else {
+                console.warn("❌ No coordinates found for address:", pickup);
+                setPickupLocation(null);
+                setPickupAddress(pickup);
+              }
             }
           } catch (error) {
-            console.error("❌ Geocoding failed:", error);
+            console.warn('⚠️ Forward geocoding failed (likely CORS). Using fallback address only:', error?.message || error);
+            // Fallback: keep the address string without coordinates
+            setPickupLocation(null);
+            setPickupAddress(pickup);
           }
         }
       } else {
@@ -574,6 +648,10 @@ function OngoingRideContent() {
           const lng = parseFloat(coords[1]);
           if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
             setDropLocation({ lat, lng });
+            
+            // Convert coordinates to address
+            const address = await reverseGeocode(lat, lng);
+            setDropAddress(address);
           }
         }
       }
@@ -589,6 +667,71 @@ function OngoingRideContent() {
 
     parseLocations();
   }, [searchParams, user]);
+
+  // Calculate Trip ETA when locations are available
+  useEffect(() => {
+    // Try to calculate from coordinates first
+    if (pickupLocation && dropLocation && urlParams.vehicleType) {
+      console.log('🔄 Calculating Trip ETA from coordinates:', { 
+        pickup: pickupLocation, 
+        drop: dropLocation, 
+        vehicleType: urlParams.vehicleType 
+      });
+      
+      const eta = calculateTripETA(
+        pickupLocation.lat, 
+        pickupLocation.lng, 
+        dropLocation.lat, 
+        dropLocation.lng, 
+        urlParams.vehicleType
+      );
+      
+      console.log('✅ Trip ETA calculated from coordinates:', eta);
+      setTripEta(eta);
+    } 
+    // Fallback: Calculate from distance if available in urlParams
+    else if (urlParams.distance && urlParams.vehicleType) {
+      const distance = parseFloat(urlParams.distance);
+      if (!isNaN(distance) && distance > 0) {
+        console.log('🔄 Calculating Trip ETA from distance:', { 
+          distance, 
+          vehicleType: urlParams.vehicleType 
+        });
+        
+        let avgSpeed;
+        switch (urlParams.vehicleType?.toLowerCase()) {
+          case 'bike':
+            avgSpeed = 40;
+            break;
+          case 'car':
+            avgSpeed = 50;
+            break;
+          case 'cng':
+            avgSpeed = 30;
+            break;
+          default:
+            avgSpeed = 40;
+        }
+        
+        const timeInHours = distance / avgSpeed;
+        const timeInMinutes = Math.round(timeInHours * 60);
+        const eta = timeInMinutes < 60 
+          ? `${timeInMinutes} min` 
+          : `${Math.floor(timeInMinutes / 60)}h ${timeInMinutes % 60}m`;
+        
+        console.log('✅ Trip ETA calculated from distance:', eta);
+        setTripEta(eta);
+      }
+    } else {
+      console.log('⚠️ Trip ETA not calculated - missing data:', {
+        pickupLocation: !!pickupLocation,
+        dropLocation: !!dropLocation,
+        distance: urlParams.distance,
+        vehicleType: urlParams.vehicleType
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickupLocation, dropLocation, urlParams.vehicleType, urlParams.distance]);
 
   // 🔥 CRITICAL: Poll ride status to check if cancelled by rider (Hybrid Approach)
   useEffect(() => {
@@ -708,6 +851,7 @@ function OngoingRideContent() {
     riderId = "",
     riderName = "",
     riderEmail = "",
+    riderPhoto = "",
     vehicleType = "",
     vehicleModel = "",
     vehicleRegisterNumber = "",
@@ -728,12 +872,18 @@ function OngoingRideContent() {
   const riderInfo = {
     fullName: riderName || "N/A",
     email: riderEmail || "",
+    photoUrl: riderPhoto || "",
     vehicleType: vehicleType || type,
     vehicleModel: vehicleModel || "Unknown Model",
     vehicleRegisterNumber: vehicleRegisterNumber || "N/A",
+    rating: parseFloat(ratings) || 0,
+    completedRides: parseInt(completedRides) || 0,
     status: "On the way",
     location: riderLocation,
   };
+
+  // Debug: Log rider photo URL
+  console.log('🖼️ Rider Photo URL:', riderPhoto, 'Full riderInfo:', riderInfo);
 
   
 
@@ -828,259 +978,265 @@ function OngoingRideContent() {
   };
 
   return (
-    <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
-      <div className="w-full max-w-4xl">
-        {/* Main Container */}
-        <div className="bg-background rounded-2xl shadow-2xl border border-border overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-accent p-6 text-white">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
-                  <CheckCircle className="w-8 h-8 text-background" />
+    <div className="min-h-screen bg-background p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-x-hidden">
+      <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
+        
+        {/* Status Bar */}
+        <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-primary p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-4 flex-wrap lg:flex-nowrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold">
-                    {calculatedEta ? `Your captain is on the way to pickup (${calculatedEta})` : liveEta ? `Your captain is on the way to pickup (${liveEta})` : eta ? `Your captain is on the way to pickup (${eta})` : `Your ${type} is on the way`}
-                  </h2>
-                  <p className="text-background text-sm">
-                    {calculatedEta || liveEta || eta ? "Captain will reach your pickup location soon" : "Track your ride in real-time"}
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold text-white truncate">Your Ride is On The Way</h2>
+                  <p className="text-xs sm:text-sm text-white/90 truncate">
+                    {calculatedEta || liveEta ? `Arriving in ${calculatedEta || liveEta}` : "Tracking your rider"}
                   </p>
                 </div>
               </div>
-
-              {/* ETA and Mode */}
-              <div className="flex items-center gap-3">
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-3 py-1"
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  {liveEta || eta}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-3 py-1"
-                >
-                  {mode === "auto" ? "Auto" : "Scheduled"}
-                </Badge>
-              </div>
+              <Badge className="bg-white text-primary font-semibold px-3 py-1 flex-shrink-0">
+                {mode === "auto" ? "Auto" : "Scheduled"}
+              </Badge>
             </div>
           </div>
+        </div>
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-            {/* Rider Info Section */}
-            <div className="border border-border rounded-xl bg-gradient-to-br from-card to-background p-6 space-y-6">
-              {/* Rider Profile */}
-              <div className="flex items-center gap-4 pb-4 border-b border-border">
-                {riderInfo ? (
-                  <>
-                    <Avatar className="w-20 h-20 border-4 border-primary shadow-lg">
-                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-accent text-white">
-                        {riderInfo.fullName?.charAt(0) || "R"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h4 className="text-3xl font-bold text-foreground mb-1 uppercase">
-                        {riderInfo.fullName}
-                      </h4>
-                      <Badge className="bg-green-600 text-white">
-                        {riderInfo.status}
-                      </Badge>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Skeleton className="w-20 h-20 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-6 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-5 w-20" />
-                    </div>
-                  </>
-                )}
+        {/* Map Section - Full Width */}
+        <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-border">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-foreground">Live Tracking</h3>
+              <Badge variant="outline" className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                Real-time
+              </Badge>
+            </div>
+          </div>
+          <div className="p-4 sm:p-5">
+            <div className="h-[260px] sm:h-[340px] lg:h-[420px] w-full">
+              <LiveTrackingMap
+              rideId={rideId}
+              riderInfo={riderInfo}
+              vehicleType={type}
+              pickupLocation={pickupLocation}
+              dropLocation={dropLocation}
+              onEtaUpdate={setLiveEta}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content - Two Column Layout on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          
+          {/* Left Column - Rider Info & Actions (2/3 width on desktop) */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            
+            {/* Rider Profile Card */}
+            <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-5 sm:p-6 border-b border-border bg-muted/30">
+                <div className="flex items-center gap-4">
+                  {riderInfo ? (
+                    <>
+                      <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-primary shadow-xl">
+                        <AvatarImage 
+                          src={riderInfo.photoUrl} 
+                          alt={riderInfo.fullName}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="text-2xl font-bold bg-primary text-white">
+                          {riderInfo.fullName?.charAt(0) || "R"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                  <h4 className="text-xl sm:text-2xl font-bold text-foreground truncate">
+                            {riderInfo.fullName}
+                          </h4>
+                          <Badge className="bg-green-600 text-white">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Active
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          <span className="font-semibold">{riderInfo.rating.toFixed(1)}</span>
+                          <span>•</span>
+                          <span>{riderInfo.completedRides} rides</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Skeleton className="w-20 h-20 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
-              {/* Vehicle Details */}
-              <div className="space-y-3">
-                <h5 className="text-sm font-semibold text-muted-foreground uppercase">
-                  Location Details
+              {/* Vehicle Info */}
+              <div className="p-5 sm:p-6 space-y-4">
+                <h5 className="text-sm font-bold text-foreground uppercase tracking-wide mb-3">
+                  Vehicle Information
                 </h5>
-
-                {/* Pickup and Drop */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
-                    <div className="p-2 rounded-full bg-green-500/10">
-                      <Navigation className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">
-                        Pickup Location
-                      </p>
-                      <p className="text-sm font-semibold text-foreground line-clamp-2">
-                        {pickupAddress || pickup || "Setting pickup..."}
-                      </p>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/20">
+                    <VehicleIcon className="w-6 h-6 text-primary mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground mb-1">Type</p>
+                    <p className="text-sm font-bold text-foreground capitalize">{riderInfo.vehicleType}</p>
                   </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
-                    <div className="p-2 rounded-full bg-red-500/10">
-                      <MapPin className="w-5 h-5 text-red-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">
-                        Drop Location
-                      </p>
-                      <p className="text-sm font-semibold text-foreground line-clamp-2">
-                        {dropAddress || drop || "Setting destination..."}
-                      </p>
-                    </div>
+                  <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/20">
+                    <Car className="w-6 h-6 text-primary mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground mb-1">Model</p>
+                    <p className="text-sm font-bold text-foreground">{riderInfo.vehicleModel}</p>
+                  </div>
+                  <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/20">
+                    <Hash className="w-6 h-6 text-primary mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground mb-1">Plate</p>
+                    <p className="text-sm font-bold text-foreground">{riderInfo.vehicleRegisterNumber}</p>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 space-y-3">
-                  <h5 className="my-2 text-sm font-semibold text-muted-foreground uppercase">
-                    Vehicle Information
-                  </h5>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <VehicleIcon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">Vehicle Type</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {riderInfo.vehicleType}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <Car className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">Model</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {riderInfo.vehicleModel}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <Hash className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">Registration</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {riderInfo.vehicleRegisterNumber}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-               {/* Buttons */}
-               <div className="space-y-3">
-                 <Button
-                   onClick={() => setIsChatOpen(true)}
-                   variant="default"
-                   className="w-full h-12 text-base font-semibold"
-                 >
-                   <Phone className="w-5 h-5 mr-2" />
-                   Chat with {riderInfo.fullName.split(" ")[0]}
-                 </Button>
-
-                <Button
-                  onClick={handleCancelRide}
-                  variant="destructive"
-                  className="w-full h-12 text-base font-semibold"
-                >
-                  <X className="w-5 h-5 mr-2" />
-                  Cancel Ride
-                </Button>
-
-                <Button
-                  onClick={handleCompleteRide}
-                  variant="default"
-                  className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
-                >
-                  <Check className="w-5 h-5 mr-2" />
-                  Complete Ride
-                </Button>
               </div>
             </div>
 
-            {/* Ride Details Section */}
-            <div className="space-y-4 border border-border rounded-xl p-6 bg-card/30">
-              {/* Map */}
-              <div className="mb-6">
-                <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
-                  Live Tracking
-                </h5>
-                  <LiveTrackingMap
-                    rideId={rideId}
-                    riderInfo={riderInfo}
-                    vehicleType={type}
-                    pickupLocation={pickupLocation}
-                    dropLocation={dropLocation}
-                    onEtaUpdate={setLiveEta}
-                  />
+            {/* Trip Route Card */}
+            <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-5 sm:p-6 border-b border-border bg-muted/30">
+                <h5 className="text-sm font-bold text-foreground uppercase tracking-wide">Trip Route</h5>
               </div>
-
-              {/* Ride Details */}
-              <h5 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">
-                Ride Details
-              </h5>
-
-              <div className="flex flex-col gap-3">
-                <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                  <div className="flex flex-col items-center text-center">
-                    <DollarSign className="w-6 h-6 text-primary mb-1" />
-                    <p className="text-sm text-muted-foreground mb-1">Fare</p>
-                    <p className="text-2xl font-bold text-primary uppercase">
-                      {fare ? `৳${fare}` : "--"}
+              <div className="p-5 sm:p-6 space-y-4">
+                {/* Pickup */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Pickup Point</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {pickupAddress || pickup || "Setting pickup..."}
                     </p>
                   </div>
                 </div>
 
-                <div className="w-full flex gap-3">
-                  <div className="w-full p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                    <div className="flex flex-col items-center text-center">
-                      <Navigation className="w-6 h-6 text-primary mb-1" />
-                      <p className="text-xs text-muted-foreground mb-1">Distance</p>
-                      <p className="text-xl font-bold text-primary uppercase">
-                        {distance ? `${distance} km` : "--"}
-                      </p>
+                {/* Divider */}
+                <div className="flex items-center gap-4 pl-5">
+                  <div className="w-0.5 h-12 bg-gradient-to-b from-green-500 via-primary to-red-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Navigation className="w-3 h-3" />
+                      <span>{distance ? `${distance} km` : "Calculating..."}</span>
+                      {tripEta && (
+                        <>
+                          <span>•</span>
+                          <Clock className="w-3 h-3" />
+                          <span>Trip: {tripEta}</span>
+                        </>
+                      )}
                     </div>
                   </div>
+                </div>
 
-                  <div className="w-full p-4 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                    <div className="flex flex-col items-center text-center">
-                      <Clock className="w-6 h-6 text-primary mb-1" />
-                      <p className="text-xs text-muted-foreground mb-1">ETA</p>
-                      <p className="text-xl font-bold text-primary uppercase">{eta}</p>
-                    </div>
+                {/* Drop */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
+                    <Navigation className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Drop Point</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {dropAddress || drop || "Setting destination..."}
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {promo && (
-                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-green-500 text-white">
-                      PROMO
-                    </Badge>
-                    <span className="text-sm font-semibold text-green-700">
-                      {promo}
+            {/* Action Buttons - Mobile Optimized */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Button
+                onClick={() => setIsChatOpen(true)}
+                variant="default"
+                className="w-full h-12 text-base font-semibold"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Chat
+              </Button>
+              <Button
+                onClick={handleCancelRide}
+                variant="destructive"
+                className="w-full h-12 text-base font-semibold"
+              >
+                <X className="w-5 h-5 mr-2" />
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCompleteRide}
+                className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Check className="w-5 h-5 mr-2" />
+                Complete
+              </Button>
+            </div>
+          </div>
+
+          {/* Right Column - Fare & Trip Details (1/3 width on desktop) */}
+          <div className="space-y-4 sm:space-y-6">
+            
+            {/* Fare Card */}
+            <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-6 border-b border-border bg-muted/30">
+                <h5 className="text-sm font-bold text-foreground uppercase tracking-wide">Fare Breakdown</h5>
+              </div>
+              <div className="p-5 sm:p-6 space-y-4">
+                <div className="text-center p-4 xl:p-6 rounded-xl bg-primary/10 border-2 border-primary/30">
+                  <DollarSign className="w-10 h-10 text-primary mx-auto mb-2" />
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Total Fare</p>
+                  <p className="text-2xl xl:text-3xl font-bold text-primary">
+                    {fare ? `৳${fare}` : "--"}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 xl:p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <Navigation className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground block lg:hidden xl:block">Distance</span>
+                    </div>
+                    <span className="text-xs font-bold text-foreground">
+                      {distance ? ` ${distance} km` : "--"}
                     </span>
                   </div>
-                  <span className="text-xs text-green-600">Applied</span>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-foreground block lg:hidden xl:block">Trip ETA</span>
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    {tripEta || "Calculating..."}
+                  </span>
+                  </div>
                 </div>
-              )}
+
+                {promo && (
+                  <div className="p-4 rounded-xl bg-green-500/10 border-2 border-green-500/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-green-600 text-white">PROMO</Badge>
+                        <span className="text-sm font-bold text-green-700">{promo}</span>
+                      </div>
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+
           </div>
         </div>
       </div>

@@ -619,25 +619,6 @@ const RiderLiveTrackingMap = ({
         </div>
       </div>
 
-      {/* Distance and ETA Info */}
-      {distance && eta && (
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300" style={{ zIndex: 8 }}>
-          <div className="text-center">
-            <p className="font-bold text-sm text-blue-600">
-              📍 Distance to Pickup
-            </p>
-            <p className="text-lg font-bold text-blue-600">
-              {distance ? `${distance.toFixed(1)} km` : 'Calculating...'}
-            </p>
-            <p className="text-xs text-gray-600">
-              {eta ? `ETA: ${eta}` : 'Calculating ETA...'}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              Rider → Pickup Point
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

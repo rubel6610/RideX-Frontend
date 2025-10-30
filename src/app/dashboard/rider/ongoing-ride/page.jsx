@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/app/hooks/AuthProvider";
 import dynamic from "next/dynamic";
@@ -160,6 +160,7 @@ function OngoingRideContent() {
   const [distance, setDistance] = useState(null);
   const [pickupAddress, setPickupAddress] = useState("");
   const [dropAddress, setDropAddress] = useState("");
+  const [rideStatus, setRideStatus] = useState("accepted"); // Track ride status
 
   // Initialize Socket.IO for real-time updates
     useEffect(() => {
@@ -227,6 +228,17 @@ function OngoingRideContent() {
         }
       });
 
+      // 🔥 Listen for ride started event
+      socket.on('ride_started', (data) => {
+        console.log('✅ Ride started event received:', data);
+        if (data.rideId === urlParams.rideId) {
+          setRideStatus('ongoing');
+          toast.success('Ride is now ongoing!', {
+            description: 'Drive safely to the destination'
+          });
+        }
+      });
+
       // Listen for passenger location updates
       socket.on('passenger_location_update', (data) => {
         console.log('Passenger location update:', data);
@@ -278,6 +290,7 @@ function OngoingRideContent() {
         return () => {
         socket.off('ride_status_update');
         socket.off('ride_status_changed');
+        socket.off('ride_started');
         socket.off('passenger_location_update');
         socket.off('receive_ride_message');
             socket.off('new_message_notification');
@@ -455,6 +468,7 @@ function OngoingRideContent() {
       params.set('passengerEmail', passengerData?.email || '');
       params.set('passengerPhone', passengerData?.phoneNumber || '');
       params.set('passengerRating', (passengerData?.rating || 0).toString());
+      params.set('passengerPhoto', passengerData?.photoUrl || passengerData?.photo || '');
       params.set('baseFare', '0');
       params.set('distanceFare', '0');
       params.set('timeFare', '0');
@@ -552,6 +566,7 @@ function OngoingRideContent() {
         passengerEmail: params.get("passengerEmail") || "",
         passengerPhone: params.get("passengerPhone") || "",
         passengerRating: params.get("passengerRating") || "0",
+        passengerPhoto: params.get("passengerPhoto") || "",
         vehicleType: params.get("vehicleType") || "",
         baseFare: params.get("baseFare") || "0",
         distanceFare: params.get("distanceFare") || "0",
@@ -789,6 +804,7 @@ function OngoingRideContent() {
     passengerEmail = "",
     passengerPhone = "",
     passengerRating = "0",
+    passengerPhoto = "",
     vehicleType = "",
     baseFare = "0",
     distanceFare = "0",
@@ -807,6 +823,7 @@ function OngoingRideContent() {
     email: passengerEmail || "",
     phone: passengerPhone || "",
     rating: parseFloat(passengerRating) || 0,
+    photoUrl: passengerPhoto || "",
     status: "Waiting for pickup",
   };
 
@@ -819,7 +836,7 @@ function OngoingRideContent() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/rider/start-ride`,
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/start`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -830,11 +847,16 @@ function OngoingRideContent() {
       const result = await response.json();
       
       if (result.success) {
-        toast.success("Ride started successfully!");
-        // Navigate to ongoing ride page or update UI
-        router.push(`/dashboard/rider/ongoing-ride?rideId=${rideId}`);
+        // Update ride status to ongoing
+        setRideStatus("ongoing");
+        toast.success("Ride started successfully!", {
+          description: "The ride status has been updated to ongoing"
+        });
+        // The socket will handle real-time updates
       } else {
-        toast.error(result.message || "Failed to start ride");
+        toast.error(result.message || "Failed to start ride", {
+          description: result.currentStatus ? `Current status: ${result.currentStatus}` : undefined
+        });
       }
     } catch (error) {
       console.error("Error starting ride:", error);
@@ -932,6 +954,11 @@ function OngoingRideContent() {
                 {passengerInfo ? (
                   <>
                     <Avatar className="w-20 h-20 border-4 border-primary shadow-lg">
+                      <AvatarImage 
+                        src={passengerInfo.photoUrl} 
+                        alt={passengerInfo.fullName}
+                        className="object-cover"
+                      />
                       <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-accent text-white">
                         {passengerInfo.fullName?.charAt(0) || "P"}
                       </AvatarFallback>
@@ -1025,10 +1052,15 @@ function OngoingRideContent() {
                 <Button
                   onClick={handleStartRide}
                   variant="default"
-                  className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
+                  disabled={rideStatus === "ongoing"}
+                  className={`w-full h-12 text-base font-semibold ${
+                    rideStatus === "ongoing" 
+                      ? "bg-blue-600 hover:bg-blue-700" 
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
                 >
                   <Check className="w-5 h-5 mr-2" />
-                  Start Ride
+                  {rideStatus === "ongoing" ? "Ongoing" : "Start Ride"}
                 </Button>
               </div>
             </div>

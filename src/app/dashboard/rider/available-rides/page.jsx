@@ -371,6 +371,7 @@ const AvailableRidesPage = () => {
           params.append('passengerEmail', userInfo?.email || ride.passengerEmail || '');
           params.append('passengerPhone', userInfo?.phone || ride.passengerPhone || '');
           params.append('passengerRating', userInfo?.rating?.toString() || ride.passengerRating || '0');
+          params.append('passengerPhoto', userInfo?.photoUrl || userInfo?.photo || ride.passengerPhoto || '');
           
           // Add vehicle info
           params.append('vehicleModel', ride.vehicleModel || 'Unknown Model');
