@@ -69,7 +69,7 @@ export default function RiderManagementClient() {
       </div>
 
       {/* Status Tabs */}
-      <div className="overflow-x-auto flex flex-wrap gap-2 sm:gap-4">
+      <div className="overflow-x-auto grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4">
         {riderStaticData?.map((tab) => (
           <Button
             key={tab.key}
