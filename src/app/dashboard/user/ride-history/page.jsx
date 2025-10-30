@@ -225,9 +225,9 @@ export default function RideHistoryPage() {
 
   return (
     <TooltipProvider>
-      <div className="max-w-screen mx-auto lg:w-full md:w-full -ml-5 px-2">
+      <div className="container mx-auto px-2 space-y-4">
         {/* Header */}
-        <div className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
+        <div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-primary">
               My Ride History
@@ -239,10 +239,10 @@ export default function RideHistoryPage() {
         </div>
 
         {/* Filters */}
-        <div className="w-full ml-0 max-w-6xl">
-          <div className="bg-background rounded-lg border border-accent p-4 flex flex-col lg:flex-row gap-10 lg:items-end">
+        <div>
+          <div className="bg-background rounded-lg border border-accent p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
-            <div className="lg:w-70">
+            <div >
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Search
               </label>
@@ -258,7 +258,7 @@ export default function RideHistoryPage() {
             </div>
 
             {/* Datepicker */}
-            <div className="w-full lg:w-70">
+            <div >
               <label className="text-sm font-medium text-foreground mb-2 block text-left">
                 Date
               </label>
@@ -299,7 +299,7 @@ export default function RideHistoryPage() {
             </div>
 
             {/* Status */}
-            <div className="lg:w-70 md:w-full">
+            <div >
               <label className="text-sm font-medium text-foreground mb-2 block text-left">
                 Status
               </label>
@@ -317,7 +317,7 @@ export default function RideHistoryPage() {
           </div>
 
           {/* Ride Table */}
-          <div className="w-full max-w-6xl bg-background rounded-lg border border-accent shadow-sm mt-4 overflow-x-auto">
+          <div className="bg-background rounded-lg border border-accent shadow-sm mt-4 overflow-x-auto">
             <div className="p-4 border-b border-primary flex justify-between items-center">
               <h2 className="text-lg font-semibold">All Rides</h2>
               <div className="text-sm text-foreground/50">
