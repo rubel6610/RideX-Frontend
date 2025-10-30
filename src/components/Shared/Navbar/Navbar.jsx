@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  ChevronDown,
   Bike,
   Car,
   BusFront,
@@ -30,7 +29,6 @@ import { useAuth } from "@/app/hooks/AuthProvider";
 import useTheme from "@/app/hooks/useTheme";
 import { useFetchData } from "@/app/hooks/useApi";
 import { toast } from "sonner";
-import LanguageToggle from "@/components/Shared/LanguageToggle";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -38,12 +36,10 @@ const Navbar = () => {
   const { user, logout } = useAuth();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [rideByOpen, setRideByOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const topbarRef = useRef(null);
-  const rideByRef = useRef(null);
   const accountRef = useRef(null);
 
   const { data,isLoading } = useFetchData(
@@ -56,7 +52,6 @@ const Navbar = () => {
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? "hidden" : "auto";
     if (sidebarOpen) {
-      setRideByOpen(false);
       setAccountOpen(false);
     }
   }, [sidebarOpen]);
@@ -68,41 +63,18 @@ const Navbar = () => {
         setIsScrolled(scroll);
         gsap.to(topbarRef.current, {
           y: scroll ? -20 : 0,
-          opacity: scroll ? 0.6 : 1,
-          duration: 0.5,
+          opacity: scroll ? 0 : 1,
+          duration: 0.2,
           ease: "power2.out",
         });
       };
+
       window.addEventListener("scroll", handleScroll);
       return () => window.removeEventListener("scroll", handleScroll);
     }
   }, [user]);
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-  const toggleRideBy = () => {
-    if (accountOpen) setAccountOpen(false);
-    setRideByOpen((prev) => !prev);
-  };
-
-  const toggleAccount = () => {
-    if (rideByOpen) setRideByOpen(false);
-    setAccountOpen((prev) => !prev);
-  };
-
-  useEffect(() => {
-    const ridePanel = rideByRef.current;
-    if (ridePanel) {
-      gsap.to(ridePanel, {
-        opacity: rideByOpen ? 1 : 0,
-        y: rideByOpen ? 0 : -10,
-        duration: 0.25,
-        pointerEvents: rideByOpen ? "auto" : "none",
-        ease: "power2.out",
-      });
-    }
-  }, [rideByOpen]);
-
+  // GSAP animations for dropdowns
   useEffect(() => {
     const accPanel = accountRef.current;
     if (accPanel) {
@@ -111,7 +83,7 @@ const Navbar = () => {
         y: accountOpen ? 0 : -10,
         duration: 0.25,
         pointerEvents: accountOpen ? "auto" : "none",
-        ease: "power2.out",
+        ease: "power2.out"
       });
     }
   }, [accountOpen]);
@@ -119,35 +91,41 @@ const Navbar = () => {
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "Escape") {
-        setRideByOpen(false);
+        setSidebarOpen(false);
         setAccountOpen(false);
       }
     };
+
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, []);
 
-  // Only exact path gets active style
-  const activeStyle = (path) =>
-    pathname === path
-      ? "text-primary font-semibold"
-      : "hover:text-primary transition-colors duration-300";
+  const toggleAccount = () => {
+    setAccountOpen(!accountOpen);
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const activeStyle = (path) => {
+    return pathname === path
+      ? "text-primary border-b-2 border-primary pb-1"
+      : "text-foreground hover:text-primary pb-1";
+  };
 
   const handleLogout = () => {
-    toast("Are you sure you want to logout?", {
-      description: "Click below to confirm your action.",
-      action: {
-        label: "Logout",
-        onClick: async () => {
-          try {
-            await logout();
-            toast.success("You have been logged out successfully 👋");
-          } catch (err) {
-            toast.error("Logout failed. Please try again.");
-          }
+    toast.promise(
+      new Promise((resolve) => setTimeout(resolve, 1000)),
+      {
+        loading: "Logging out...",
+        success: () => {
+          logout();
+          return "You have been logged out successfully 👋";
         },
-      },
-    });
+        error: "Logout failed. Please try again.",
+      }
+    );
   };
 
   return (
@@ -222,56 +200,6 @@ const Navbar = () => {
               Home
             </Link>
 
-            <div className="relative h-full flex items-center cursor-pointer">
-              <button
-                onClick={toggleRideBy}
-                aria-expanded={rideByOpen}
-                aria-controls="rideby-panel"
-                className="flex items-center py-6 -mx-1 cursor-pointer uppercase"
-              >
-                <p className="pr-1">Ride By</p>
-                <ChevronDown
-                  className={`text-xs transition-transform duration-200 ${
-                    rideByOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              <div
-                id="rideby-panel"
-                ref={rideByRef}
-                role="menu"
-                className="absolute top-full right-0 mt-[11px] w-52 bg-popover text-popover-foreground flex flex-col shadow-lg rounded overflow-hidden origin-top z-[80]"
-                style={{ opacity: 0, pointerEvents: "none" }}
-              >
-                {["/ride-bike", "/ride-cng", "/ride-car"].map((path, i) => {
-                  const icons = [Bike, BusFront, Car];
-                  const labels = ["Bike", "CNG", "Car"];
-                  const Icon = icons[i];
-                  return (
-                    <Link
-                      key={path}
-                      href={path}
-                      className={`flex items-center gap-3 justify-between w-full px-6 py-3 transition-all duration-300 ${
-                        pathname === path
-                          ? "font-semibold bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                      }`}
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className="text-primary text-xl border p-0.5 rounded" />
-                        <span className="text-sm uppercase">{labels[i]}</span>
-                      </div>
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: "var(--primary)" }}
-                      />
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-
             <Link href="/offers" className={activeStyle("/offers")}>
               Offers
             </Link>
@@ -284,27 +212,23 @@ const Navbar = () => {
             <Link href="/blogs" className={activeStyle("/blogs")}>
               Blogs
             </Link>
-            {user?.role === "user" && (
-              <Link href="/become-rider" className={activeStyle("/become-rider")}>
-                Become a Rider
-              </Link>
-            )}
+            <Link href="/become-rider" className={activeStyle("/become-rider")}>
+              Become a Rider
+            </Link>
           </nav>
 
           <div className="flex items-center gap-0.5 sm:gap-2 lg:gap-1 xl:gap-2">
-            <LanguageToggle />
-
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="relative w-8.5 h-8.5 sm:w-11 lg:w-9 xl:w-11 sm:h-11 lg:h-9 xl:h-11 flex items-center justify-center rounded-full transition-all duration-300 border border-border bg-primary text-white hover:bg-primary/10 hover:text-primary cursor-pointer"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
-              ) : (
-                <Moon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
-              )}
-            </button>
+              <button
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                className="relative w-8.5 h-8.5 sm:w-11 lg:w-9 xl:w-11 sm:h-11 lg:h-9 xl:h-11 flex items-center justify-center rounded-full transition-all duration-300 border border-border bg-primary text-white hover:bg-primary/10 hover:text-primary cursor-pointer"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
+                ) : (
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" />
+                )}
+              </button>
 
             {user && (
               <div className="relative h-full flex items-center">
@@ -379,8 +303,6 @@ const Navbar = () => {
         <Sidebar
           sidebarOpen={sidebarOpen}
           toggleSidebar={toggleSidebar}
-          rideByOpen={rideByOpen}
-          toggleRideBy={toggleRideBy}
         />
       </header>
     </>

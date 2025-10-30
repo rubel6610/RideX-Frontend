@@ -133,7 +133,7 @@ const StepNavigation = ({
 
   return (
     <div ref={containerRef} className="flex justify-between mt-10 items-center relative overflow-hidden">
-      <div ref={navRef} className="flex justify-between w-full items-center">
+      <div ref={navRef} className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 w-full sm:items-center">
         {currentStep > 0 && (
           <Button
             ref={prevBtnRef}
@@ -146,7 +146,7 @@ const StepNavigation = ({
           </Button>
         )}
         
-        <div className="ml-auto flex gap-4">
+        <div className="sm:ml-auto flex gap-4">
           {currentStep < totalSteps - 1 ? (
             <Button
               ref={nextBtnRef}
@@ -162,7 +162,7 @@ const StepNavigation = ({
               ref={submitBtnRef}
               type="submit"
               variant="primary"
-              className="py-4 px-8 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-110 shadow-xl hover:shadow-2xl text-white"
+              className="w-full sm:w-fit py-4 px-8 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-110 shadow-xl hover:shadow-2xl text-white"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

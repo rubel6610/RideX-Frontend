@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/hooks/AuthProvider";
-import { LayoutDashboard, AlertTriangle, Gift, MapPin, Shield, UserCog, User, HelpCircle } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Gift, MapPin, Shield, UserCog, User, HelpCircle, PenBox } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -48,6 +48,7 @@ const AdminDashboard = ({ collapsed }) => {
     { href: "/dashboard/admin/monitor-live-rides", Icon: MapPin, label: "Monitor Live Ride" },
     { href: "/dashboard/admin/disputes-complaints", Icon: AlertTriangle, label: "Complaints" },
     { href: "/dashboard/admin/promotions-discounts", Icon: Gift, label: "Promotions & Discounts" },
+    { href: "/dashboard/admin/create-blog", Icon: PenBox, label: "Create Blog" },
 
       //  general menu
 {href: "/dashboard/my-profile", Icon: User, label: `${user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Profile`},
