@@ -35,8 +35,9 @@ export default function PaymentPage() {
     });
 
     setRideData(data);
-    console.log(" Ride Data (converted):", data);
+    console.log("✅ Ride Data (converted):", data);
   }, [params]);
+
 
   // Prefill user email
   useEffect(() => {
@@ -52,6 +53,8 @@ export default function PaymentPage() {
     address: "93 B, New Eskaton Road, Dhaka-1000, Bangladesh.",
   };
 
+ 
+
   //  Submit handler
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
@@ -62,25 +65,34 @@ export default function PaymentPage() {
     }
 
     //  Build safe numeric payload for backend
+    // Calculate total amount (use total or fare as fallback)
+    const totalAmount = Number(rideData.total) || Number(rideData.fare) || 0;
+    
+    // Calculate platform commission (20% of total amount)
+    const platformCommission = Number((totalAmount * 0.20).toFixed(2));
+    
+    // Calculate rider commission (total amount - platform commission)
+    const riderCommission = Number((totalAmount - platformCommission).toFixed(2));
+
     const payData = {
-      username: name,
-      userEmail: email,
+      userEmail: user.email,
+      riderEmail: rideData.riderEmail,
       rideId: rideData.rideId,
       userId: user.id,
       riderId: rideData.riderId,
-      totalNum: Number(rideData.total) || 0,
-      baseFareNum: Number(rideData.baseFare) || 0,
-      distanceFareNum: Number(rideData.distanceFare) || 0,
-      timeFareNum: Number(rideData.timeFare) || 0,
-      taxNum: Number(rideData.tax) || 0,
-      fareNum: Number(rideData.fare) || 0,
-      distance: Number(rideData.distance) || 0,
-      vehicleType: rideData.vehicleType,
+      promoCode: rideData.promo || null,
       pickup: rideData.pickup,
       drop: rideData.drop,
+      vehicleType: rideData.vehicleType,
+      vehicleModel: rideData.vehicleModel,
+      VehicleRegistration: rideData.vehicleRegisterNumber,
+      distance: Number(rideData.distance) || 0,
+      arrivalTime: Number(rideData.arrivalTime) || Number(rideData.eta),
+      rideType: rideData.vehicleType,
+      platformCommission: Number(platformCommission),
+      riderCommission: Number(riderCommission),
+      amount: Number(totalAmount),
     };
-
-    console.log(" Sending payment data:", payData);
 
     try {
       const response = await fetch(
@@ -105,6 +117,11 @@ export default function PaymentPage() {
     }
   };
 
+  // Calculate commission values for display
+  const totalAmount = Number(rideData.total) || Number(rideData.fare) || 0;
+  const platformComission = Number((totalAmount * 0.20).toFixed(2));
+  const riderComission = Number((totalAmount - platformComission).toFixed(2));
+
   return (
     <div className="flex items-center justify-center">
       <div className="rounded-lg shadow-xl overflow-hidden flex flex-col md:flex-row max-w-4xl w-full bg-card pt-6">
@@ -120,6 +137,7 @@ export default function PaymentPage() {
               {paymentData.amount}{" "}
               <span className="text-xl font-normal">{paymentData.currency}</span>
             </div>
+            
             <div className="mb-6">
               <p className="text-sm opacity-80 mb-1">Description</p>
               <p className="text-base font-medium leading-4.5">

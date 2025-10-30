@@ -302,7 +302,7 @@ const BookARideContent = () => {
             if (data?.rideInfo?.riderInfo?.ratings) params.append('ratings', data.rideInfo.riderInfo.ratings.toString());
             if (data?.rideInfo?.riderInfo?.completedRides) params.append('completedRides', data.rideInfo.riderInfo.completedRides.toString());
 
-            router.push(`/dashboard/user/book-a-ride/accept-ride?${params.toString()}`);
+            router.push(`/dashboard/user/ongoing-ride?${params.toString()}`);
           } catch (paramError) {
             console.error("Error building URL parameters:", paramError);
             toast.error("Failed to navigate to ride details");
@@ -426,6 +426,20 @@ const BookARideContent = () => {
     }
   }, [rideId, user]);
 
+  // ✅ Handle Location Change
+  const handleLocationChange = useCallback((location, type) => {
+    if (type === "pickup") {
+      setPickup(location.coordinates);
+      setPickupName(location.name);
+      setIsCurrentLocationActive(
+        currentLocation && location.coordinates === currentLocation.coordinates
+      );
+    } else {
+      setDrop(location.coordinates);
+      setDropName(location.name);
+    }
+  }, [currentLocation]);
+
   // Debug logging
   console.log('BookARideContent - pickup:', pickup, 'drop:', drop);
 
@@ -434,21 +448,12 @@ const BookARideContent = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
         <div className="md:overflow-y-auto space-y-5 custom-scrollbar">
          
-          <LocationInputs
-            pickup={pickupName || pickup}
-            setPickup={setPickup}
-            drop={dropName || drop}
-            setDrop={setDrop}
-            onLocationChange={(location, type) => {
-              if (type === "pickup") {
-                setPickupName(location.name);
-                setIsCurrentLocationActive(
-                  currentLocation && location.coordinates === currentLocation.coordinates
-                );
-              } else {
-                setDropName(location.name);
-              }
-            }}
+          <LocationInputs 
+            pickup={pickup} 
+            setPickup={setPickup} 
+            drop={drop} 
+            setDrop={setDrop} 
+            onLocationChange={handleLocationChange}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-3">
             <VehicleTypeSelector selectedType={selectedType} setSelectedType={setSelectedType} />

@@ -134,6 +134,7 @@ export default function RiderVehicleInfo() {
                 placeholder="Upload Image"
               /> */}
               <Input
+              className='text-white'
                 type="text"
                 value={formData.vehicleType}
                 onChange={(e) =>
@@ -142,6 +143,7 @@ export default function RiderVehicleInfo() {
                 placeholder="Vehicle Type"
               />
               <Input
+                   className='text-white'
                 type="text"
                 value={formData.vehicleModel}
                 onChange={(e) =>
@@ -150,6 +152,7 @@ export default function RiderVehicleInfo() {
                 placeholder="Vehicle Model"
               />
               <Input
+                   className='text-white'
                 type="text"
                 value={formData.vehicleRegisterNumber}
                 onChange={(e) =>
@@ -209,21 +212,24 @@ export default function RiderVehicleInfo() {
                       </div>
                     )}
 
-                    <div className="space-y-2 text-black dark:text-white">
-                      <div>
-                        <strong>Full Name:</strong> {rider.fullName}
+                    <div className="space-y-2 text-gray-800 dark:text-white">
+                      <div className="font-bold text-xl">
+                        <strong>Full Name: </strong>  
+                        <span className="font-bold text-2xl"> {rider.fullName}</span>
                       </div>
                       <div>
-                        <strong>Date of Birth:</strong> {rider.dateOfBirth}
+                        <strong className="text-xl">Date of Birth:</strong>
+                        <span className="font-bold text-2xl"> {rider.dateOfBirth}</span>
                       </div>
-                      <div>
-                        <strong>Email:</strong> {rider.email}
+                      <div className="text-lg">
+                        <strong>Email:</strong>
+                        <span className="text-xl"> {rider.email}</span>
                       </div>
-                      <div>
+                      <div className="text-lg">
                         <strong>Emergency Contact:</strong>{" "}
                         {rider.emergency_contact}
                       </div>
-                      <div>
+                      <div className="text-lg">
                         <strong>Address:</strong>{" "}
                         {`${rider.present_address.village}, ${rider.present_address.post}, ${rider.present_address.upazila}, ${rider.present_address.district}`}
                       </div>
