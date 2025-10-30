@@ -1,15 +1,17 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/AuthProvider";
 import FaceVerificationModal from "@/components/Shared/FaceVerification/FaceVerificationModal";
-import Stepper from "@/components/Shared/Stepper";
 import UserInfoStep from "@/components/Shared/BecomeRiderSteps/UserInfoStep";
 import VehicleInfoStep from "@/components/Shared/BecomeRiderSteps/VehicleInfoStep";
 import PasswordIdentityStep from "@/components/Shared/BecomeRiderSteps/PasswordIdentityStep";
 import StepNavigation from "@/components/Shared/BecomeRiderSteps/StepNavigation";
+import Image from "next/image";
 import gsap from "gsap";
+
+// Import the images
+import darkImage from "../../Assets/become-rider.webp";
 
 export default function BecomeRiderPage() {
   const { register, handleSubmit, setValue, formState: { errors }, trigger } = useForm();
@@ -55,30 +57,6 @@ export default function BecomeRiderPage() {
     }
   }, [currentStep]);
 
-  const fetchUser = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log(data.message || "Error fetching user");
-        return;
-      }
-
-      // Set default values for form fields except emergency/vehicle/license
-      setValue("fullName", data.fullName || "");
-      setValue("dob", data.dateOfBirth || "");
-      setValue("email", data.email || "");
-      setValue("phone", data.phoneNumber || "");
-      setValue("present_address.village", data.present_address?.village || "");
-      setValue("present_address.post", data.present_address?.post || "");
-      setValue("present_address.upazila", data.present_address?.upazila || "");
-      setValue("present_address.district", data.present_address?.district || "");
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
@@ -108,9 +86,11 @@ export default function BecomeRiderPage() {
         vehicleRegisterNumber: data.vehicleReg,
         drivingLicense: licenseFileName,
         password: data.password,
-        // Include the captured face image if available
-        frontFace: capturedFaceImage
+        // Include the captured face image URL if available
+        frontFace: capturedFaceImage // This will now be an ImgBB URL or base64 fallback
       };
+
+      console.log("Sending become-rider request with payload:", payload);
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/become-rider`, {
         method: "POST",
@@ -119,6 +99,8 @@ export default function BecomeRiderPage() {
       });
 
       const result = await res.json();
+      console.log("Become-rider response:", result);
+      
       if (res.ok) {
         // Animate success message
         if (formContainerRef.current) {
@@ -134,15 +116,38 @@ export default function BecomeRiderPage() {
         } else {
           alert("Rider request submitted successfully!");
         }
-        console.log(result.rider);
       } else {
         alert(result.message);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Become-rider request error:", err);
       alert("Server error");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Error fetching user");
+        return;
+      }
+
+      // Set default values for form fields except emergency/vehicle/license
+      setValue("fullName", data.fullName || "");
+      setValue("dob", data.dateOfBirth || "");
+      setValue("email", data.email || "");
+      setValue("phone", data.phoneNumber || "");
+      setValue("present_address.village", data.present_address?.village || "");
+      setValue("present_address.post", data.present_address?.post || "");
+      setValue("present_address.upazila", data.present_address?.upazila || "");
+      setValue("present_address.district", data.present_address?.district || "");
+    } catch (err) {
+      alert("Error fetching user");
     }
   };
 
@@ -170,6 +175,7 @@ export default function BecomeRiderPage() {
   };
 
   const handleFaceCapture = (imageData) => {
+    console.log("Face capture received:", imageData);
     setCapturedFaceImage(imageData);
     setFaceVerified(true);
     
@@ -180,8 +186,6 @@ export default function BecomeRiderPage() {
         { scale: 1, duration: 0.3, ease: "power2.out" }
       );
     }
-    
-    console.log("Face verification image captured:", imageData);
   };
 
   const nextStep = async () => {
@@ -220,12 +224,25 @@ export default function BecomeRiderPage() {
     }
   };
 
+  // Create a safe wrapper for the register function
+  const safeRegister = (name, options = {}) => {
+    // Create a new object to avoid passing read-only properties
+    const registration = register(name, options);
+    // Return a new object with only the necessary properties
+    return {
+      name: registration.name,
+      onBlur: registration.onBlur,
+      onChange: registration.onChange,
+      ref: registration.ref,
+    };
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 0:
         return (
           <UserInfoStep 
-            register={register} 
+            register={safeRegister} 
             errors={errors} 
             setValue={setValue} 
           />
@@ -233,7 +250,7 @@ export default function BecomeRiderPage() {
       case 1:
         return (
           <VehicleInfoStep 
-            register={register} 
+            register={safeRegister} 
             errors={errors} 
             handleLicenseChange={handleLicenseChange}
             licensePreview={licensePreview}
@@ -243,7 +260,7 @@ export default function BecomeRiderPage() {
       case 2:
         return (
           <PasswordIdentityStep 
-            register={register} 
+            register={safeRegister} 
             errors={errors} 
             showPassword={showPassword}
             setShowPassword={setShowPassword}
@@ -257,49 +274,70 @@ export default function BecomeRiderPage() {
     }
   };
 
-  return (
-    <div className="mt-14 flex justify-center p-4 md:p-6 lg:p-8">
-      <div 
-        ref={formContainerRef}
-        className="w-full max-w-5xl transition-all duration-300 rounded-3xl overflow-hidden shadow-2xl"
-      >
-        <div className="text-center mb-10 px-6 py-10 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-t-3xl">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-teal-100 bg-clip-text text-transparent">
-            Become a Rider
-          </h1>
-          <p className="text-teal-100 text-xl max-w-3xl mx-auto">
-            Join our rider network and start your journey today. Complete the steps below to get started.
-          </p>
-        </div>
+  // Component for Step Indicator (1, 2, 3...)
+  const Step = ({ active, number, title }) => {
+    const activeClass = active ? 'bg-accent text-primary' : 'bg-muted text-muted-foreground';
+    const numberClass = active ? 'bg-primary text-primary-foreground' : 'bg-border text-foreground';
 
-        <div className="flex flex-col p-6 md:p-10 border-2 border-teal-500/30 dark:border-teal-500/20 gap-8 rounded-2xl bg-white dark:bg-gray-800 shadow-2xl">
-          {/* Stepper */}
-          <Stepper steps={steps} currentStep={currentStep} />
-          
-          {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="min-h-[500px]">
-            <div ref={stepContainerRef} className="min-h-[400px]">
-              {renderStep()}
-            </div>
-            
-            {/* Navigation */}
-            <StepNavigation 
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              onNext={nextStep}
-              onPrev={prevStep}
-              isSubmitting={isSubmitting}
-              trigger={trigger}
-            />
-          </form>
+    return (
+      <div className={`flex items-center text-sm font-medium rounded-full py-1.5 px-3 ${activeClass}`}>
+        <div className={`h-4 w-4 mr-2 flex items-center justify-center rounded-full text-xs font-bold ${numberClass}`}>
+          {number}
         </div>
-
-        <FaceVerificationModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onCapture={handleFaceCapture}
-        />
+        {title}
       </div>
+    );
+  };
+
+  return (
+    <div className="flex w-full max-w-7xl mx-auto mt-28 mb-8 sm:mt-36 sm:mb-12 rounded-xl shadow-2xl overflow-hidden bg-background md:mt-36 md:mb-26">
+      {/* Left Panel (Illustration) - Hidden on mobile */}
+      <div className="hidden md:block w-1/2 md:pl-6">
+        {/* Rider Illustration Image - Full height */}
+        <div className="text-foreground text-center w-full h-full">
+          <div className="w-full h-full block">
+            <Image
+              src={darkImage} 
+              alt="Become a Rider"
+              height={940} 
+              width={725} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel (Form) - Full width on mobile */}
+      <div className="w-full md:w-1/2 p-4 sm:py-6 sm:px-10 bg-background md:pl-6 md:pr-6 md:py-6">
+        {/* Step Navigation */}
+        <div className="flex flex-wrap gap-2 md:gap-3 mb-4">
+          <Step active={currentStep === 0} number={1} title="Personal Info" />
+          <Step active={currentStep === 1} number={2} title="Vehicle Info" />
+          <Step active={currentStep === 2} number={3} title="Security Info" />
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-grow flex flex-col">
+          <div ref={stepContainerRef} className="flex-grow min-h-[400px]">
+            {renderStep()}
+          </div>
+          
+          {/* Navigation */}
+          <StepNavigation 
+            currentStep={currentStep}
+            totalSteps={steps.length}
+            onNext={nextStep}
+            onPrev={prevStep}
+            isSubmitting={isSubmitting}
+            trigger={trigger}
+          />
+        </form>
+      </div>
+
+      <FaceVerificationModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onCapture={handleFaceCapture}
+      />
     </div>
   );
 }

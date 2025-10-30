@@ -3,14 +3,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Badge } from "@/components/ui/badge";
 import RiderActions from "./RiderActions";
 import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
@@ -50,30 +43,34 @@ export default function RiderManagementClient() {
     rejected: riders.filter((r) => r.status?.toLowerCase() === "rejected").length,
   };
 
+  const riderStaticData = [
+          { key: "pending", label: "Pending Riders", count: statusCounts.pending },
+          { key: "approved", label: "Approved Riders", count: statusCounts.approved },
+          { key: "rejected", label: "Rejected Riders", count: statusCounts.rejected },
+        ];
+
   if (isLoading) return <TableSkeleton />;
   if (error) return <div className="p-6 text-red-600">Error: {error.message}</div>;
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 shadow-lg rounded-2xl bg-background border border-border">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Rider Management</h1>
+    <div className="p-4 space-y-6 mt-6 mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">Rider Management</h1>
         <Button
           onClick={() => refetch()}
           variant="outline"
           size="sm"
-          className="flex items-center gap-2"
+          className="w-full sm:w-auto flex items-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2 sm:gap-4">
-        {[
-          { key: "pending", label: "Pending Riders", count: statusCounts.pending },
-          { key: "approved", label: "Approved Riders", count: statusCounts.approved },
-          { key: "rejected", label: "Rejected Riders", count: statusCounts.rejected },
-        ].map((tab) => (
+      {/* Status Tabs */}
+      <div className="overflow-x-auto grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4">
+        {riderStaticData?.map((tab) => (
           <Button
             key={tab.key}
             variant={statusFilter === tab.key ? "default" : "outline"}
@@ -92,76 +89,82 @@ export default function RiderManagementClient() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+      <div className="overflow-x-auto flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <Input
           placeholder="Search by name, email, or vehicle..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:max-w-sm"
         />
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs sm:text-sm text-muted-foreground">
           Showing {pagination.startIndex}-{pagination.endIndex} of {filteredRiders.length} {statusFilter} riders
         </div>
       </div>
 
-      <div className="rounded-2xl shadow-sm overflow-x-auto bg-background border border-border">
-        <Table className="min-w-[800px]">
-          <TableHeader>
-            <TableRow className="bg-accent/30">
-              <TableHead className="whitespace-nowrap">Name</TableHead>
-              <TableHead className="whitespace-nowrap">Email</TableHead>
-              <TableHead className="whitespace-nowrap">Vehicle</TableHead>
-              <TableHead className="whitespace-nowrap">Model</TableHead>
-              <TableHead className="whitespace-nowrap">Reg. No</TableHead>
-              <TableHead className="whitespace-nowrap">Status</TableHead>
-              <TableHead className="text-center whitespace-nowrap">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+      {/* Table */}
+      <div className="border border-accent mt-10 rounded-xl">
+        <div className="overflow-x-auto overflow-y-auto">
+          <table className="w-full text-xs sm:text-sm">
+            <thead className="bg-accent text-left sticky top-0 z-10">
+              <tr>
+                <th className="px-2 sm:px-4 py-2">Name</th>
+                <th className="px-2 sm:px-4 py-2">Email</th>
+                <th className="px-2 sm:px-4 py-2">Vehicle</th>
+                <th className="px-2 sm:px-4 py-2">Model</th>
+                <th className="px-2 sm:px-4 py-2">Reg. No</th>
+                <th className="px-2 sm:px-4 py-2">Status</th>
+                <th className="px-2 sm:px-4 py-2 text-center">Actions</th>
+              </tr>
+            </thead>
 
-          <TableBody>
-            {pagination.currentData.length > 0 ? (
-              pagination.currentData.map((rider) => (
-                  <TableRow
-                    key={rider._id}
-                    className="hover:bg-accent/20 transition-colors duration-200"
-                  >
-                    <TableCell className="font-medium">{rider.fullName || "N/A"}</TableCell>
-                    <TableCell>{rider.email || "N/A"}</TableCell>
-                    <TableCell>{rider.vehicleType || "N/A"}</TableCell>
-                    <TableCell>{rider.vehicleModel || "N/A"}</TableCell>
-                    <TableCell>{rider.vehicleRegisterNumber || "N/A"}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          rider.status?.toLowerCase() === "approved"
-                            ? "default"
-                            : rider.status?.toLowerCase() === "rejected"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {rider.status ? rider.status : "Pending"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="flex justify-end gap-2">
-                      <RiderActions
-                        user={rider}
-                        onAction={() => refetch()}
-                        currentStatus={rider.status?.toLowerCase() || "pending"}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                  No {statusFilter} riders found
-                  {search && ` matching "${search}"`}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            <tbody>
+              {pagination.currentData.length > 0 ? (
+                pagination.currentData.map((rider) => (
+                    <tr
+                      key={rider._id}
+                      className="border-t"
+                    >
+                      <td className="px-2 sm:px-4 py-2 font-medium">{rider.fullName || "N/A"}</td>
+                      <td className="px-2 sm:px-4 py-2">{rider.email || "N/A"}</td>
+                      <td className="px-2 sm:px-4 py-2">{rider.vehicleType || "N/A"}</td>
+                      <td className="px-2 sm:px-4 py-2">{rider.vehicleModel || "N/A"}</td>
+                      <td className="px-2 sm:px-4 py-2">{rider.vehicleRegisterNumber || "N/A"}</td>
+                      <td className="px-2 sm:px-4 py-2">
+                        <Badge
+                          variant={
+                            rider.status?.toLowerCase() === "approved"
+                              ? "default"
+                              : rider.status?.toLowerCase() === "rejected"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                          className="text-xs"
+                        >
+                          {rider.status ? rider.status : "Pending"}
+                        </Badge>
+                      </td>
+                      <td className="px-2 sm:px-4 py-2">
+                        <div className="flex justify-end gap-1 sm:gap-2">
+                          <RiderActions
+                            user={rider}
+                            onAction={() => refetch()}
+                            currentStatus={rider.status?.toLowerCase() || "pending"}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="text-center py-6 text-muted-foreground">
+                    No {statusFilter} riders found
+                    {search && ` matching "${search}"`}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       {filteredRiders.length > 0 && (
         <PaginationControls pagination={pagination} />

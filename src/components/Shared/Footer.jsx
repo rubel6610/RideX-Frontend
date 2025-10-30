@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { Facebook, Linkedin, Twitter, Youtube, Mail, Phone, Clock, ArrowUp } from 'lucide-react';
 import logo from '../../Assets/logo-white-text.webp';
+import darkLogo from '../../Assets/logo-dark.webp'
 import Image from "next/image";
 
 export default function Footer() {
@@ -26,11 +27,11 @@ export default function Footer() {
 
   return (
     <footer className="relative w-full text-white overflow-hidden bg-black">
-      {/* Background Image */}
+      {/* Background with gradient instead of missing image */}
       <div
         className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/src/Assets/footer-bg.png')"
+          background: "linear-gradient(135deg, #1a1a1a 0%, #000000 100%)"
         }}
       />
 
@@ -50,7 +51,14 @@ export default function Footer() {
                   alt="RideX Logo"
                   width={120}
                   height={50}
-                  className="object-contain"
+                  className="dark:hidden object-contain"
+                />
+                <Image
+                  src={darkLogo}
+                  alt="RideX Logo"
+                  width={120}
+                  height={50}
+                  className="hidden dark:block object-contain"
                 />
               </div>
 

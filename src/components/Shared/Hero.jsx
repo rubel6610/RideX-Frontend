@@ -32,54 +32,71 @@ const Hero = () => {
     const imageRef = useRef(null);
     const shapesRef = useRef([]);
 
-    // page load এ current location fetch (First occurrence)
+    // Page load: Get current location with improved error handling and caching
     useEffect(() => {
-        if (!pickup && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
-                    try {
-                        const response = await fetch(
-                            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${latitude}&lon=${longitude}`
-                        );
-                        const data = await response.json();
-                        const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                        setPickup(locName);
-                    } catch (error) {
-                        console.error("Error getting location:", error);
-                        setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-                    }
-                },
-                (err) => console.error("Error getting location:", err),
-                { enableHighAccuracy: true }
-            );
-        }
-    }, []);
+        if (pickup || !navigator.geolocation) return;
 
-    // page load এ current location fetch (Second occurrence - kept for consistency)
-    useEffect(() => {
-        if (!pickup && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
-                    try {
-                        const response = await fetch(
-                            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${latitude}&lon=${longitude}`
-                        );
-                        const data = await response.json();
-                        const locName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                        setPickup(locName);
-                    } catch (error) {
-                        console.error("Error getting location:", error);
-                        setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-                    }
-                },
-                (err) => console.error("Error getting location:", err),
-                { enableHighAccuracy: true }
-            );
+        // Check if we have a cached location
+        const savedLocation = localStorage.getItem("heroCurrentLocation");
+        if (savedLocation) {
+            try {
+                const parsed = JSON.parse(savedLocation);
+                // Check if cached location is still valid (less than 1 hour old)
+                if (Date.now() - parsed.timestamp < 3600000) {
+                    setPickup(parsed.name);
+                    return;
+                }
+            } catch (e) {
+                console.error("Error parsing saved location:", e);
+            }
         }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                
+                // Try to get address from reverse geocoding
+                fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        const locName = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                        setPickup(locName);
+                        
+                        // Cache the location with timestamp
+                        const locationData = {
+                            name: locName,
+                            lat: latitude,
+                            lng: longitude,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem("heroCurrentLocation", JSON.stringify(locationData));
+                    })
+                    .catch(() => {
+                        // Fallback to coordinates if reverse geocoding fails
+                        const coordString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                        setPickup(coordString);
+                        
+                        // Cache the location with timestamp
+                        const locationData = {
+                            name: coordString,
+                            lat: latitude,
+                            lng: longitude,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem("heroCurrentLocation", JSON.stringify(locationData));
+                    });
+            },
+            (err) => {
+                console.error("Error getting location:", err);
+                // Set a default location if geolocation fails
+                setPickup("Dhaka, Bangladesh");
+            },
+            { 
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            }
+        );
     }, []);
 
     // GSAP Animations
@@ -183,6 +200,8 @@ const Hero = () => {
             alert("Please select Pickup and Drop locations!");
             return;
         }
+        
+        // Pass the pickup and drop locations to the book-a-ride page
         router.push(
             `/dashboard/user/book-a-ride?pickup=${encodeURIComponent(
                 pickup

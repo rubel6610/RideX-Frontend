@@ -94,42 +94,50 @@ function RegisterPage() {
 
   return (
     <GuestOnlyRoute>
-      <div className="mt-28 container mx-auto mb-16">
-        {/* Logo & Heading */}
-        <div className="flex flex-col items-center space-y-2 my-6">
-          <Image src={CarLogo} alt="car-logo" width={60} height={60} />
-          <h2 className="text-3xl text-primary font-bold">Join RideX</h2>
-          <p className="text-black dark:text-white text-lg">
-            Create your account to get started
-          </p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          {/* Logo & Heading */}
+          <div className="flex flex-col items-center space-y-3 mb-8">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full"></div>
+              <Image src={CarLogo} alt="car-logo" width={80} height={80} className="relative z-10 drop-shadow-lg" />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Join RideX
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg font-medium">
+              Create your account to get started
+            </p>
+          </div>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="shadow-lg p-8 rounded-xl space-y-4 max-w-2xl mx-auto border border-primary"
-        >
+          {/* Form */}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="bg-card shadow-2xl p-6 md:p-10 rounded-2xl space-y-6 border border-primary/20 backdrop-blur-sm"
+          >
           {/* Full Name */}
-          <div>
-            <Label htmlFor="fullName">
-              Full Name <span className="text-red-500">*</span>
+          <div className="space-y-2">
+            <Label htmlFor="fullName" className="text-base font-semibold flex items-center gap-1">
+              Full Name <span className="text-destructive">*</span>
             </Label>
             <Input
               id="fullName"
               type="text"
-              placeholder="Full name"
+              placeholder="Enter your full name"
               {...register("fullName", { required: "Full name is required" })}
-              className="w-full mt-2"
+              className="w-full h-11 border-primary/30 focus:border-primary transition-colors"
             />
             {errors.fullName && (
-              <p className="text-red-500 text-sm">{errors.fullName.message}</p>
+              <p className="text-destructive text-sm flex items-center gap-1">
+                <span>⚠</span> {errors.fullName.message}
+              </p>
             )}
           </div>
 
           {/* Image Upload */}
-          <div>
-            <Label htmlFor="image">
-              Profile Image <span className="text-red-500">*</span>
+          <div className="space-y-2">
+            <Label htmlFor="image" className="text-base font-semibold flex items-center gap-1">
+              Profile Image <span className="text-destructive">*</span>
             </Label>
             <Input
               id="image"
@@ -137,30 +145,32 @@ function RegisterPage() {
               accept="image/*"
               {...register("image", { required: "Profile image is required" })}
               onChange={handleImageChange}
-              className="w-full mt-2"
+              className="w-full h-11 border-primary/30 focus:border-primary transition-colors file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:transition-colors file:cursor-pointer cursor-pointer"
             />
             {errors.image && (
-              <p className="text-red-500 text-sm">{errors.image.message}</p>
+              <p className="text-destructive text-sm flex items-center gap-1">
+                <span>⚠</span> {errors.image.message}
+              </p>
             )}
             {previewImage && (
-              <div className="mt-3">
-                <p className="text-sm text-gray-500 mb-1">Preview:</p>
+              <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <p className="text-sm text-muted-foreground mb-2 font-medium">Preview:</p>
                 <Image
                   src={previewImage}
                   alt="Preview"
-                  width={100}
-                  height={100}
-                  className="rounded-lg border border-gray-300"
+                  width={120}
+                  height={120}
+                  className="rounded-xl border-2 border-primary/30 shadow-md"
                 />
               </div>
             )}
           </div>
 
           {/* Date of Birth & NID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="dateOfBirth">
-                Date Of Birth <span className="text-red-500">*</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="dateOfBirth" className="text-base font-semibold flex items-center gap-1">
+                Date Of Birth <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="dateOfBirth"
@@ -168,113 +178,122 @@ function RegisterPage() {
                 {...register("dateOfBirth", {
                   required: "Date of birth is required",
                 })}
-                className="w-full mt-2"
+                className="w-full h-11 border-primary/30 focus:border-primary transition-colors"
               />
               {errors.dateOfBirth && (
-                <p className="text-red-500 text-sm">
-                  {errors.dateOfBirth.message}
+                <p className="text-destructive text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.dateOfBirth.message}
                 </p>
               )}
             </div>
-            <div>
-              <Label htmlFor="NIDno">
-                NID Number <span className="text-red-500">*</span>
+            <div className="space-y-2">
+              <Label htmlFor="NIDno" className="text-base font-semibold flex items-center gap-1">
+                NID Number <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="NIDno"
                 type="number"
-                placeholder="NID no"
+                placeholder="Enter your NID number"
                 {...register("NIDno", { required: "NID number is required" })}
-                className="w-full mt-2"
+                className="w-full h-11 border-primary/30 focus:border-primary transition-colors"
               />
               {errors.NIDno && (
-                <p className="text-red-500 text-sm">{errors.NIDno.message}</p>
+                <p className="text-destructive text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.NIDno.message}
+                </p>
               )}
             </div>
           </div>
 
           {/* Email & Gender */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="email">
-                Email <span className="text-red-500">*</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-base font-semibold flex items-center gap-1">
+                Email <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="your@email.com"
                 {...register("email", { required: "Email is required" })}
-                className="w-full mt-2"
+                className="w-full h-11 border-primary/30 focus:border-primary transition-colors"
               />
               {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
+                <p className="text-destructive text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.email.message}
+                </p>
               )}
             </div>
-            <div>
-              <Label htmlFor="gender">
-                Gender <span className="text-red-500">*</span>
+            <div className="space-y-2">
+              <Label htmlFor="gender" className="text-base font-semibold flex items-center gap-1">
+                Gender <span className="text-destructive">*</span>
               </Label>
-              <div className="flex gap-6 mt-2">
-                <label className="flex items-center gap-2">
+              <div className="flex gap-4 mt-3">
+                <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="radio"
                     value="male"
                     {...register("gender", { required: "Gender is required" })}
-                  />{" "}
-                  Male
+                    className="w-4 h-4 text-primary border-primary/30 focus:ring-primary focus:ring-2 cursor-pointer"
+                  />
+                  <span className="group-hover:text-primary transition-colors">Male</span>
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="radio"
                     value="female"
                     {...register("gender", { required: "Gender is required" })}
-                  />{" "}
-                  Female
+                    className="w-4 h-4 text-primary border-primary/30 focus:ring-primary focus:ring-2 cursor-pointer"
+                  />
+                  <span className="group-hover:text-primary transition-colors">Female</span>
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="radio"
                     value="custom"
                     {...register("gender", { required: "Gender is required" })}
-                  />{" "}
-                  Custom
+                    className="w-4 h-4 text-primary border-primary/30 focus:ring-primary focus:ring-2 cursor-pointer"
+                  />
+                  <span className="group-hover:text-primary transition-colors">Custom</span>
                 </label>
               </div>
               {errors.gender && (
-                <p className="text-red-500 text-sm">{errors.gender.message}</p>
+                <p className="text-destructive text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.gender.message}
+                </p>
               )}
             </div>
           </div>
 
           {/* Password & Confirm Password */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative">
-              <Label htmlFor="password">
-                Password <span className="text-red-500">*</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="relative space-y-2">
+              <Label htmlFor="password" className="text-base font-semibold flex items-center gap-1">
+                Password <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a strong password"
                 {...register("password", { required: "Password is required" })}
-                className="w-full mt-2"
+                className="w-full h-11 border-primary/30 focus:border-primary transition-colors pr-10"
               />
               <button
                 type="button"
-                className="absolute top-7.5 right-3"
+                className="absolute top-10 right-3 text-muted-foreground hover:text-primary transition-colors"
                 onClick={() => setShowPassword((prev) => !prev)}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
               {errors.password && (
-                <p className="text-red-500 text-sm">
-                  {errors.password.message}
+                <p className="text-destructive text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.password.message}
                 </p>
               )}
             </div>
-            <div className="relative">
-              <Label htmlFor="confirmPassword">
-                Confirm Password <span className="text-red-500">*</span>
+            <div className="relative space-y-2">
+              <Label htmlFor="confirmPassword" className="text-base font-semibold flex items-center gap-1">
+                Confirm Password <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="confirmPassword"
@@ -285,61 +304,67 @@ function RegisterPage() {
                   validate: (val) =>
                     val === password || "Passwords do not match",
                 })}
-                className="w-full mt-2"
+                className="w-full h-11 border-primary/30 focus:border-primary transition-colors pr-10"
               />
               <button
                 type="button"
-                className="absolute top-7.5 right-3"
+                className="absolute top-10 right-3 text-muted-foreground hover:text-primary transition-colors"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">
-                  {errors.confirmPassword.message}
+                <p className="text-destructive text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.confirmPassword.message}
                 </p>
               )}
             </div>
           </div>
 
           {/* Terms Checkbox */}
-          <div className="flex items-center gap-2 mt-4">
-            <input type="checkbox" {...register("terms", { required: true })} />
-            <small className="text-muted-foreground">
-              I agree to the{" "}
-              <span className="text-primary">Terms of Service</span> and{" "}
-              <span className="text-primary">Privacy Policy</span>
-            </small>
+          <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+            <div className="flex items-start gap-3">
+              <input 
+                type="checkbox" 
+                {...register("terms", { required: true })} 
+                className="w-5 h-5 mt-0.5 text-primary border-primary/30 rounded focus:ring-primary focus:ring-2 cursor-pointer"
+              />
+              <label className="text-sm text-muted-foreground cursor-pointer flex-1">
+                I agree to the{" "}
+                <span className="text-primary font-semibold hover:underline cursor-pointer">Terms of Service</span> and{" "}
+                <span className="text-primary font-semibold hover:underline cursor-pointer">Privacy Policy</span>
+              </label>
+            </div>
+            {errors.terms && (
+              <p className="text-destructive text-sm mt-2 flex items-center gap-1 ml-8">
+                <span>⚠</span> You must agree to continue
+              </p>
+            )}
           </div>
-          {errors.terms && (
-            <p className="text-red-500 text-sm">You must agree to continue</p>
-          )}
 
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full mt-6"
-            variant="primary"
-            color="primary"
+            className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 mt-2"
           >
-            Register
+            Create Account
           </Button>
 
           {/* Toggle Sign In */}
-          <p className="text-center text-foreground mt-4">
-            Already have an account? Please{" "}
-            <Link
-              href="/signIn"
-              className="text-primary underline hover:text-primary/80 cursor-pointer"
-            >
-              Sign In
-            </Link>
-          </p>
+          <div className="text-center pt-4 border-t border-primary/10">
+            <p className="text-muted-foreground">
+              Already have an account?{" "}
+              <Link
+                href="/signIn"
+                className="text-primary font-semibold hover:text-primary/80 transition-colors inline-flex items-center gap-1"
+              >
+                Sign In
+                <span className="text-lg">→</span>
+              </Link>
+            </p>
+          </div>
         </form>
+        </div>
       </div>
     </GuestOnlyRoute>
   );

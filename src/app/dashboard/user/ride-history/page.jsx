@@ -88,7 +88,9 @@ const fetchLocationName = async (coordinates) => {
   try {
     // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`,{
+        cache:"force-cache"
+      }
     );
     
     if (!response.ok) {
