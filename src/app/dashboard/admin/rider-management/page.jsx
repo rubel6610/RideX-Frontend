@@ -53,7 +53,7 @@ export default function RiderManagementClient() {
   if (error) return <div className="p-6 text-red-600">Error: {error.message}</div>;
 
   return (
-    <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
+    <div className="p-4 space-y-6 mt-6 border mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary">Rider Management</h1>
@@ -107,8 +107,8 @@ export default function RiderManagementClient() {
         <div className="text-center py-1.5 bg-accent/20 lg:hidden">
           <p className="text-[10px] sm:text-xs text-muted-foreground">← Swipe to scroll →</p>
         </div>
-        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
-          <table className="w-full text-xs sm:text-sm min-w-[800px]">
+        <div className="overflow-x-auto overflow-y-auto">
+          <table className="w-full text-xs sm:text-sm">
             <thead className="bg-accent text-left sticky top-0 z-10">
               <tr>
                 <th className="px-2 sm:px-4 py-2">Name</th>
