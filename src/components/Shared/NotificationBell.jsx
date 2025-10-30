@@ -38,12 +38,8 @@ export default function NotificationBell() {
             `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/rider/userId?userId=${user.id}`
           );
           const data = await res.json();
-          console.log('Rider data fetched:', data);
           if (data._id) {
             setRiderId(data._id);
-            console.log('Rider ID set:', data._id);
-          } else {
-            console.log('No rider ID found in response');
           }
         } catch (err) {
           console.error("Error fetching rider profile for notifications:", err);
@@ -55,24 +51,17 @@ export default function NotificationBell() {
 
   // Separate effect to handle rider room join (when riderId is available)
   useEffect(() => {
-    console.log('Checking rider room join conditions:', { role: user?.role, riderId, socket: socketRef.current });
     if (user?.role === "rider" && riderId && socketRef.current) {
       const joinRiderRoom = () => {
         if (socketRef.current && socketRef.current.connected) {
-          console.log('Emitting join_rider with riderId:', riderId);
           socketRef.current.emit('join_rider', riderId);
-          console.log('🔔 NotificationBell - Rider joined room:', `rider_${riderId}`);
-        } else {
-          console.log('Socket not connected, cannot join rider room');
         }
       };
 
       // If socket is already connected, join immediately
       if (socketRef.current.connected) {
-        console.log('Socket already connected, joining rider room immediately');
         joinRiderRoom();
       } else {
-        console.log('Socket not connected, waiting for connect event');
         // Wait for socket to connect
         socketRef.current.on('connect', joinRiderRoom);
       }
@@ -82,8 +71,6 @@ export default function NotificationBell() {
           socketRef.current.off('connect', joinRiderRoom);
         }
       };
-    } else {
-      console.log('Rider room join conditions not met');
     }
   }, [user?.role, riderId]);
 
@@ -424,13 +411,13 @@ export default function NotificationBell() {
                         }`}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground">
+                        <p className="font-semibold text-sm text-foreground break-words">
                           {notification.title}
                         </p>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground whitespace-normal break-words">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
                           {formatTime(notification.time)}
                         </p>
                       </div>
