@@ -13,7 +13,7 @@ export default function RideHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // 🧩 Ride History & Reviews fetch
+  //  Ride History & Reviews fetch
   useEffect(() => {
     const fetchRideHistory = async () => {
       try {
@@ -42,7 +42,7 @@ export default function RideHistory() {
     );
   }, []);
 
-  // 🧮 Summary
+  //  Summary
   const completedRides = rideHistory.filter((ride) => ride.status === "Paid");
   const avgRating =
     reviews.length > 0
@@ -67,7 +67,7 @@ export default function RideHistory() {
     currentPage * itemsPerPage
   );
 
-  // 🌟 Skeleton Loader for Table
+  //  Skeleton Loader for Table
   const TableSkeleton = () => (
     <tbody>
       {[...Array(itemsPerPage)].map((_, i) => (
@@ -81,8 +81,6 @@ export default function RideHistory() {
       ))}
     </tbody>
   );
-
-  // 🌟 Star icon list generate
 
 
   return (

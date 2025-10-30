@@ -207,29 +207,28 @@ export default function RiderVehicleInfo() {
                           className="w-32 h-32 rounded-xl object-cover shadow-md"
                         />
                         <p className="mt-2 text-lg font-semibold text-center text-black dark:text-white">
-                          Front Face
+                          verification Face
                         </p>
                       </div>
                     )}
 
-                    <div className="space-y-2 text-gray-800 dark:text-white">
+                    <div className="space-y-2 text-gray-700 dark:text-white">
                       <div className="font-bold text-xl">
                         <strong>Full Name: </strong>  
                         <span className="font-bold text-2xl"> {rider.fullName}</span>
                       </div>
                       <div>
-                        <strong className="text-xl">Date of Birth:</strong>
-                        <span className="font-bold text-2xl"> {rider.dateOfBirth}</span>
+                        <strong>Date of Birth:</strong>
+                        {rider.dateOfBirth}
                       </div>
-                      <div className="text-lg">
-                        <strong>Email:</strong>
-                        <span className="text-xl"> {rider.email}</span>
+                      <div>
+                        <strong>Email:</strong> {rider.email}
                       </div>
-                      <div className="text-lg">
+                      <div>
                         <strong>Emergency Contact:</strong>{" "}
                         {rider.emergency_contact}
                       </div>
-                      <div className="text-lg">
+                      <div>
                         <strong>Address:</strong>{" "}
                         {`${rider.present_address.village}, ${rider.present_address.post}, ${rider.present_address.upazila}, ${rider.present_address.district}`}
                       </div>
