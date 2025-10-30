@@ -127,13 +127,10 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
     const formData = new FormData();
     formData.append("image", file);
 
-    const res = await fetch(
-      process.env.IMGBB_KEY,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const res = await fetch(process.env.IMGBB_KEY, {
+      method: "POST",
+      body: formData,
+    });
     const result = await res.json();
     if (result.success) {
       return result.data.url;
@@ -191,7 +188,7 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
             {/* Profile Photo */}
             <div className="flex items-center gap-6">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-accent/20 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
+                <div className="relative w-24 h-24 mx-auto rounded-full border-2 border-primary overflow-hidden">
                   {imagePreview ? (
                     <img
                       src={imagePreview}
@@ -199,8 +196,21 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-10 h-10 text-primary/50" />
+                    <User className="w-10 h-10 text-primary/50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   )}
+                  <label
+                    htmlFor="imageUpload"
+                    className="absolute bottom-0 right-0 bg-primary text-white p-1 rounded-full cursor-pointer hover:bg-primary/80 transition"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </label>
+                  <input
+                    id="imageUpload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
                 </div>
               </div>
               <div className="flex-1">
@@ -241,11 +251,15 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
                 <Label htmlFor="fullName">Full Name *</Label>
                 <Input
                   id="fullName"
-                  {...register("fullName", { required: "Full name is required" })}
+                  {...register("fullName", {
+                    required: "Full name is required",
+                  })}
                   className={errors.fullName ? "border-destructive" : ""}
                 />
                 {errors.fullName && (
-                  <p className="text-destructive text-sm">{errors.fullName.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.fullName.message}
+                  </p>
                 )}
               </div>
 
@@ -263,7 +277,9 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
                   className={errors.phoneNumber ? "border-destructive" : ""}
                 />
                 {errors.phoneNumber && (
-                  <p className="text-destructive text-sm">{errors.phoneNumber.message}</p>
+                  <p className="text-destructive text-sm">
+                    {errors.phoneNumber.message}
+                  </p>
                 )}
               </div>
 
@@ -283,14 +299,18 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
                   onValueChange={(value) => setValue("gender", value)}
                   defaultValue={watch("gender")}
                 >
-                  <SelectTrigger className={errors.gender ? "border-destructive" : ""}>
+                  <SelectTrigger
+                    className={errors.gender ? "border-destructive" : ""}
+                  >
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="male">Male</SelectItem>
                     <SelectItem value="female">Female</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                    <SelectItem value="prefer-not-to-say">
+                      Prefer not to say
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <input type="hidden" {...register("gender")} />
@@ -304,10 +324,22 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
                 Present Address
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <Input placeholder="Village" {...register("present_address.village")} />
-                <Input placeholder="District" {...register("present_address.district")} />
-                <Input placeholder="Division" {...register("present_address.division")} />
-                <Input placeholder="Postal Code" {...register("present_address.postalCode")} />
+                <Input
+                  placeholder="Village"
+                  {...register("present_address.village")}
+                />
+                <Input
+                  placeholder="District"
+                  {...register("present_address.district")}
+                />
+                <Input
+                  placeholder="Division"
+                  {...register("present_address.division")}
+                />
+                <Input
+                  placeholder="Postal Code"
+                  {...register("present_address.postalCode")}
+                />
               </div>
             </div>
 
@@ -318,32 +350,68 @@ const EditProfilePopup = ({ profile, isOpen, onClose, userId }) => {
                   <Home className="w-5 h-5" />
                   Permanent Address
                 </h3>
-                <Button type="button" size="sm" variant="outline" onClick={useSameAsPresentAddress}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={useSameAsPresentAddress}
+                >
                   Same as Present Address
                 </Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <Input placeholder="Village" {...register("permanent_address.village")} />
-                <Input placeholder="District" {...register("permanent_address.district")} />
-                <Input placeholder="Division" {...register("permanent_address.division")} />
-                <Input placeholder="Postal Code" {...register("permanent_address.postalCode")} />
+                <Input
+                  placeholder="Village"
+                  {...register("permanent_address.village")}
+                />
+                <Input
+                  placeholder="District"
+                  {...register("permanent_address.district")}
+                />
+                <Input
+                  placeholder="Division"
+                  {...register("permanent_address.division")}
+                />
+                <Input
+                  placeholder="Postal Code"
+                  {...register("permanent_address.postalCode")}
+                />
               </div>
             </div>
 
             {/* Bio */}
             <div>
               <Label htmlFor="bio">Bio</Label>
-              <Textarea id="bio" rows={3} placeholder="Tell us about yourself..." {...register("bio")} />
+              <Textarea
+                id="bio"
+                rows={3}
+                placeholder="Tell us about yourself..."
+                {...register("bio")}
+              />
             </div>
           </div>
 
           {/* Footer */}
           <div className="flex justify-end gap-3 p-6 border-t bg-accent/5">
-            <Button type="button" variant="destructive" onClick={onClose} disabled={loading}>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="default" disabled={loading} className="flex items-center gap-2">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <Button
+              type="submit"
+              variant="default"
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
               {loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>

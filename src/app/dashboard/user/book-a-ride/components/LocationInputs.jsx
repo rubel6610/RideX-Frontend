@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { MapPin, Navigation, CircleDot, Search } from "lucide-react";
 
-const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) => {
+const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange, onUserInputActivity }) => {
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
   const [dropSuggestions, setDropSuggestions] = useState([]);
   const [showPickupSuggestions, setShowPickupSuggestions] = useState(false);
@@ -12,6 +12,9 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
   const [isDropSearching, setIsDropSearching] = useState(false);
   const [pickupDisplayName, setPickupDisplayName] = useState("");
   const [dropDisplayName, setDropDisplayName] = useState("");
+  const [isUserInputActive, setIsUserInputActive] = useState(false);
+  const [isPickupInitialized, setIsPickupInitialized] = useState(false);
+  const [isDropInitialized, setIsDropInitialized] = useState(false);
 
   // Notify parent component about user input activity
   useEffect(() => {
@@ -107,12 +110,14 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
       setPickup(location.coordinates);
       setPickupDisplayName(location.name);
       setShowPickupSuggestions(false);
+      setIsPickupInitialized(true); // Mark as initialized
       onLocationChange?.(location, 'pickup');
     } else {
       // Store coordinates internally but display name to user
       setDrop(location.coordinates);
       setDropDisplayName(location.name);
       setShowDropSuggestions(false);
+      setIsDropInitialized(true); // Mark as initialized
       onLocationChange?.(location, 'drop');
     }
   };
@@ -121,7 +126,14 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
   const handleInputChange = (value, type) => {
     if (type === 'pickup') {
       setPickupDisplayName(value); // Show what user is typing
-      // Don't update pickup coordinates while typing
+      setIsPickupInitialized(true); // Mark as user-edited
+      
+      // If user clears the input, also clear the pickup coordinates
+      if (!value.trim()) {
+        setPickup("");
+        setShowPickupSuggestions(false);
+      }
+      
       // Clear previous timeout
       if (window.pickupTimeout) clearTimeout(window.pickupTimeout);
 
@@ -131,7 +143,14 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
       }, 500);
     } else {
       setDropDisplayName(value); // Show what user is typing
-      // Don't update drop coordinates while typing
+      setIsDropInitialized(true); // Mark as user-edited
+      
+      // If user clears the input, also clear the drop coordinates
+      if (!value.trim()) {
+        setDrop("");
+        setShowDropSuggestions(false);
+      }
+      
       // Clear previous timeout
       if (window.dropTimeout) clearTimeout(window.dropTimeout);
 
@@ -142,10 +161,11 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
     }
   };
 
-  // Update display names when pickup/drop values change (e.g., from URL params)
+  // Update display names when pickup/drop values change (e.g., from URL params or map selection)
+  // But only if not already initialized by user input
   useEffect(() => {
-    // If pickup value changes and we don't have a display name yet, try to set it
-    if (pickup && !pickupDisplayName) {
+    // Only update if user hasn't manually edited the field
+    if (pickup && !isPickupInitialized) {
       // If pickup is coordinates, we might want to reverse geocode it
       if (pickup.includes(",")) {
         // It's coordinates, we could reverse geocode but for now just use as is
@@ -154,12 +174,13 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
         // It's a name, use it directly
         setPickupDisplayName(pickup);
       }
+      setIsPickupInitialized(true);
     }
-  }, [pickup, pickupDisplayName]);
+  }, [pickup, isPickupInitialized]);
 
   useEffect(() => {
-    // If drop value changes and we don't have a display name yet, try to set it
-    if (drop && !dropDisplayName) {
+    // Only update if user hasn't manually edited the field
+    if (drop && !isDropInitialized) {
       // If drop is coordinates, we might want to reverse geocode it
       if (drop.includes(",")) {
         // It's coordinates, we could reverse geocode but for now just use as is
@@ -168,8 +189,9 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange }) 
         // It's a name, use it directly
         setDropDisplayName(drop);
       }
+      setIsDropInitialized(true);
     }
-  }, [drop, dropDisplayName]);
+  }, [drop, isDropInitialized]);
 
   return (
     <div className="space-y-4">
