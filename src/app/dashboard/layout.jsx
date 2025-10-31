@@ -22,7 +22,7 @@ import UserDashboard from "./Components/userDashboard/UserDashboard";
 import RiderStatus from "@/components/Shared/RiderStatus";
 import NotificationBell from "@/components/Shared/NotificationBell";
 import { useLogout } from "../hooks/SignOutButton";
-
+import ChatBot from '@/components/Shared/ChatBot/ChatBot';
 export default function DashboardLayout({ children }) {
   const handleLogout = useLogout();
   const { theme, toggleTheme } = useTheme();
@@ -240,6 +240,9 @@ export default function DashboardLayout({ children }) {
           >
             {children}
           </main>
+        </div>
+          <div className='fixed bottom-4 right-4 z-50'>
+          <ChatBot/>
         </div>
       </div>
     </ProtectedRoute>
