@@ -13,7 +13,6 @@ import Toaster from '@/components/ui/sonner';
 import { Roboto, Mulish } from 'next/font/google';
 import CursorFollower from '@/components/Shared/CursorFollower';
 import LenisProvider from '@/components/Shared/LenisProvider';
-import { usePathname } from 'next/navigation';
 import ChatBot from '@/components/Shared/ChatBot/ChatBot';
 
 // Load Mulish first
@@ -32,11 +31,7 @@ const roboto = Roboto({
 function LayoutContent({ children }) {
   const hideLayout = useHideLayout();
   const { loading } = useAuth();
-
-   const pathname = usePathname();
-
   const pathname = usePathname();
-
 
   // Check if we're on the home page
   const isHomePage = pathname === '/';
@@ -54,9 +49,6 @@ function LayoutContent({ children }) {
       {!hideLayout && <Navbar />}
       <main className="min-h-screen">{children}</main>
       {!hideLayout && <Footer />}
-
-        {!isHomePage && !hideLayout && (
-
       {/* Show chatbot on all pages except home page */}
       {!isHomePage && !hideLayout && (
         <div className='fixed bottom-4 right-4 z-50'>
