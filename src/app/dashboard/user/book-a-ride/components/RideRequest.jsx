@@ -36,7 +36,6 @@ export default function RequestRide() {
 
       const data = await res.json();
       setResponse(data);
-      console.log(data);
     } catch (error) {
       console.error("Error requesting ride:", error);
       setResponse({ success: false, message: "Request failed" });

@@ -181,11 +181,8 @@ function OngoingRideContent() {
 
       // Join ride-specific room
       socket.emit('join_ride', urlParams.rideId);
-      console.log('✅ Rider joined ride room:', urlParams.rideId);
-
       // 🔥 Listen for ride status updates (when user cancels/completes)
       socket.on('ride_status_update', (data) => {
-        console.log('✅ Ride status update received:', data);
         if (data.rideId === urlParams.rideId) {
           toast.info(`Ride status: ${data.status}`);
 
@@ -208,7 +205,6 @@ function OngoingRideContent() {
 
       // 🔥 Also listen for ride_status_changed (alternative event)
       socket.on('ride_status_changed', (data) => {
-        console.log('✅ Ride status changed received:', data);
         if (data.rideId === urlParams.rideId) {
           toast.info(`Ride status: ${data.status}`);
 
@@ -230,7 +226,6 @@ function OngoingRideContent() {
 
       // 🔥 Listen for ride started event
       socket.on('ride_started', (data) => {
-        console.log('✅ Ride started event received:', data);
         if (data.rideId === urlParams.rideId) {
           setRideStatus('ongoing');
           toast.success('Ride is now ongoing!', {
@@ -241,7 +236,6 @@ function OngoingRideContent() {
 
       // Listen for passenger location updates
       socket.on('passenger_location_update', (data) => {
-        console.log('Passenger location update:', data);
         if (data.rideId === urlParams.rideId) {
           // Update pickup location if passenger moved
           if (data.location) {
@@ -259,11 +253,9 @@ function OngoingRideContent() {
         userId: user.id,
         userType: 'rider'
       });
-      console.log('Rider joined ride chat room:', urlParams.rideId);
 
       // Listen for chat messages from user (auto-open chat modal)
       socket.on('receive_ride_message', (data) => {
-        console.log('Chat message received in ongoing-ride:', data);
         if (data.rideId === urlParams.rideId && data.message.senderType === 'user') {
           // Auto-open chat modal when user sends message
           setIsChatOpen(true);
@@ -276,7 +268,6 @@ function OngoingRideContent() {
 
       // Also listen for new_message_notification (when user sends from accept-ride)
       socket.on('new_message_notification', (data) => {
-        console.log('New message notification received:', data);
         if (data.rideId === urlParams.rideId) {
           // Auto-open chat modal when user sends message
           setIsChatOpen(true);
@@ -501,13 +492,11 @@ function OngoingRideContent() {
       }
 
       const key = `rider_ongoing_ride_${rideId}`;
-      console.log('🗑️ Attempting to clear localStorage:', key);
 
       // Check if key exists before removing
       const existingData = localStorage.getItem(key);
       if (existingData) {
         localStorage.removeItem(key);
-        console.log('✅ Successfully cleared ride data from localStorage:', rideId);
       } else {
         console.warn('⚠️ No data found in localStorage for key:', key);
       }
@@ -515,7 +504,6 @@ function OngoingRideContent() {
       // Also clear any old keys (cleanup)
       Object.keys(localStorage).forEach(k => {
         if (k.startsWith('rider_ongoing_ride_')) {
-          console.log('🧹 Cleaning up old key:', k);
           localStorage.removeItem(k);
         }
       });
@@ -660,7 +648,6 @@ function OngoingRideContent() {
 
           // Check if ride was cancelled by user
           if (rideData.status === 'cancelled' || rideData.status === 'cancelled_by_user') {
-            console.log('🔍 Polling detected: Ride cancelled by user');
             toast.error('Ride cancelled by user');
             clearStoredRide(urlParams.rideId);
             setTimeout(() => {
@@ -669,7 +656,6 @@ function OngoingRideContent() {
           }
           //  Check if ride was completed
           else if (rideData.status === 'completed') {
-            console.log('🔍 Polling detected: Ride completed');
             toast.success('Ride completed successfully!');
             clearStoredRide(urlParams.rideId);
             setTimeout(() => {
@@ -870,14 +856,6 @@ function OngoingRideContent() {
       toast.error("Missing ride information");
       return;
     }
-
-    // Debug logging
-    console.log('🔍 Frontend Cancel Ride Debug:', {
-      rideId,
-      riderId,
-      types: { rideId: typeof rideId, riderId: typeof riderId }
-    });
-
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/ride/cancel`,
@@ -1109,7 +1087,7 @@ function OngoingRideContent() {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-auto space-y-3">
+              <div className="mt-5 lg:mt-0 space-y-3">
                 <Button
                   onClick={() => setIsChatOpen(true)}
                   variant="default"

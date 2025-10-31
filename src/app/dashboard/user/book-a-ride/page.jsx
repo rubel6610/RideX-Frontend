@@ -218,7 +218,6 @@ const BookARideContent = () => {
               promoCode: appliedPromo
             });
             const result = await calculateFare(newPickup, newDrop, type, appliedPromo);
-            console.log('Fare calculation result:', result);
             setRideData(result);
           } catch (error) {
             console.error('Fare calculation error:', error);
@@ -241,7 +240,6 @@ const BookARideContent = () => {
           });
           
           const result = await calculateFare(pickup, drop, type, appliedPromo);
-          console.log('Direct fare calculation result:', result);
           
           if (!result) {
             throw new Error('No fare calculation result received');
@@ -261,7 +259,7 @@ const BookARideContent = () => {
     }
   }, [pickup, drop, selectedType, appliedPromo]);
 
-  // ✅ Auto-cancel after 60 seconds
+  // Auto-cancel after 60 seconds
   useEffect(() => {
     if (!rideId || !isLoading) return;
     

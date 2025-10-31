@@ -187,11 +187,9 @@ function OngoingRideContent() {
         userId: user.id,
         userType: 'user'
       });
-      console.log(' User joined ride chat room:', urlParams.rideId);
 
       // Listen for chat messages from rider (auto-open chat modal)
       socket.on('receive_ride_message', (data) => {
-        console.log('Chat message received in ongoing-ride:', data);
         if (data.rideId === urlParams.rideId && data.message.senderType === 'rider') {
           // Auto-open chat modal when rider sends message
           setIsChatOpen(true);
@@ -204,7 +202,6 @@ function OngoingRideContent() {
 
       // Also listen for new_message_notification (when rider sends from ongoing-ride)
       socket.on('new_message_notification', (data) => {
-        console.log('New message notification received:', data);
         if (data.rideId === urlParams.rideId) {
           // Auto-open chat modal when rider sends message
           setIsChatOpen(true);
@@ -217,7 +214,6 @@ function OngoingRideContent() {
 
       // 🔥 Listen for ride status changes (completed/cancelled)
       socket.on('ride_status_changed', (data) => {
-        console.log('Ride status changed:', data);
         if (data.rideId === urlParams.rideId) {
           toast.info(`Ride status: ${data.status}`);
           
@@ -237,7 +233,6 @@ function OngoingRideContent() {
 
       // 🔥 Listen for ride started event
       socket.on('ride_started', (data) => {
-        console.log(' Ride started event received:', data);
         if (data.rideId === urlParams.rideId) {
           toast.success('Your ride has started!', {
             description: 'Your rider is now on the way to drop location'
@@ -377,7 +372,6 @@ function OngoingRideContent() {
           //  Save to localStorage for future use (USER END)
           const allParams = Object.fromEntries(params.entries());
           localStorage.setItem(`user_ongoing_ride_${rideId}`, JSON.stringify(allParams));
-          console.log(' Saved ride data to localStorage:', rideId);
           return params;
         }
       }
@@ -391,7 +385,6 @@ function OngoingRideContent() {
         const storedParams = JSON.parse(localStorage.getItem(latestRideKey) || '{}');
         
         if (storedParams.rideId) {
-          console.log(' Loaded ride data from localStorage:', storedParams.rideId);
           // Create URLSearchParams from stored data
           const params = new URLSearchParams();
           Object.entries(storedParams).forEach(([key, value]) => {

@@ -29,14 +29,11 @@ const PromoCodeSection = ({
         const data = await response.json();
         
         if (Array.isArray(data)) {
-          console.log("Active promos from API:", data);
-          
           const formattedPromos = data.map(promo => ({
             code: promo.code,
             desc: promo.title,
             discount: promo.discount
           }));
-          console.log("Formatted promos:", formattedPromos);
           setAvailablePromos(formattedPromos);
         }
       } catch (error) {

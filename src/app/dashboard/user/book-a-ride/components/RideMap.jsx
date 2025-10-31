@@ -83,7 +83,6 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
   useEffect(() => {
     // Validate inputs
     if (!map || !isValidCoords(pickupCoords) || !isValidCoords(dropCoords)) {
-      console.log('Invalid inputs - map:', !!map, 'pickupCoords:', pickupCoords, 'dropCoords:', dropCoords);
       return;
     }
 
@@ -110,7 +109,6 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
     };
 
     if (!isMapReady()) {
-      console.log('Map container not ready, retrying...');
       const timeoutId = setTimeout(() => {
         if (isMapReady()) {
           setPolyline(prev => prev); // Trigger re-render
@@ -140,16 +138,12 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
         const startLat = pickupCoords[0];
         const endLng = dropCoords[1];
         const endLat = dropCoords[0];
-
-        console.log('Fetching route from', startLat, startLng, 'to', endLat, endLng);
         
         // Try OSRM routing service
         const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
-        console.log('OSRM URL:', osrmUrl);
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-          console.log('OSRM request timeout, aborting...');
           controller.abort();
         }, 3000); // 3 second timeout (reduced from 5)
         
@@ -165,7 +159,7 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
             }
           });
           clearTimeout(timeoutId);
-          console.log('OSRM Response status:', response.status);
+          cons
         } catch (fetchError) {
           clearTimeout(timeoutId);
           if (fetchError.name === 'AbortError') {
@@ -607,11 +601,6 @@ const RideMap = ({
       </div>
     );
   }
-
-  // Debug logging
-  console.log('RideMap render - pickup:', pickup, 'drop:', drop);
-  console.log('Parsed coords - pickup:', parsedPickupCoords, 'drop:', parsedDropCoords);
-
   // Error boundary
   if (error || mapError) {
     return (

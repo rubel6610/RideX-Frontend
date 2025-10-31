@@ -168,12 +168,10 @@ const AvailableRidesPage = () => {
       
       // Join rider-specific room
       socket.emit('join_rider', riderId);
-      console.log('Rider joined room:', riderId);
 
       // Listen for new ride requests
       socket.on('new_ride_request', async (data) => {
         try {
-          console.log('✅ New ride request received:', data);
           toast.success('New ride request!', {
             description: 'A passenger nearby needs a ride',
           });
@@ -189,7 +187,6 @@ const AvailableRidesPage = () => {
       // Listen for auto-rejection notifications
       socket.on('ride_auto_rejected', (data) => {
         try {
-          console.log('Ride auto-rejected:', data.rideId);
           toast.info('Ride request expired');
           setRides((prev) => prev.filter((r) => r._id !== data.rideId));
         } catch (error) {
@@ -200,7 +197,6 @@ const AvailableRidesPage = () => {
       // Listen for user cancellations
       socket.on('ride_cancelled_by_user', (data) => {
         try {
-          console.log('Ride cancelled by user:', data.rideId);
           toast.info('Passenger cancelled the ride');
           setRides((prev) => prev.filter((r) => r._id !== data.rideId));
         } catch (error) {
@@ -319,8 +315,6 @@ const AvailableRidesPage = () => {
     try {
       // Use the riderId from state (fetched rider profile) instead of ride.riderId
       const actualRiderId = riderId || rideRiderId;
-      
-      console.log('Accepting ride:', { rideId, actualRiderId });
       
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/req/ride-accept`,
