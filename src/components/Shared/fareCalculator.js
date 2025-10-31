@@ -42,19 +42,24 @@ async function getPromoDiscount(promoCode) {
   return 0;
 }
 
-// Address -> Coordinates using Nominatim
+// Address -> Coordinates using backend proxy
 async function geocodeAddress(address) {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-    address
-  )}`;
-  const res = await fetch(url, { headers: { "User-Agent": "ride-app" } });
-  const data = await res?.json();
+  try {
+    // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/geocode?q=${encodeURIComponent(address)}&limit=1`
+    );
+    const data = await response.json();
 
-  if (!data || data?.length === 0) {
-    throw new Error(`Coordinates not found for: ${address}`);
+    if (!data || data.length === 0) {
+      throw new Error(`Coordinates not found for: ${address}`);
+    }
+
+    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+  } catch (error) {
+    console.error("Geocoding error:", error);
+    throw error;
   }
-
-  return { lat: parseFloat(data[0]?.lat), lon: parseFloat(data[0]?.lon) };
 }
 
 // Haversine distance (backup calculation if OSRM fails)

@@ -9,12 +9,10 @@ import logo from "../../Assets/logo-small.webp";
 import darkLogo from "../../Assets/logo-small-dark.webp";
 import fullLogo from "../../Assets/ridex-logo.webp";
 import fullDarkLogo from "../../Assets/logo-dark.webp";
-import defaultAvater from "../../Assets/default-avatar.png";
-
-import ProtectedRoute from "../hooks/ProtectedRoute";
+import defaultAvatar from "../../Assets/default-avatar.png";
 import useTheme from "../hooks/useTheme";
 import { useAuth } from "../hooks/AuthProvider";
-import { useFetchData } from "../hooks/useApi";
+
 
 import AdminDashboard from "./Components/adminDashboard/AdminDashboard";
 import RiderDashboard from "./Components/riderDashboard/RiderDashboard";
@@ -31,8 +29,7 @@ export default function DashboardLayout({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user } = useAuth();
   const { data } = useFetchData("users", "/user", { email: user?.email });
-  // const userRole = user?.role;
-   const userRole = user?.role;
+  const userRole = user?.role;
 
   useEffect(() => {
     const handleResize = () => {
@@ -52,7 +49,7 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <ProtectedRoute>
+    <RoleProtectedRoute allowedRoles={["admin", "rider", "user"]}>
       <div className="flex min-h-screen bg-background text-foreground overflow-x-hidden">
         
         <div
@@ -224,7 +221,7 @@ export default function DashboardLayout({ children }) {
                     </span>
                   </div>
                   <Image
-                    src={data?.photoUrl || defaultAvater}
+                    src={data?.photoUrl || defaultAvatar}
                     height="40"
                     width="40"
                     alt="User Photo"
@@ -249,6 +246,6 @@ export default function DashboardLayout({ children }) {
           <ChatBot/>
         </div>
       </div>
-    </ProtectedRoute>
+    </RoleProtectedRoute>
   );
 }

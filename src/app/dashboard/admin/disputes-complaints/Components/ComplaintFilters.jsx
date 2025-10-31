@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function ComplaintFilters({ searchTerm, setSearchTerm, statusFilter, setStatusFilter, typeFilter, setTypeFilter }) {
   return (
     <div className="bg-background rounded-lg border border-accent p-4">
-      <div className="flex flex-col lg:flex-row gap-4 items-end">
+      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
         <div className="flex-1">
-          <label className="text-sm font-medium mb-2 block">Search</label>
+          <label className="text-xs sm:text-sm font-medium mb-2 block">Search</label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
@@ -20,8 +20,8 @@ export default function ComplaintFilters({ searchTerm, setSearchTerm, statusFilt
           </div>
         </div>
 
-        <div className="w-full lg:w-48">
-          <label className="text-sm font-medium mb-2 block">Status</label>
+        <div className="w-full sm:w-48">
+          <label className="text-xs sm:text-sm font-medium mb-2 block">Status</label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger><SelectValue placeholder="All Status" /></SelectTrigger>
             <SelectContent>
@@ -33,8 +33,8 @@ export default function ComplaintFilters({ searchTerm, setSearchTerm, statusFilt
           </Select>
         </div>
 
-        <div className="w-full lg:w-48">
-          <label className="text-sm font-medium mb-2 block">Type</label>
+        <div className="w-full sm:w-48">
+          <label className="text-xs sm:text-sm font-medium mb-2 block">Type</label>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger><SelectValue placeholder="All Types" /></SelectTrigger>
             <SelectContent>
@@ -48,7 +48,11 @@ export default function ComplaintFilters({ searchTerm, setSearchTerm, statusFilt
           </Select>
         </div>
 
-        <Button variant="outline" onClick={() => { setSearchTerm(''); setStatusFilter('all'); setTypeFilter('all'); }}>
+        <Button 
+          variant="outline" 
+          onClick={() => { setSearchTerm(''); setStatusFilter('all'); setTypeFilter('all'); }}
+          className="w-full sm:w-auto"
+        >
           Clear Filters
         </Button>
       </div>

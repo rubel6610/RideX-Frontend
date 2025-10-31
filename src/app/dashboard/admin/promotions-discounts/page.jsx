@@ -3,14 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -155,14 +147,14 @@ const PromotionsDiscounts = () => {
   if (loading) return <TableSkeleton />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-primary">
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">
             Promotions & Discounts
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Manage promotional offers
           </p>
         </div>
@@ -171,7 +163,7 @@ const PromotionsDiscounts = () => {
             setEditingPromo(null);
             setIsModalOpen(true);
           }}
-          className="bg-primary hover:bg-primary/90"
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add New Promotion
@@ -179,10 +171,10 @@ const PromotionsDiscounts = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-background rounded-lg border border-accent p-4 dark:border-gray-700">
-        <div className="flex flex-wrap gap-4 items-end">
+      <div className="bg-background rounded-lg border border-accent p-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
           <div className="flex-1">
-            <label className="text-sm font-medium mb-1 block">Search</label>
+            <label className="text-xs sm:text-sm font-medium mb-1 block">Search</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -193,8 +185,8 @@ const PromotionsDiscounts = () => {
               />
             </div>
           </div>
-          <div className="w-48">
-            <label className="text-sm font-medium mb-1 block">Status</label>
+          <div className="w-full sm:w-48">
+            <label className="text-xs sm:text-sm font-medium mb-1 block">Status</label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="All Status" />
@@ -212,6 +204,7 @@ const PromotionsDiscounts = () => {
               setSearchTerm("");
               setStatusFilter("all");
             }}
+            className="w-full sm:w-auto"
           >
             Clear Filters
           </Button>
@@ -272,28 +265,60 @@ const PromotionsDiscounts = () => {
                         setIsModalOpen(true);
                       }}
                     >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeletePromotion(promotion._id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/40"
+                      {promotion.code}
+                    </code>
+                  </td>
+                  <td className="px-2 sm:px-4 py-2">{promotion.discount}%</td>
+                  <td className="px-2 sm:px-4 py-2 text-xs">
+                    {promotion.startDate} - {promotion.endDate}
+                  </td>
+                  <td className="px-2 sm:px-4 py-2">
+                    <Badge
+                      variant={
+                        promotion.status === "Active" ? "default" : "secondary"
+                      }
+                      className={
+                        promotion.status === "Active"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100 text-xs"
+                      }
                     >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                      {promotion.status}
+                    </Badge>
+                  </td>
+                  <td className="px-2 sm:px-4 py-2 text-right">
+                    <div className="flex justify-end gap-1 sm:gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingPromo(promotion);
+                          setIsModalOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeletePromotion(promotion._id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/40"
+                      >
+                        <Trash className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        {filteredPromotions.length === 0 && (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            No promotions found.
-          </div>
-        )}
+          {filteredPromotions.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No promotions found.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modal */}

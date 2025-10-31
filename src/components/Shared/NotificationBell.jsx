@@ -35,11 +35,11 @@ export default function NotificationBell() {
       const fetchRiderId = async () => {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${user.id}`
+            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/rider/userId?userId=${user.id}`
           );
           const data = await res.json();
-          if (data.rider?._id) {
-            setRiderId(data.rider._id);
+          if (data._id) {
+            setRiderId(data._id);
           }
         } catch (err) {
           console.error("Error fetching rider profile for notifications:", err);
@@ -55,7 +55,6 @@ export default function NotificationBell() {
       const joinRiderRoom = () => {
         if (socketRef.current && socketRef.current.connected) {
           socketRef.current.emit('join_rider', riderId);
-          console.log('🔔 NotificationBell - Rider joined room:', riderId);
         }
       };
 
@@ -136,6 +135,25 @@ export default function NotificationBell() {
           duration: 5000,
         });
       });
+      
+      // Listen for rider payment notifications (when admin marks rider as paid)
+      socketRef.current.on("rider_payment_notification", (data) => {
+        const notification = {
+          id: Date.now(),
+          type: "payment",
+          title: "Payment Received",
+          message: data.message,
+          time: new Date(),
+          read: false,
+        };
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        toast.success("Payment Received!", {
+          description: data.message,
+          duration: 5000
+        });
+      });
     }
 
     // Listen for chat messages (for both users and riders)
@@ -178,6 +196,27 @@ export default function NotificationBell() {
         description: "Admin has replied to your message",
       });
     });
+
+    // Listen for payment notifications (for admins)
+    if (user.role === "admin") {
+      socketRef.current.on("new_payment_notification", (data) => {
+        const notification = {
+          id: Date.now(),
+          type: "payment",
+          title: "New Payment Received",
+          message: data.message,
+          time: new Date(),
+          read: false,
+        };
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        toast.success("New Payment Received!", {
+          description: data.message,
+          duration: 5000
+        });
+      });
+    }
 
     // Listen for ride acceptance (for users)
     if (user.role === "user") {
@@ -240,6 +279,25 @@ export default function NotificationBell() {
           });
         }
       });
+      
+      // Listen for payment success notifications (for users)
+      socketRef.current.on("payment_success_notification", (data) => {
+        const notification = {
+          id: Date.now(),
+          type: "payment_success",
+          title: "Payment Successful",
+          message: data.message,
+          time: new Date(),
+          read: false,
+        };
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        toast.success("Payment Successful!", {
+          description: data.message,
+          duration: 5000
+        });
+      });
     }
 
     return () => {
@@ -250,6 +308,9 @@ export default function NotificationBell() {
         socketRef.current.off("new_message");
         socketRef.current.off("ride_accepted");
         socketRef.current.off("new_message_notification");
+        socketRef.current.off("new_payment_notification");
+        socketRef.current.off("payment_success_notification");
+        socketRef.current.off("rider_payment_notification");
       }
     };
   }, [user]);
@@ -350,13 +411,13 @@ export default function NotificationBell() {
                         }`}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground">
+                        <p className="font-semibold text-sm text-foreground break-words">
                           {notification.title}
                         </p>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground whitespace-normal break-words">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
                           {formatTime(notification.time)}
                         </p>
                       </div>

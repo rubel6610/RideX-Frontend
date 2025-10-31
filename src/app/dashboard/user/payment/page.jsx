@@ -137,76 +137,7 @@ export default function PaymentPage() {
               {paymentData.amount}{" "}
               <span className="text-xl font-normal">{paymentData.currency}</span>
             </div>
-
-            {/* Ride Details */}
-            <div className="mb-6 space-y-3">
-              <p className="text-sm font-semibold opacity-90 mb-2">Ride Details</p>
-              
-              {rideData.vehicleType && (
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Vehicle Type:</span>
-                  <span className="font-medium">{rideData.vehicleType}</span>
-                </div>
-              )}
-              
-              {rideData.vehicleModel && (
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Vehicle Model:</span>
-                  <span className="font-medium">{rideData.vehicleModel}</span>
-                </div>
-              )}
-              
-              {rideData.vehicleRegisterNumber && (
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Registration:</span>
-                  <span className="font-medium">{rideData.vehicleRegisterNumber}</span>
-                </div>
-              )}
-              
-              {rideData.distance > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Distance:</span>
-                  <span className="font-medium">{rideData.distance} km</span>
-                </div>
-              )}
-              
-              {(rideData.arrivalTime || rideData.eta) && (
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Arrival Time:</span>
-                  <span className="font-medium">{rideData.arrivalTime || rideData.eta}</span>
-                </div>
-              )}
-              
-              {rideData.promo && (
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Promo Code:</span>
-                  <span className="font-medium text-green-700">{rideData.promo}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Commission Breakdown */}
-            <div className="mb-6 pt-4 border-t border-black/20">
-              <p className="text-sm font-semibold opacity-90 mb-2">Payment Breakdown</p>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Total Amount:</span>
-                  <span className="font-medium">৳{totalAmount.toFixed(2)}</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Platform Commission (20%):</span>
-                  <span className="font-medium">৳{platformComission.toFixed(2)}</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-80">Rider Commission:</span>
-                  <span className="font-medium">৳{riderComission.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
+            
             <div className="mb-6">
               <p className="text-sm opacity-80 mb-1">Description</p>
               <p className="text-base font-medium leading-4.5">
