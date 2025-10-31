@@ -212,29 +212,58 @@ const PromotionsDiscounts = () => {
       </div>
 
       {/* Table */}
-      <div className="border border-accent mt-10 rounded-xl">
-
-        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
-          <table className="w-full text-xs sm:text-sm min-w-[700px]">
-            <thead className="bg-accent text-left sticky top-0 z-10">
-              <tr>
-                <th className="px-2 sm:px-4 py-2">Promotion</th>
-                <th className="px-2 sm:px-4 py-2">Code</th>
-                <th className="px-2 sm:px-4 py-2">Discount</th>
-                <th className="px-2 sm:px-4 py-2">Period</th>
-                <th className="px-2 sm:px-4 py-2">Status</th>
-                <th className="px-2 sm:px-4 py-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPromotions.map((promotion) => (
-                <tr key={promotion._id} className="border-t border-border">
-                  <td className="px-2 sm:px-4 py-2 font-medium">{promotion.title}</td>
-                  <td className="px-2 sm:px-4 py-2">
-                    <code
-                      className="px-2 py-1 rounded font-mono text-xs
-                                 bg-gray-100 text-gray-800 
-                                 dark:bg-gray-800 dark:text-gray-100"
+      <div className="bg-background rounded-lg border border-accent shadow-sm dark:border-gray-700">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Promotion</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Discount</TableHead>
+              <TableHead>Period</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredPromotions.map((promotion) => (
+              <TableRow key={promotion._id}>
+                <TableCell>{promotion.title}</TableCell>
+                <TableCell>
+                  <code
+                    className="px-2 py-1 rounded font-mono 
+                               bg-gray-100 text-gray-800 
+                               dark:bg-gray-800 dark:text-gray-100"
+                  >
+                    {promotion.code}
+                  </code>
+                </TableCell>
+                <TableCell>{promotion.discount}%</TableCell>
+                <TableCell>
+                  {promotion.startDate} - {promotion.endDate}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      promotion.status === "Active" ? "default" : "secondary"
+                    }
+                    className={
+                      promotion.status === "Active"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                        : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+                    }
+                  >
+                    {promotion.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingPromo(promotion);
+                        setIsModalOpen(true);
+                      }}
                     >
                       {promotion.code}
                     </code>

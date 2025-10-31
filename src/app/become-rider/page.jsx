@@ -12,6 +12,7 @@ import gsap from "gsap";
 
 // Import the images
 import darkImage from "../../Assets/become-rider.webp";
+import { toast } from "sonner";
 
 export default function BecomeRiderPage() {
   const { register, handleSubmit, setValue, formState: { errors }, trigger } = useForm();
@@ -60,14 +61,14 @@ export default function BecomeRiderPage() {
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      if (!user) return alert("User not logged in");
+      if (!user) return toast("User not logged in");
 
       // Age check
       const dob = new Date(data.dob);
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
       if (age < 18) {
-        alert("You must be at least 18 years old.");
+        toast("You must be at least 18 years old.");
         setIsSubmitting(false);
         return;
       }
@@ -110,18 +111,18 @@ export default function BecomeRiderPage() {
             yoyo: true,
             repeat: 1,
             onComplete: () => {
-              alert("Rider request submitted successfully!");
+              toast("Rider request submitted successfully!");
             }
           });
         } else {
-          alert("Rider request submitted successfully!");
+          toast("Rider request submitted successfully!");
         }
       } else {
-        alert(result.message);
+        toast(result.message);
       }
     } catch (err) {
       console.error("Become-rider request error:", err);
-      alert("Server error");
+      toast("Server error");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,7 +134,7 @@ export default function BecomeRiderPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Error fetching user");
+        toast(data.message || "Error fetching user");
         return;
       }
 
@@ -147,7 +148,7 @@ export default function BecomeRiderPage() {
       setValue("present_address.upazila", data.present_address?.upazila || "");
       setValue("present_address.district", data.present_address?.district || "");
     } catch (err) {
-      alert("Error fetching user");
+      toast("Error fetching user");
     }
   };
 

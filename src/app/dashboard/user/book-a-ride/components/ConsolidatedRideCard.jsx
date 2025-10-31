@@ -12,6 +12,8 @@ const ConsolidatedRideCard = ({
   onRequestRide,
   isLoading
 }) => {
+  // Get original cost before discount for display
+  const originalCost = rideData?.originalCost || (rideData?.promoApplied ? (rideData.cost / (1 - rideData.discountPercent / 100)) : rideData?.cost);
   const vehicleIcons = {
     Bike: <Bike className="w-16 h-16" />,
     Cng: <BusFront className="w-20 h-20" />,
@@ -69,11 +71,6 @@ const ConsolidatedRideCard = ({
         </div>
 
         <div className="w-full md:w-full xl:w-1/2 flex flex-col md:flex-col lg:flex-col sm:items-end md:items-start xl:items-end justify-between">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="w-4 h-4 text-yellow-400" />
-            <span>4.8+</span>
-          </div>
-
           {/* Ride Info */}
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Clock className="w-4 h-4" />
@@ -82,18 +79,24 @@ const ConsolidatedRideCard = ({
             </span>
           </div>
 
-          <div className={`relative text-2xl font-bold text-primary ${rideData?.promoApplied && 'pr-2 pt-1'}`}>
-            ৳{rideData?.cost || 0}
+          <div className="flex flex-col items-end">
             {rideData?.promoApplied && (
-              <div className="absolute top-0 right-0 z-10 text-lg font-bold text-background">
-                P
+              <div className="text-sm text-muted-foreground line-through mb-1">
+                ৳{Math.round(originalCost || 0)}
               </div>
             )}
+            <div className={`relative text-2xl font-bold ${rideData?.promoApplied ? 'text-green-600' : 'text-primary'}`}>
+              ৳{rideData?.cost || 0}
+              {rideData?.promoApplied && (
+                <span className="ml-2 text-sm font-normal text-green-600">
+                  (-{rideData?.discountPercent}%)
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Request Button */}
       <Button
         onClick={onRequestRide}
         disabled={isLoading}

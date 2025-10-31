@@ -211,10 +211,17 @@ const BookARideContent = () => {
         if (newPickup && newDrop && isValidCoordinate(newPickup) && isValidCoordinate(newDrop)) {
           try {
             const type = selectedType.toLowerCase();
+            console.log('Calculating fare with:', {
+              pickup: newPickup,
+              drop: newDrop,
+              type: type,
+              promoCode: appliedPromo
+            });
             const result = await calculateFare(newPickup, newDrop, type, appliedPromo);
             setRideData(result);
           } catch (error) {
-            toast.error("Fare calculation failed");
+            console.error('Fare calculation error:', error);
+            toast.error("Fare calculation failed: " + (error.message || 'Unknown error'));
           }
         }
       };
@@ -225,10 +232,24 @@ const BookARideContent = () => {
       const fetchDistance = async () => {
         try {
           const type = selectedType.toLowerCase();
+          console.log('Direct fare calculation with:', {
+            pickup,
+            drop,
+            type,
+            promoCode: appliedPromo
+          });
+          
           const result = await calculateFare(pickup, drop, type, appliedPromo);
+          
+          if (!result) {
+            throw new Error('No fare calculation result received');
+          }
+          
           setRideData(result);
         } catch (error) {
-          toast.error("Fare calculation failed");
+          console.error('Direct fare calculation error:', error);
+          toast.error(`Fare calculation failed: ${error.message || 'Please try again'}`);
+          setRideData(null);
         }
       };
 
@@ -238,7 +259,7 @@ const BookARideContent = () => {
     }
   }, [pickup, drop, selectedType, appliedPromo]);
 
-  // ✅ Auto-cancel after 60 seconds
+  // Auto-cancel after 60 seconds
   useEffect(() => {
     if (!rideId || !isLoading) return;
     
@@ -297,6 +318,7 @@ const BookARideContent = () => {
             if (data?.rideInfo?.fare) params.append('total', data.rideInfo.fare.toString());
             if (data?.rideInfo?.riderInfo?.fullName) params.append('riderName', data.rideInfo.riderInfo.fullName);
             if (data?.rideInfo?.riderInfo?.email) params.append('riderEmail', data.rideInfo.riderInfo.email);
+            if (data?.rideInfo?.riderInfo?.photoUrl || data?.rideInfo?.riderInfo?.photo) params.append('riderPhoto', data.rideInfo.riderInfo.photoUrl || data.rideInfo.riderInfo.photo);
             if (data?.rideInfo?.riderInfo?.vehicleModel) params.append('vehicleModel', data.rideInfo.riderInfo.vehicleModel);
             if (data?.rideInfo?.riderInfo?.vehicleRegisterNumber) params.append('vehicleRegisterNumber', data.rideInfo.riderInfo.vehicleRegisterNumber);
             if (data?.rideInfo?.riderInfo?.ratings) params.append('ratings', data.rideInfo.riderInfo.ratings.toString());

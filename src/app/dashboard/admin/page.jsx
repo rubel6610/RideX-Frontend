@@ -6,7 +6,7 @@ import { Settings, Users, User, Bike, DollarSign } from "lucide-react";
 import CountUp from "react-countup";
 
 import Charts from "./Components/Charts";
-import DataTableDemo from "./Components/DataTableDemo";
+// import DataTableDemo from "./Components/DataTableDemo";
 
 /* ---------- utils ---------- */
 function cn(...classes) {
@@ -125,7 +125,7 @@ export default function AdminDash() {
       <Charts />
 
       {/* Table Section */}
-      <DataTableDemo />
+      {/* <DataTableDemo /> */}
     </div>
   );
 }

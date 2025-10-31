@@ -336,10 +336,10 @@ export default function AdminSupport() {
   };
 
   return (
-    <div className="md:flex h-[calc(100vh-100px)] bg-background ">
-      <Card className="w-96 m-4 flex flex-col border-border bg-card">
-        <CardHeader className="border-b border-border bg-card">
-          <CardTitle className="flex items-center gap-2 ">
+    <div className="flex h-[calc(100vh-100px)] bg-background overflow-hidden">
+      <Card className="w-96  flex flex-col border-border mt-4 overflow-hidden">
+        <CardHeader className="border-b border-border ">
+          <CardTitle className="flex items-center gap-2 text-white">
             <Users className="h-5 w-5" />
             Support Inbox
           </CardTitle>

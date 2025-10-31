@@ -27,8 +27,6 @@ const RoutePolyline = ({ startLocation, endLocation, color, weight, opacity, das
         
         const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
         
-        console.log("🛣️ Rider Map - Fetching real road route from OSRM:", url);
-        
         // Create AbortController for timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -53,19 +51,16 @@ const RoutePolyline = ({ startLocation, endLocation, color, weight, opacity, das
           const route = data.routes[0];
           const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]); // Convert [lng, lat] to [lat, lng]
           
-          console.log("✅ Rider Map - Real road route generated with", coordinates.length, "points");
           setRouteCoordinates(coordinates);
         } else {
           throw new Error("No route found");
         }
       } catch (error) {
         if (error.name === 'AbortError') {
-          console.log("⏰ Rider Map - Request timeout, using straight line fallback");
         } else {
           console.error("❌ Rider Map - Route fetching failed:", error.message);
         }
         // Fallback to straight line
-        console.log("🔄 Rider Map - Using straight line fallback");
         setRouteCoordinates([
           [startLocation.lat, startLocation.lng],
           [endLocation.lat, endLocation.lng]
@@ -150,16 +145,6 @@ const RiderLiveTrackingMap = ({
   const [riderLocation, setRiderLocation] = useState(null);
   const [distance, setDistance] = useState(null);
   const [eta, setEta] = useState(null);
-
-  // Debug logging
-  console.log('🗺️ RiderLiveTrackingMap props:', { 
-    rideId, 
-    riderInfo, 
-    pickupLocation, 
-    dropLocation,
-    isClient,
-    riderLocation
-  });
 
   useEffect(() => {
     setIsClient(true);
@@ -338,15 +323,6 @@ const RiderLiveTrackingMap = ({
 
     return null; // This component doesn't render anything itself
   };
-
-  // RoutePolyline component for real road paths
-  // Debug logging for polyline rendering
-  console.log("🎯 Rider Map - Rendering polyline from rider to pickup:", {
-    riderLocation,
-    pickupLocation,
-    hasRider: !!riderLocation,
-    hasPickup: !!pickupLocation
-  });
 
   if (!isClient) {
     return (
@@ -619,25 +595,6 @@ const RiderLiveTrackingMap = ({
         </div>
       </div>
 
-      {/* Distance and ETA Info */}
-      {distance && eta && (
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300" style={{ zIndex: 8 }}>
-          <div className="text-center">
-            <p className="font-bold text-sm text-blue-600">
-              📍 Distance to Pickup
-            </p>
-            <p className="text-lg font-bold text-blue-600">
-              {distance ? `${distance.toFixed(1)} km` : 'Calculating...'}
-            </p>
-            <p className="text-xs text-gray-600">
-              {eta ? `ETA: ${eta}` : 'Calculating ETA...'}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              Rider → Pickup Point
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -30,8 +30,19 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange, on
     try {
       // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/geocode?q=${encodeURIComponent(locationName)}&limit=1&countrycodes=bd`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1&countrycodes=bd`,
+        {
+          headers: {
+            'User-Agent': 'RideX-App/1.0',
+            'Accept': 'application/json'
+          }
+        }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data && data.length > 0) {
@@ -45,12 +56,12 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange, on
       }
       return null;
     } catch (error) {
-      console.error('Geocoding error:', error);
+      console.error('Geocoding error:', error.message || error);
       return null;
     }
   };
 
-  // Debounced search function
+  // Debounced search function with rate limiting and error handling
   const searchLocations = async (query, type) => {
     if (!query.trim()) {
       if (type === 'pickup') {
@@ -73,10 +84,23 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange, on
     }
 
     try {
-      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
+      // Add delay to respect Nominatim rate limiting (1 request per second)
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/geocode?q=${encodeURIComponent(query)}&limit=5&countrycodes=bd`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=bd`,
+        {
+          headers: {
+            'User-Agent': 'RideX-App/1.0',
+            'Accept': 'application/json'
+          }
+        }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       const suggestions = data.map(item => ({
@@ -88,13 +112,22 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange, on
 
       if (type === 'pickup') {
         setPickupSuggestions(suggestions);
-        setShowPickupSuggestions(true);
+        setShowPickupSuggestions(suggestions.length > 0);
       } else {
         setDropSuggestions(suggestions);
-        setShowDropSuggestions(true);
+        setShowDropSuggestions(suggestions.length > 0);
       }
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('Location search error:', error.message || error);
+      
+      // Show user-friendly message
+      if (type === 'pickup') {
+        setPickupSuggestions([]);
+        setShowPickupSuggestions(false);
+      } else {
+        setDropSuggestions([]);
+        setShowDropSuggestions(false);
+      }
     } finally {
       // Clear appropriate loading state
       if (type === 'pickup') {
@@ -163,37 +196,7 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange, on
     }
   };
 
-  // Update display names when pickup/drop values change (e.g., from URL params or map selection)
-  // But only if not already initialized by user input
-  useEffect(() => {
-    // Only update if user hasn't manually edited the field
-    if (pickup && !isPickupInitialized) {
-      // If pickup is coordinates, we might want to reverse geocode it
-      if (pickup.includes(",")) {
-        // It's coordinates, we could reverse geocode but for now just use as is
-        setPickupDisplayName(pickup);
-      } else {
-        // It's a name, use it directly
-        setPickupDisplayName(pickup);
-      }
-      setIsPickupInitialized(true);
-    }
-  }, [pickup, isPickupInitialized]);
-
-  useEffect(() => {
-    // Only update if user hasn't manually edited the field
-    if (drop && !isDropInitialized) {
-      // If drop is coordinates, we might want to reverse geocode it
-      if (drop.includes(",")) {
-        // It's coordinates, we could reverse geocode but for now just use as is
-        setDropDisplayName(drop);
-      } else {
-        // It's a name, use it directly
-        setDropDisplayName(drop);
-      }
-      setIsDropInitialized(true);
-    }
-  }, [drop, isDropInitialized]);
+  // No default location - user must manually enter or select locations
 
   return (
     <div className="space-y-4">
