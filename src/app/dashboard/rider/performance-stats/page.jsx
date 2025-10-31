@@ -170,13 +170,12 @@ export default function PerformanceStats() {
   return (
     <div className="p-4 space-y-6 max-w-6xl mx-auto">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((stat, index) => (
-          <div key={index} className="p-6 bg-background rounded-2xl border border-gray-200 text-center hover:shadow-lg transition-shadow">
-            <div className="text-3xl mb-3">{stat.icon}</div>
-            <h3 className="text-lg font-semibold mb-1">{stat.title}</h3>
-            <h3 className="text-3xl font-bold mb-2 text-primary">{stat.value}</h3>
-            <p className="text-sm text-gray-600">{stat.subtitle}</p>
+          <div key={index} className="p-6 bg-background rounded-2xl border border-border text-center hover:shadow-lg transition-shadow hover:bg-primary/10">
+            <div className="text-3xl mb-3">{stat?.icon}</div>
+            <h3 className="text-lg font-semibold mb-1">{stat?.title}</h3>
+            <h3 className="text-3xl font-bold mb-2 text-primary">{stat?.value}</h3>
           </div>
         ))}
       </div>

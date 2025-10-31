@@ -4,6 +4,7 @@ import Navbar from '@/components/Shared/Navbar/Navbar';
 import Footer from '@/components/Shared/Footer';
 import { AuthProvider } from './hooks/AuthProvider';
 import useHideLayout from './hooks/useHideLayout';
+import { usePathname } from 'next/navigation';
 import { useAuth } from './hooks/AuthProvider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ThemeProvider } from './hooks/themeContext';
@@ -31,7 +32,11 @@ const roboto = Roboto({
 function LayoutContent({ children }) {
   const hideLayout = useHideLayout();
   const { loading } = useAuth();
+
    const pathname = usePathname();
+
+  const pathname = usePathname();
+
 
   // Check if we're on the home page
   const isHomePage = pathname === '/';
@@ -49,7 +54,11 @@ function LayoutContent({ children }) {
       {!hideLayout && <Navbar />}
       <main className="min-h-screen">{children}</main>
       {!hideLayout && <Footer />}
+
         {!isHomePage && !hideLayout && (
+
+      {/* Show chatbot on all pages except home page */}
+      {!isHomePage && !hideLayout && (
         <div className='fixed bottom-4 right-4 z-50'>
           <ChatBot/>
         </div>
