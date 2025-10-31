@@ -337,8 +337,8 @@ export default function AdminSupport() {
 
   return (
     <div className="flex h-[calc(100vh-100px)] bg-background overflow-hidden">
-      <Card className="w-96 m-4 flex flex-col border-border bg-card overflow-hidden">
-        <CardHeader className="border-b border-border bg-card">
+      <Card className="w-96  flex flex-col border-border mt-4 overflow-hidden">
+        <CardHeader className="border-b border-border ">
           <CardTitle className="flex items-center gap-2 text-white">
             <Users className="h-5 w-5" />
             Support Inbox

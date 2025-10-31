@@ -12,6 +12,7 @@ import gsap from "gsap";
 
 // Import the images
 import darkImage from "../../Assets/become-rider.webp";
+import { toast } from "sonner";
 
 export default function BecomeRiderPage() {
   const { register, handleSubmit, setValue, formState: { errors }, trigger } = useForm();
@@ -60,14 +61,14 @@ export default function BecomeRiderPage() {
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      if (!user) return alert("User not logged in");
+      if (!user) return toast("User not logged in");
 
       // Age check
       const dob = new Date(data.dob);
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
       if (age < 18) {
-        alert("You must be at least 18 years old.");
+        toast("You must be at least 18 years old.");
         setIsSubmitting(false);
         return;
       }
@@ -110,18 +111,18 @@ export default function BecomeRiderPage() {
             yoyo: true,
             repeat: 1,
             onComplete: () => {
-              alert("Rider request submitted successfully!");
+              toast("Rider request submitted successfully!");
             }
           });
         } else {
-          alert("Rider request submitted successfully!");
+          toast("Rider request submitted successfully!");
         }
       } else {
-        alert(result.message);
+        toast(result.message);
       }
     } catch (err) {
       console.error("Become-rider request error:", err);
-      alert("Server error");
+      toast("Server error");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,7 +134,7 @@ export default function BecomeRiderPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Error fetching user");
+        toast(data.message || "Error fetching user");
         return;
       }
 
@@ -147,7 +148,7 @@ export default function BecomeRiderPage() {
       setValue("present_address.upazila", data.present_address?.upazila || "");
       setValue("present_address.district", data.present_address?.district || "");
     } catch (err) {
-      alert("Error fetching user");
+      toast("Error fetching user");
     }
   };
 
@@ -290,9 +291,9 @@ export default function BecomeRiderPage() {
   };
 
   return (
-    <div className="flex w-full max-w-7xl mx-auto mt-28 mb-8 rounded-xl shadow-2xl overflow-hidden bg-background md:mt-16 md:mb-16">
+    <div className="flex w-full max-w-7xl mx-auto mt-28 mb-8 sm:mt-36 sm:mb-12 rounded-xl shadow-2xl overflow-hidden bg-background md:mt-36 md:mb-26">
       {/* Left Panel (Illustration) - Hidden on mobile */}
-      <div className="hidden md:block w-2/5">
+      <div className="hidden md:block w-1/2 md:pl-6">
         {/* Rider Illustration Image - Full height */}
         <div className="text-foreground text-center w-full h-full">
           <div className="w-full h-full block">
@@ -308,7 +309,7 @@ export default function BecomeRiderPage() {
       </div>
 
       {/* Right Panel (Form) - Full width on mobile */}
-      <div className="w-full md:w-3/5 p-4 bg-background md:p-12 md:pl-12 md:pr-6 md:py-6">
+      <div className="w-full md:w-1/2 p-4 sm:py-6 sm:px-10 bg-background md:pl-6 md:pr-6 md:py-6">
         {/* Step Navigation */}
         <div className="flex flex-wrap gap-2 md:gap-3 mb-4">
           <Step active={currentStep === 0} number={1} title="Personal Info" />
