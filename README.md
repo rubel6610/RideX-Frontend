@@ -14,7 +14,18 @@
 - **Live Site**: [Coming Soon]
 - **Frontend Repository**: [GitHub - RideX Frontend](https://github.com/yourusername/ridex-frontend)
 - **Backend Repository**: [GitHub - RideX Backend](https://github.com/yourusername/ridex-backend)
+---
+## 📄 User Credentials
+- **Email**: ashik03@email.com
+- **Password**: 123456
+## 📄 Rider Credentials
+- **Email**: omarfaruk.dev@gmail.com
+- **Password**: 123456
+## 📄 Admin Credentials
+- **Email**: rubelhosen1310@gmail.com
+- **Password**: 4563210
 
+note: RideX is KYC integrated. only verified users can use the platform.
 ---
 
 ## 📋 Project Overview
