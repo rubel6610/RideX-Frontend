@@ -28,7 +28,6 @@ const LocationInputs = ({ pickup, setPickup, drop, setDrop, onLocationChange, on
     if (!locationName.trim()) return null;
 
     try {
-      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1&countrycodes=bd`,
         {

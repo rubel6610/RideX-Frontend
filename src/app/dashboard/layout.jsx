@@ -21,6 +21,8 @@ import RiderStatus from "@/components/Shared/RiderStatus";
 import NotificationBell from "@/components/Shared/NotificationBell";
 import { useLogout } from "../hooks/SignOutButton";
 import ChatBot from '@/components/Shared/ChatBot/ChatBot';
+import { useFetchData } from "../hooks/useApi";
+import { RoleProtectedRoute } from "../hooks/ProtectedRoute";
 
 export default function DashboardLayout({ children }) {
   const handleLogout = useLogout();

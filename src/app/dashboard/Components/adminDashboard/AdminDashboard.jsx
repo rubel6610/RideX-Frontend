@@ -45,7 +45,6 @@ const AdminDashboard = ({ collapsed }) => {
     { href: "/dashboard/admin", Icon:  LayoutDashboard, label: "Dashboard" },
     { href: "/dashboard/admin/user-management", Icon: UserCog, label: "User Management" },
     { href: "/dashboard/admin/rider-management", Icon: Shield, label: "Rider Requests" },
-    { href: "/dashboard/admin/monitor-live-rides", Icon: MapPin, label: "Monitor Live Ride" },
     { href: "/dashboard/admin/disputes-complaints", Icon: AlertTriangle, label: "Complaints" },
     { href: "/dashboard/admin/promotions-discounts", Icon: Gift, label: "Promotions & Discounts" },
     { href: "/dashboard/admin/manage-payments", Icon: DollarSign, label: "Payment Management" },

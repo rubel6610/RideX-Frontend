@@ -20,6 +20,14 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash, Plus, Search } from "lucide-react";
 import axios from "axios";
 import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const API_URL = `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api`;
 
@@ -174,7 +182,9 @@ const PromotionsDiscounts = () => {
       <div className="bg-background rounded-lg border border-accent p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
           <div className="flex-1">
-            <label className="text-xs sm:text-sm font-medium mb-1 block">Search</label>
+            <label className="text-xs sm:text-sm font-medium mb-1 block">
+              Search
+            </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -186,7 +196,9 @@ const PromotionsDiscounts = () => {
             </div>
           </div>
           <div className="w-full sm:w-48">
-            <label className="text-xs sm:text-sm font-medium mb-1 block">Status</label>
+            <label className="text-xs sm:text-sm font-medium mb-1 block">
+              Status
+            </label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="All Status" />
@@ -212,7 +224,7 @@ const PromotionsDiscounts = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-background rounded-lg border border-accent shadow-sm dark:border-gray-700">
+      <div className="bg-background rounded-lg border border-accent shadow-sm dark:border-gray-700 overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -229,11 +241,7 @@ const PromotionsDiscounts = () => {
               <TableRow key={promotion._id}>
                 <TableCell>{promotion.title}</TableCell>
                 <TableCell>
-                  <code
-                    className="px-2 py-1 rounded font-mono 
-                               bg-gray-100 text-gray-800 
-                               dark:bg-gray-800 dark:text-gray-100"
-                  >
+                  <code className="px-2 py-1 rounded font-mono bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100">
                     {promotion.code}
                   </code>
                 </TableCell>
@@ -265,60 +273,28 @@ const PromotionsDiscounts = () => {
                         setIsModalOpen(true);
                       }}
                     >
-                      {promotion.code}
-                    </code>
-                  </td>
-                  <td className="px-2 sm:px-4 py-2">{promotion.discount}%</td>
-                  <td className="px-2 sm:px-4 py-2 text-xs">
-                    {promotion.startDate} - {promotion.endDate}
-                  </td>
-                  <td className="px-2 sm:px-4 py-2">
-                    <Badge
-                      variant={
-                        promotion.status === "Active" ? "default" : "secondary"
-                      }
-                      className={
-                        promotion.status === "Active"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs"
-                          : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100 text-xs"
-                      }
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePromotion(promotion._id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/40"
                     >
-                      {promotion.status}
-                    </Badge>
-                  </td>
-                  <td className="px-2 sm:px-4 py-2 text-right">
-                    <div className="flex justify-end gap-1 sm:gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingPromo(promotion);
-                          setIsModalOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeletePromotion(promotion._id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/40"
-                      >
-                        <Trash className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
 
-          {filteredPromotions.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No promotions found.
-            </div>
-          )}
-        </div>
+        {filteredPromotions.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No promotions found.
+          </div>
+        )}
       </div>
 
       {/* Modal */}

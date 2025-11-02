@@ -113,11 +113,11 @@ const OffersPage = () => {
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 <span className="font-semibold">Valid:</span>{" "}
                 <span className="bg-primary/10 text-primary font-medium px-2 py-1 rounded">
-                  {offer.startDate}
+                  {offer.startDate.split("T")[0]}
                 </span>{" "}
                 <span className="mx-1 text-gray-400">→</span>{" "}
                 <span className="bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 font-medium px-2 py-1 rounded">
-                  {offer.endDate}
+                  {offer.endDate.split("T")[0]}
                 </span>
               </div>
 

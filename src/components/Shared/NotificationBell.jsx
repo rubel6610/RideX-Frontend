@@ -35,11 +35,11 @@ export default function NotificationBell() {
       const fetchRiderId = async () => {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/rider/userId?userId=${user.id}`
+            `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/specific-rider-ride/${user.id}`
           );
           const data = await res.json();
-          if (data._id) {
-            setRiderId(data._id);
+          if (data.rider?._id) {
+            setRiderId(data.rider._id);
           }
         } catch (err) {
           console.error("Error fetching rider profile for notifications:", err);
@@ -55,6 +55,7 @@ export default function NotificationBell() {
       const joinRiderRoom = () => {
         if (socketRef.current && socketRef.current.connected) {
           socketRef.current.emit('join_rider', riderId);
+          console.log('🔔 NotificationBell - Rider joined room:', riderId);
         }
       };
 
@@ -133,25 +134,6 @@ export default function NotificationBell() {
         toast.info("New Message from Passenger", {
           description: data.message || "You have a new message",
           duration: 5000,
-        });
-      });
-      
-      // Listen for rider payment notifications (when admin marks rider as paid)
-      socketRef.current.on("rider_payment_notification", (data) => {
-        const notification = {
-          id: Date.now(),
-          type: "payment",
-          title: "Payment Received",
-          message: data.message,
-          time: new Date(),
-          read: false,
-        };
-        setNotifications((prev) => [notification, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-        
-        toast.success("Payment Received!", {
-          description: data.message,
-          duration: 5000
         });
       });
     }
@@ -279,25 +261,6 @@ export default function NotificationBell() {
           });
         }
       });
-      
-      // Listen for payment success notifications (for users)
-      socketRef.current.on("payment_success_notification", (data) => {
-        const notification = {
-          id: Date.now(),
-          type: "payment_success",
-          title: "Payment Successful",
-          message: data.message,
-          time: new Date(),
-          read: false,
-        };
-        setNotifications((prev) => [notification, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-        
-        toast.success("Payment Successful!", {
-          description: data.message,
-          duration: 5000
-        });
-      });
     }
 
     return () => {
@@ -308,9 +271,6 @@ export default function NotificationBell() {
         socketRef.current.off("new_message");
         socketRef.current.off("ride_accepted");
         socketRef.current.off("new_message_notification");
-        socketRef.current.off("new_payment_notification");
-        socketRef.current.off("payment_success_notification");
-        socketRef.current.off("rider_payment_notification");
       }
     };
   }, [user]);

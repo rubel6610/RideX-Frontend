@@ -339,7 +339,7 @@ export default function AdminSupport() {
     <div className="flex h-[calc(100vh-100px)] bg-background overflow-hidden">
       <Card className="w-96  flex flex-col border-border mt-4 overflow-hidden">
         <CardHeader className="border-b border-border ">
-          <CardTitle className="flex items-center gap-2 text-white">
+          <CardTitle className="flex items-center gap-2 ">
             <Users className="h-5 w-5" />
             Support Inbox
           </CardTitle>
@@ -349,8 +349,8 @@ export default function AdminSupport() {
             {isLoading ? (
               <div className="p-4 text-center /70">Loading threads...</div>
             ) : threads.length === 0 ? (
-              <div className="p-8 text-center /70">
-                <MessageCircle className="h-12 w-12 mx-auto mb-2 /30" />
+              <div className="p-8 text-center text-white/70">
+                <MessageCircle className="h-12 w-12 mx-auto mb-2 " />
                 <p>No support threads yet</p>
               </div>
             ) : (
@@ -390,7 +390,7 @@ export default function AdminSupport() {
                           {thread.status}
                         </Badge>
                       </div>
-                      <p className="text-sm /70 truncate">
+                      <p className="text-sm  truncate">
                         {getLastMessage(thread)}
                       </p>
                       {thread.unreadCount > 0 && (
@@ -412,10 +412,10 @@ export default function AdminSupport() {
       {/* Chat Area */}
       <Card className="flex-1 m-4 flex flex-col border-border bg-card border">
         {!activeThread ? (
-          <div className="flex-1 flex flex-col items-center justify-center /70">
-            <MessageCircle className="h-16 w-16 mb-4 /30" />
+          <div className="flex-1 flex flex-col items-center justify-center text-white/70">
+            <MessageCircle className="h-16 w-16 mb-4 " />
             <h3 className="text-lg font-semibold mb-2 ">Select a conversation</h3>
-            <p className="/70">Choose a thread from the sidebar to start chatting</p>
+            <p className="text-white/70">Choose a thread from the sidebar to start chatting</p>
           </div>
         ) : (
           <>
@@ -438,7 +438,7 @@ export default function AdminSupport() {
                   <CardTitle className="">
                     {activeThread.userName}
                   </CardTitle>
-                  <p className="text-sm /70">
+                  <p className="text-sm ">
                     Last updated {formatTime(activeThread.updatedAt)}
                   </p>
                 </div>
@@ -507,7 +507,7 @@ export default function AdminSupport() {
                     setReplyText(e.target.value);
                     handleTyping();
                   }}
-                  className="flex-1 bg-background border-border  placeholder-white/50"
+                  className="flex-1 bg-background border-border placeholder-white/50"
                 />
                 <Button 
                   type="submit" 
