@@ -347,7 +347,7 @@ export default function AdminSupport() {
         <ScrollArea className="flex-1 custom-scrollbar">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-4 text-center text-white/70">Loading threads...</div>
+              <div className="p-4 text-center /70">Loading threads...</div>
             ) : threads.length === 0 ? (
               <div className="p-8 text-center text-white/70">
                 <MessageCircle className="h-12 w-12 mx-auto mb-2 " />
@@ -410,7 +410,7 @@ export default function AdminSupport() {
       </Card>
 
       {/* Chat Area */}
-      <Card className="flex-1 m-4 flex flex-col border-border bg-card overflow-hidden">
+      <Card className="flex-1 m-4 flex flex-col border-border bg-card border">
         {!activeThread ? (
           <div className="flex-1 flex flex-col items-center justify-center text-white/70">
             <MessageCircle className="h-16 w-16 mb-4 " />
@@ -460,14 +460,14 @@ export default function AdminSupport() {
                       <div
                         className={`max-w-[70%] rounded-lg px-4 py-2 ${
                           message.sender === 'admin'
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-700 text-white border border-border'
+                            ? 'bg-primary'
+                            : 'bg-secondary  border border-border'
                         } ${message.isOptimistic ? 'opacity-70' : ''}`}
                       >
-                        <p className="text-sm whitespace-pre-wrap text-white">{message.text}</p>
+                        <p className="text-sm whitespace-pre-wrap ">{message.text}</p>
                         <p
                           className={`text-xs mt-1 ${
-                            message.sender === 'admin' ? 'text-white/80' : 'text-white/70'
+                            message.sender === 'admin' ? '/80' : '/70'
                           }`}
                         >
                           {formatMessageTime(message.createdAt)}
@@ -480,14 +480,14 @@ export default function AdminSupport() {
                   {/* User Typing Indicator */}
                   {userTyping && (
                     <div className="flex justify-start">
-                      <div className="max-w-[70%] rounded-lg px-4 py-2 bg-card text-white border border-border">
+                      <div className="max-w-[70%] rounded-lg px-4 py-2 bg-card  border border-border">
                         <div className="flex items-center space-x-2">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                             <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                           </div>
-                          <span className="text-xs text-white/70">User is typing...</span>
+                          <span className="text-xs /70">User is typing...</span>
                         </div>
                       </div>
                     </div>

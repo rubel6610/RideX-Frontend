@@ -36,7 +36,7 @@ export default function RiderVehicleInfo() {
 
     const fetchRiderData = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/riders");
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/riders`);
         const riders = res.data.riders;
 
         const matchedRider = riders.find(
@@ -67,7 +67,7 @@ export default function RiderVehicleInfo() {
     e.preventDefault();
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/update-rider/${rider._id}`,
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/update-rider/${rider._id}`,
         {
           vehicleType: formData.vehicleType,
           vehicleModel: formData.vehicleModel,

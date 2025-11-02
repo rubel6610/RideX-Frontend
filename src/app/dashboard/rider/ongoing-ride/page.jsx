@@ -1138,6 +1138,29 @@ function OngoingRideContent() {
   );
 }
 
+export  function OngoingRidePagefallback() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading ride details...</p>
+        </div>
+      </div>
+    }>
+      <ErrorBoundary fallback={
+        <div className="flex items-center justify-center bg-gradient-to-br from-card to-background px-4 py-10">
+          <div className="text-center">
+            <p className="text-sm text-red-500">Error loading ride details. Please try again.</p>
+          </div>
+        </div>
+      }>
+        <OngoingRideContent />
+      </ErrorBoundary>
+    </Suspense>
+  );
+}
+
 export default function OngoingRidePage() {
   return (
     <Suspense fallback={

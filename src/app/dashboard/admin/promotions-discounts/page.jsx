@@ -3,14 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -28,6 +20,14 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash, Plus, Search } from "lucide-react";
 import axios from "axios";
 import { TableSkeleton } from "@/components/Shared/Skeleton/TableSkeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const API_URL = `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api`;
 
@@ -155,14 +155,14 @@ const PromotionsDiscounts = () => {
   if (loading) return <TableSkeleton />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6 mt-6 max-w-screen mx-auto lg:w-full md:w-full">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-primary">
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">
             Promotions & Discounts
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Manage promotional offers
           </p>
         </div>
@@ -171,7 +171,7 @@ const PromotionsDiscounts = () => {
             setEditingPromo(null);
             setIsModalOpen(true);
           }}
-          className="bg-primary hover:bg-primary/90"
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add New Promotion
@@ -179,10 +179,12 @@ const PromotionsDiscounts = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-background rounded-lg border border-accent p-4 dark:border-gray-700">
-        <div className="flex flex-wrap gap-4 items-end">
+      <div className="bg-background rounded-lg border border-accent p-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
           <div className="flex-1">
-            <label className="text-sm font-medium mb-1 block">Search</label>
+            <label className="text-xs sm:text-sm font-medium mb-1 block">
+              Search
+            </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -193,8 +195,10 @@ const PromotionsDiscounts = () => {
               />
             </div>
           </div>
-          <div className="w-48">
-            <label className="text-sm font-medium mb-1 block">Status</label>
+          <div className="w-full sm:w-48">
+            <label className="text-xs sm:text-sm font-medium mb-1 block">
+              Status
+            </label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="All Status" />
@@ -212,6 +216,7 @@ const PromotionsDiscounts = () => {
               setSearchTerm("");
               setStatusFilter("all");
             }}
+            className="w-full sm:w-auto"
           >
             Clear Filters
           </Button>
@@ -219,7 +224,7 @@ const PromotionsDiscounts = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-background rounded-lg border border-accent shadow-sm dark:border-gray-700">
+      <div className="bg-background rounded-lg border border-accent shadow-sm dark:border-gray-700 overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -236,11 +241,7 @@ const PromotionsDiscounts = () => {
               <TableRow key={promotion._id}>
                 <TableCell>{promotion.title}</TableCell>
                 <TableCell>
-                  <code
-                    className="px-2 py-1 rounded font-mono 
-                               bg-gray-100 text-gray-800 
-                               dark:bg-gray-800 dark:text-gray-100"
-                  >
+                  <code className="px-2 py-1 rounded font-mono bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100">
                     {promotion.code}
                   </code>
                 </TableCell>
@@ -290,7 +291,7 @@ const PromotionsDiscounts = () => {
         </Table>
 
         {filteredPromotions.length === 0 && (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-muted-foreground">
             No promotions found.
           </div>
         )}

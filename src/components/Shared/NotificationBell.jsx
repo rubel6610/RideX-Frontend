@@ -179,6 +179,27 @@ export default function NotificationBell() {
       });
     });
 
+    // Listen for payment notifications (for admins)
+    if (user.role === "admin") {
+      socketRef.current.on("new_payment_notification", (data) => {
+        const notification = {
+          id: Date.now(),
+          type: "payment",
+          title: "New Payment Received",
+          message: data.message,
+          time: new Date(),
+          read: false,
+        };
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        
+        toast.success("New Payment Received!", {
+          description: data.message,
+          duration: 5000
+        });
+      });
+    }
+
     // Listen for ride acceptance (for users)
     if (user.role === "user") {
       socketRef.current.on("ride_accepted", (data) => {
@@ -350,13 +371,13 @@ export default function NotificationBell() {
                         }`}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground">
+                        <p className="font-semibold text-sm text-foreground break-words">
                           {notification.title}
                         </p>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground whitespace-normal break-words">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
                           {formatTime(notification.time)}
                         </p>
                       </div>
