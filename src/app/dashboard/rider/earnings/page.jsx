@@ -169,18 +169,18 @@ const EarningPage = () => {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="label" tick={{ fill: "#ccc", fontSize: 12 }} stroke="#ccc" />
-            <YAxis tick={{ fill: "#ccc", fontSize: 12 }} stroke="#ccc" />
+            <XAxis dataKey="label" tick={{ fill: "#fff", fontSize: 12 }} stroke="#fff" />
+            <YAxis tick={{ fill: "#fff", fontSize: 12 }} stroke="#fff" />
             <Tooltip
               contentStyle={{
                 backgroundColor: "#1f2937",
-                border: "1px solid #444",
+                border: "1px solid #fff",
                 color: "#fff",
               }}
               itemStyle={{ color: "#fff" }}
             />
             <Legend wrapperStyle={{ color: "#ccc" }} />
-            <Bar dataKey="value" fill="hsl(var(--primary))" radius={[5, 5, 0, 0]} />
+            <Bar dataKey="value" fill="#00b6a6" radius={[5, 5, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

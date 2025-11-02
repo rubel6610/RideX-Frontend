@@ -219,7 +219,7 @@ const PromotionsDiscounts = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-background rounded-lg border border-accent shadow-sm overflow-x-auto dark:border-gray-700">
+      <div className="bg-background rounded-lg border border-accent shadow-sm dark:border-gray-700">
         <Table>
           <TableHeader>
             <TableRow>

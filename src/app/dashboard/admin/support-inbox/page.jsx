@@ -337,9 +337,9 @@ export default function AdminSupport() {
 
   return (
     <div className="flex h-[calc(100vh-100px)] bg-background overflow-hidden">
-      <Card className="w-96 m-4 flex flex-col border-border bg-card overflow-hidden">
-        <CardHeader className="border-b border-border bg-card">
-          <CardTitle className="flex items-center gap-2 text-white">
+      <Card className="w-96  flex flex-col border-border mt-4 overflow-hidden">
+        <CardHeader className="border-b border-border ">
+          <CardTitle className="flex items-center gap-2 ">
             <Users className="h-5 w-5" />
             Support Inbox
           </CardTitle>
@@ -350,7 +350,7 @@ export default function AdminSupport() {
               <div className="p-4 text-center text-white/70">Loading threads...</div>
             ) : threads.length === 0 ? (
               <div className="p-8 text-center text-white/70">
-                <MessageCircle className="h-12 w-12 mx-auto mb-2 text-white/30" />
+                <MessageCircle className="h-12 w-12 mx-auto mb-2 " />
                 <p>No support threads yet</p>
               </div>
             ) : (
@@ -373,29 +373,29 @@ export default function AdminSupport() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <AvatarFallback className="bg-primary text-white">
+                        <AvatarFallback className="bg-primary ">
                           {getInitials(thread.userName)}
                         </AvatarFallback>
                       )}
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-1">
-                        <span className="font-medium text-sm text-white">
+                        <span className="font-medium text-sm ">
                           {thread.userName}
                         </span>
                         <Badge 
                           variant={thread.status === 'waiting' ? 'destructive' : 'secondary'}
-                          className="text-xs text-white"
+                          className="text-xs "
                         >
                           {thread.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-white/70 truncate">
+                      <p className="text-sm  truncate">
                         {getLastMessage(thread)}
                       </p>
                       {thread.unreadCount > 0 && (
                         <div className="flex justify-end mt-1">
-                          <Badge className="bg-red-500 text-white text-xs px-2 py-0">
+                          <Badge className="bg-red-500  text-xs px-2 py-0">
                             {thread.unreadCount} new
                           </Badge>
                         </div>
@@ -413,8 +413,8 @@ export default function AdminSupport() {
       <Card className="flex-1 m-4 flex flex-col border-border bg-card overflow-hidden">
         {!activeThread ? (
           <div className="flex-1 flex flex-col items-center justify-center text-white/70">
-            <MessageCircle className="h-16 w-16 mb-4 text-white/30" />
-            <h3 className="text-lg font-semibold mb-2 text-white">Select a conversation</h3>
+            <MessageCircle className="h-16 w-16 mb-4 " />
+            <h3 className="text-lg font-semibold mb-2 ">Select a conversation</h3>
             <p className="text-white/70">Choose a thread from the sidebar to start chatting</p>
           </div>
         ) : (
@@ -429,16 +429,16 @@ export default function AdminSupport() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <AvatarFallback className="bg-primary text-white">
+                    <AvatarFallback className="bg-primary ">
                       {getInitials(activeThread.userName)}
                     </AvatarFallback>
                   )}
                 </Avatar>
                 <div>
-                  <CardTitle className="text-white">
+                  <CardTitle className="">
                     {activeThread.userName}
                   </CardTitle>
-                  <p className="text-sm text-white/70">
+                  <p className="text-sm ">
                     Last updated {formatTime(activeThread.updatedAt)}
                   </p>
                 </div>
@@ -507,12 +507,12 @@ export default function AdminSupport() {
                     setReplyText(e.target.value);
                     handleTyping();
                   }}
-                  className="flex-1 bg-background border-border text-white placeholder-white/50"
+                  className="flex-1 bg-background border-border placeholder-white/50"
                 />
                 <Button 
                   type="submit" 
                   disabled={!replyText.trim()}
-                  className="bg-primary hover:bg-primary/90 text-white"
+                  className="bg-primary hover:bg-primary/90 "
                 >
                   <SendHorizontal className="h-4 w-4 mr-2" />
                   Send

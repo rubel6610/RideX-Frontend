@@ -83,7 +83,6 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
   useEffect(() => {
     // Validate inputs
     if (!map || !isValidCoords(pickupCoords) || !isValidCoords(dropCoords)) {
-      console.log('Invalid inputs - map:', !!map, 'pickupCoords:', pickupCoords, 'dropCoords:', dropCoords);
       return;
     }
 
@@ -110,7 +109,6 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
     };
 
     if (!isMapReady()) {
-      console.log('Map container not ready, retrying...');
       const timeoutId = setTimeout(() => {
         if (isMapReady()) {
           setPolyline(prev => prev); // Trigger re-render
@@ -140,48 +138,12 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
         const startLat = pickupCoords[0];
         const endLng = dropCoords[1];
         const endLat = dropCoords[0];
-
-        console.log('Fetching route from', startLat, startLng, 'to', endLat, endLng);
         
-        // Test basic polyline creation first
-        // try {
-        //   const testPolyline = L.polyline([[startLat, startLng], [endLat, endLng]], {
-        //     color: "#ff0000",
-        //     weight: 2
-        //   });
-        //   console.log('Test polyline created successfully:', !!testPolyline);
-        //   if (testPolyline && map && map.getContainer()) {
-        //     try {
-        //       if (map.getContainer() && map.getContainer().parentNode) {
-        //         testPolyline.addTo(map);
-        //         setTimeout(() => {
-        //           if (map.hasLayer && map.hasLayer(testPolyline)) {
-        //             try {
-        //               map.removeLayer(testPolyline);
-        //               console.log('Test polyline removed');
-        //             } catch (removeError) {
-        //               console.warn('Error removing test polyline:', removeError);
-        //             }
-        //           }
-        //         }, 1000);
-        //       } else {
-        //         console.warn('Map container not ready for test polyline addition');
-        //       }
-        //     } catch (addError) {
-        //       console.error('Error adding test polyline to map:', addError);
-        //     }
-        //   }
-        // } catch (testError) {
-        //   console.error('Test polyline creation failed:', testError);
-        // }
-
         // Try OSRM routing service
         const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
-        console.log('OSRM URL:', osrmUrl);
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-          console.log('OSRM request timeout, aborting...');
           controller.abort();
         }, 3000); // 3 second timeout (reduced from 5)
         
@@ -197,7 +159,7 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
             }
           });
           clearTimeout(timeoutId);
-          console.log('OSRM Response status:', response.status);
+          cons
         } catch (fetchError) {
           clearTimeout(timeoutId);
           if (fetchError.name === 'AbortError') {
@@ -465,185 +427,9 @@ const RoadFollowingPolyline = ({ pickupCoords, dropCoords }) => {
   return null;
 };
 
-// Road-following route component
-const Routing = ({ pickupCoords, dropCoords }) => {
-  const map = useMap();
-  const [routingControl, setRoutingControl] = useState(null);
-  const [fallbackPolyline, setFallbackPolyline] = useState(null);
-
-  useEffect(() => {
-    if (!map || !pickupCoords || !dropCoords) return;
-
-    // Clean up existing controls and polylines
-    const cleanup = () => {
-      try {
-        // Remove existing routing controls
-        map.eachLayer((layer) => {
-          if (layer instanceof L.Routing.Control) {
-            try {
-              map.removeControl(layer);
-            } catch (e) {
-              console.warn('Error removing routing control:', e);
-            }
-          }
-        });
-
-        // Remove existing polylines
-        if (fallbackPolyline && map.hasLayer(fallbackPolyline)) {
-          map.removeLayer(fallbackPolyline);
-        }
-      } catch (error) {
-        console.warn('Error during cleanup:', error);
-      }
-    };
-
-    cleanup();
-
-    // Create a simple polyline first as fallback
-    const createSimplePolyline = () => {
-      return L.polyline(
-        [pickupCoords, dropCoords],
-        {
-          color: "#3b82f6",
-          weight: 6,
-          opacity: 0.8,
-          lineCap: "round",
-          lineJoin: "round"
-        }
-      ).addTo(map);
-    };
-
-    // Always create a simple polyline first
-    const simplePolyline = createSimplePolyline();
-    setFallbackPolyline(simplePolyline);
-
-    // Try to create routing control for better route following
-    try {
-      // Check if L.Routing is available
-      if (typeof L.Routing !== 'undefined') {
-        let control;
-        
-        try {
-          control = L.Routing.control({
-            waypoints: [
-              L.latLng(pickupCoords[0], pickupCoords[1]),
-              L.latLng(dropCoords[0], dropCoords[1]),
-            ],
-            lineOptions: {
-              styles: [
-                { 
-                  color: "#3b82f6", 
-                  weight: 6, 
-                  opacity: 0.8,
-                  lineCap: "round",
-                  lineJoin: "round"
-                }
-              ],
-            },
-            addWaypoints: false,
-            routeWhileDragging: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: false,
-            show: false, // Don't show the instruction panel
-            createMarker: () => null, // Hide default markers
-            plan: L.Routing.plan([], {
-              createMarker: () => null,
-              addWaypoints: false,
-              draggableWaypoints: false,
-              routeWhileDragging: false
-            }),
-            router: L.Routing.osrmv1({
-              serviceUrl: 'https://router.project-osrm.org/route/v1',
-              timeout: 10000,
-              profile: 'driving'
-            })
-          });
-
-          // Add the control to map
-          control.addTo(map);
-          setRoutingControl(control);
-
-          // Hide the instruction panel
-          const hideInstructionPanel = () => {
-            const instructionPanel = document.querySelector('.leaflet-routing-container');
-            const altPanel = document.querySelector('.leaflet-routing-alt');
-            
-            if (instructionPanel) {
-              instructionPanel.style.display = 'none';
-              instructionPanel.style.visibility = 'hidden';
-              instructionPanel.style.opacity = '0';
-              instructionPanel.style.pointerEvents = 'none';
-              instructionPanel.style.zIndex = '-1';
-              instructionPanel.style.position = 'absolute';
-              instructionPanel.style.left = '-9999px';
-              instructionPanel.style.top = '-9999px';
-            }
-            
-            if (altPanel) {
-              altPanel.style.display = 'none';
-              altPanel.style.visibility = 'hidden';
-              altPanel.style.opacity = '0';
-              altPanel.style.pointerEvents = 'none';
-              altPanel.style.zIndex = '-1';
-              altPanel.style.position = 'absolute';
-              altPanel.style.left = '-9999px';
-              altPanel.style.top = '-9999px';
-            }
-          };
-
-          // Try to hide immediately and with observer
-          hideInstructionPanel();
-          
-          const observer = new MutationObserver(() => {
-            hideInstructionPanel();
-          });
-          
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true
-          });
-
-          // Cleanup observer after 2 seconds
-          setTimeout(() => {
-            observer.disconnect();
-          }, 2000);
-
-        } catch (routingError) {
-          console.warn('Routing control creation failed:', routingError);
-          // Keep the simple polyline as fallback
-        }
-      }
-    } catch (error) {
-      console.warn('Routing machine error:', error);
-      // Keep the simple polyline as fallback
-    }
-
-    return () => {
-      try {
-        if (routingControl && map) {
-          if (map.hasLayer && map.hasLayer(routingControl)) {
-            map.removeControl(routingControl);
-          }
-        }
-        if (fallbackPolyline && map) {
-          if (map.hasLayer && map.hasLayer(fallbackPolyline)) {
-            map.removeLayer(fallbackPolyline);
-          }
-        }
-      } catch (error) {
-        console.warn('Error in cleanup:', error);
-      }
-    };
-  }, [map, pickupCoords, dropCoords]);
-
-  return null;
-};
-
 const RideMap = ({
   pickup,
   drop,
-  pickupCoords,
-  dropCoords,
   currentLocation,
   isCurrentLocationActive,
   onLocationSelect,
@@ -727,27 +513,32 @@ const RideMap = ({
       }
     } else if (parsedPickupCoords) {
       const newCenter = [parsedPickupCoords[0], parsedPickupCoords[1]];
-      const newZoom = 16;
+      // When only pickup is set, check if it's the current location
+      // If it is the current location, zoom out more (lower zoom level)
+      // Otherwise, use the standard zoom level
+      const newZoom = isCurrentLocationActive ? 12 : 16; // Zoom out more to level 12 when it's current location
       if (center[0] !== newCenter[0] || center[1] !== newCenter[1] || zoom !== newZoom) {
         setCenter(newCenter);
         setZoom(newZoom);
       }
     } else if (parsedDropCoords) {
       const newCenter = [parsedDropCoords[0], parsedDropCoords[1]];
+      // When only dropoff is set, use zoom level 16 to match the closest distance case
       const newZoom = 16;
       if (center[0] !== newCenter[0] || center[1] !== newCenter[1] || zoom !== newZoom) {
         setCenter(newCenter);
         setZoom(newZoom);
       }
     } else {
+      // When no locations are set, use zoom level 16 to match manual input behavior
       const newCenter = [23.8103, 90.4125];
-      const newZoom = 12;
+      const newZoom = 16;
       if (center[0] !== newCenter[0] || center[1] !== newCenter[1] || zoom !== newZoom) {
         setCenter(newCenter);
         setZoom(newZoom);
       }
     }
-  }, [parsedPickupCoords, parsedDropCoords, center, zoom]);
+  }, [parsedPickupCoords, parsedDropCoords, center, zoom, isCurrentLocationActive]);
 
   const handleMapClick = async (latlng) => {
     if (!latlng || typeof latlng.lat !== 'number' || typeof latlng.lng !== 'number') {
@@ -762,9 +553,8 @@ const RideMap = ({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      // Use backend proxy instead of direct Nominatim API call to avoid CORS issues
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lng}`,
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
         { signal: controller.signal }
       );
       
@@ -811,11 +601,6 @@ const RideMap = ({
       </div>
     );
   }
-
-  // Debug logging
-  console.log('RideMap render - pickup:', pickup, 'drop:', drop);
-  console.log('Parsed coords - pickup:', parsedPickupCoords, 'drop:', parsedDropCoords);
-
   // Error boundary
   if (error || mapError) {
     return (
@@ -941,7 +726,7 @@ const RideMap = ({
           <RoadFollowingPolyline pickupCoords={parsedPickupCoords} dropCoords={parsedDropCoords} />
         )}
 
-        {/* Pickup Marker */}
+        {/* Pickup Marker - Always show if we have pickup coordinates */}
         {parsedPickupCoords && (
           <Marker position={parsedPickupCoords} icon={pickupIcon}>
             <Popup>
@@ -967,8 +752,6 @@ const RideMap = ({
           </Marker>
         )}
       </MapContainer>
-
-
 
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-xl p-3 border border-gray-300 z-50">
