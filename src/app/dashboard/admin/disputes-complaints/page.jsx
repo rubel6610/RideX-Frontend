@@ -62,14 +62,14 @@ export default function DisputesAndComplaints() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 space-y-6 mt-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Complaint Management</h1>
-          <p className="text-foreground/50 mt-1">Manage and resolve customer complaints efficiently</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Complaint Management</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage and resolve customer complaints efficiently</p>
         </div>
-        <Button onClick={handleAddComplaint}>+ Add New Complaint</Button>
+        <Button onClick={handleAddComplaint} className="w-full sm:w-auto">+ Add New Complaint</Button>
       </div>
 
       {/* Filters */}

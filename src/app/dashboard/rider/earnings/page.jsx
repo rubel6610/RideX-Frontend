@@ -1,39 +1,127 @@
 "use client";
 
-import React, { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import React, { useEffect, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const EarningPage = () => {
   const [period, setPeriod] = useState("daily");
+  const [earnings, setEarnings] = useState({
+    daily: [],
+    weekly: [],
+    monthly: [],
+  });
+  const [loading, setLoading] = useState(true);
 
-  const earnings = {
-    daily: [50, 75, 100, 80, 60, 90, 120],
-    weekly: [400, 550, 600, 450],
-    monthly: [1500, 1800, 2000, 1700, 2200, 2100, 1900, 2300, 2500, 2400, 2600, 2800],
-  };
+  //  Fetch payments from backend
+  useEffect(() => {
+    const fetchEarnings = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/payment/all`);
+        const payments = await res.json();
+
+        const now = new Date();
+
+        // Daily: payments of today
+        const daily = payments.filter((p) => {
+          const date = new Date(
+            p.timestamps.paymentCompletedAt || p.timestamps.paymentInitiatedAt
+          );
+          return date.toDateString() === now.toDateString();
+        });
+
+        // Weekly: Sunday to Saturday
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - now.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const weekly = payments.filter((p) => {
+          const date = new Date(
+            p.timestamps.paymentCompletedAt || p.timestamps.paymentInitiatedAt
+          );
+          return date >= weekStart && date <= weekEnd;
+        });
+
+        // Monthly: current month
+        const monthly = payments.filter((p) => {
+          const date = new Date(
+            p.timestamps.paymentCompletedAt || p.timestamps.paymentInitiatedAt
+          );
+          return (
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+          );
+        });
+
+        // Map only totalAmount for chart
+        setEarnings({
+          daily: daily.map((d) => d.rideDetails.fareBreakdown.totalAmount),
+          weekly: weekly.map((d) => d.rideDetails.fareBreakdown.totalAmount),
+          monthly: monthly.map((d) => d.rideDetails.fareBreakdown.totalAmount),
+        });
+      } catch (err) {
+        console.error("Error fetching earnings:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEarnings();
+  }, []);
 
   const labels = {
     daily: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     weekly: ["Week 1", "Week 2", "Week 3", "Week 4"],
-    monthly: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    monthly: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
   };
 
-  const currentEarnings = earnings[period];
+  const currentEarnings = earnings[period] || [];
   const currentLabels = labels[period];
 
   const chartData = currentLabels.map((label, i) => ({
     label,
-    value: currentEarnings[i],
+    value: currentEarnings[i] || 0,
   }));
 
+  //  summary with 2 decimal places
   const summary = {
-    today: earnings.daily[earnings.daily.length - 1],
-    week: earnings.weekly.reduce((a, b) => a + b, 0),
-    month: earnings.monthly.reduce((a, b) => a + b, 0),
+    today: earnings.daily.reduce((a, b) => a + b, 0).toFixed(2),
+    week: earnings.weekly.reduce((a, b) => a + b, 0).toFixed(2),
+    month: earnings.monthly.reduce((a, b) => a + b, 0).toFixed(2),
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64 text-lg font-semibold">
+        Loading earnings data...
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 space-y-6 max-w-5xl mx-auto transition-colors duration-300">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
@@ -41,23 +129,34 @@ const EarningPage = () => {
           { title: "This Week", value: summary.week },
           { title: "This Month", value: summary.month },
         ].map((item, index) => (
-          <div key={index} className="p-6  rounded-2xl border border-gray-200 text-center">
-            <h2 className="text-lg font-semibold">{item.title}</h2>
-            <h2 className="text-2xl font-bold text-blue-600">${item.value}</h2>
+          <div
+            key={index}
+            className="p-6 rounded-2xl border border-accent text-center bg-background hover:shadow-lg transition-all duration-300"
+          >
+            <h2 className="text-lg font-semibold text-foreground">
+              {item.title}
+            </h2>
+            <h2 className="text-2xl font-bold text-primary">
+              ৳{item.value}
+            </h2>
           </div>
         ))}
       </div>
 
       {/* Chart */}
-      <div className="p-6 bg-background rounded-2xl border border-gray-200">
+      <div className="p-6 bg-background rounded-2xl border border-accent transition-all duration-300">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Earnings Chart</h2>
+          <h2 className="text-xl font-semibold text-foreground">
+            Earnings Chart
+          </h2>
           <div className="flex gap-2">
             {["daily", "weekly", "monthly"].map((p) => (
               <button
                 key={p}
-                className={`px-4 py-1 rounded-lg font-medium ${
-                  period === p ? "bg-muted " : "bg-gray-100 text-gray-700"
+                className={`px-4 py-1 rounded-lg font-medium transition-all duration-300 ${
+                  period === p
+                    ? "bg-primary text-white"
+                    : "bg-accent text-foreground"
                 }`}
                 onClick={() => setPeriod(p)}
               >
@@ -69,12 +168,19 @@ const EarningPage = () => {
 
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill="#3b82f6" radius={[5, 5, 0, 0]} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+            <XAxis dataKey="label" tick={{ fill: "#fff", fontSize: 12 }} stroke="#fff" />
+            <YAxis tick={{ fill: "#fff", fontSize: 12 }} stroke="#fff" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1f2937",
+                border: "1px solid #fff",
+                color: "#fff",
+              }}
+              itemStyle={{ color: "#fff" }}
+            />
+            <Legend wrapperStyle={{ color: "#ccc" }} />
+            <Bar dataKey="value" fill="#00b6a6" radius={[5, 5, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -8,12 +8,39 @@ const RATE_TABLE = {
   car: 35,
 };
 
-// Promo code logic
-const PROMO_CODES = {
-  "EIDSPECIAL20%": 0.20,
-  "NEWYEAR10%": 0.10,
-  "SUMMER05%": 0.05,
+// Average speed (km/h) for each vehicle type
+const SPEED_TABLE = {
+  bike: 40,  // Bike average speed in city
+  cng: 30,   // CNG average speed
+  car: 50,   // Car average speed
 };
+
+// Fetch promo discount from database
+async function getPromoDiscount(promoCode) {
+  if (!promoCode) return 0;
+  
+  try {
+    console.log('Fetching discount for promo code:', promoCode);
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/promotions/active`
+    );
+    const promos = await response.json();
+    console.log('Available promos:', promos);
+    
+    // Find the matching active promo
+    const matchingPromo = promos.find(p => p.code === promoCode && p.status === "Active");
+    console.log('Matching promo:', matchingPromo);
+    
+    if (matchingPromo && matchingPromo.discount) {
+      return matchingPromo.discount / 100; // Convert percentage to decimal
+    }
+  } catch (error) {
+    console.error('Error fetching promo discount:', error);
+    throw new Error(`Promo code validation failed: ${error.message}`);
+  }
+  
+  return 0;
+}
 
 // Address -> Coordinates using Nominatim
 async function geocodeAddress(address) {
@@ -76,6 +103,7 @@ async function getRouteInfo(fromCoords, toCoords, type) {
 
 // Main function
 export async function calculateFare(from, to, type = "bike", promo = "") {
+  console.log('calculateFare called with:', { from, to, type, promo });
   if (!RATE_TABLE[type]) throw new Error(`Invalid vehicle type: ${type}`);
 
   const fromCoords = await geocodeAddress(from);
@@ -84,18 +112,32 @@ export async function calculateFare(from, to, type = "bike", promo = "") {
   // Get route info (distance + time)
   const routeInfo = await getRouteInfo(fromCoords, toCoords, type);
   const distanceKm = routeInfo.distanceKm;
+  
+  // Calculate arrival time based on distance and vehicle speed
+  const avgSpeed = SPEED_TABLE[type] || 40; // km/h
+  const calculatedDurationMin = (distanceKm / avgSpeed) * 60; // Convert hours to minutes
+  
+  // Use OSRM duration if available, otherwise use calculated duration
   const durationMin = routeInfo.durationMin
     ? Number(routeInfo.durationMin.toFixed(0))
-    : Math.ceil(distanceKm / 0.5); // fallback: assume 30 km/h avg
+    : Math.ceil(calculatedDurationMin);
+
+  // Calculate arrival time in hours and minutes format (00h:30m)
+  const hours = Math.floor(durationMin / 60);
+  const minutes = durationMin % 60;
+  const formattedArrival = `${hours.toString().padStart(2, '0')}h:${minutes.toString().padStart(2, '0')}m`;
 
   // Calculate fare
   const perKm = RATE_TABLE[type];
   let cost = Number((distanceKm * perKm).toFixed(2));
 
+  // Get promo discount from database
   let discount = 0;
-  if (promo && PROMO_CODES[promo]) {
-    discount = PROMO_CODES[promo];
-    cost = Number((cost * (1 - discount)).toFixed(2));
+  if (promo) {
+    discount = await getPromoDiscount(promo);
+    if (discount > 0) {
+      cost = Number((cost * (1 - discount)).toFixed(2));
+    }
   }
 
   // rideData object
@@ -104,10 +146,11 @@ export async function calculateFare(from, to, type = "bike", promo = "") {
     to: toCoords,
     distanceKm: Number(distanceKm.toFixed(2)),
     durationMin,
-    eta: `Arrives in ${durationMin} min`,
+    eta: `${durationMin} min`,
+    arrivalTime: formattedArrival,
     cost,
     vehicle: type.charAt(0).toUpperCase() + type.slice(1),
-    promoApplied: promo && PROMO_CODES[promo] ? promo : null,
+    promoApplied: promo && discount > 0 ? promo : null,
     discountPercent: discount ? discount * 100 : 0,
   };
 

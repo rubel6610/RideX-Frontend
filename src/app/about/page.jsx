@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import { Car, Bike, CarFront, Clock, Shield, Users } from "lucide-react";
 import Image from "next/image";
-import heroRide from "@/Assets/car.png"; // যদি illustration/image থাকে
+import heroRide from "@/Assets/car.webp";
 import { Minus, Plus } from "lucide-react";
-import Cng from "@/Assets/cng.png";
+import Cng from "@/Assets/cng.webp";
 
 export default function AboutPage() {
   const [openSections, setOpenSections] = useState({
@@ -157,7 +157,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-     
+
 
       {/* collapes */}
       <div className="min-h-screen bg-white dark:bg-gray-900  flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -176,9 +176,8 @@ export default function AboutPage() {
               {openSections.q1 ? <Minus size={20} /> : <Plus size={20} />}
             </button>
             <div
-              className={`overflow-hidden transition-[max-height] duration-500 ease-in-out ${
-                openSections.q1 ? "max-h-[500px]" : "max-h-0"
-              }`}
+              className={`overflow-hidden transition-[max-height] duration-500 ease-in-out ${openSections.q1 ? "max-h-[500px]" : "max-h-0"
+                }`}
             >
               <p className="p-4 text-gray-300 dark:text-gray-300">
                 RideX is a ride-sharing platform that connects passengers with
@@ -198,9 +197,8 @@ export default function AboutPage() {
               {openSections.q2 ? <Minus size={20} /> : <Plus size={20} />}
             </button>
             <div
-              className={`overflow-hidden transition-[max-height] duration-500 ease-in-out ${
-                openSections.q2 ? "max-h-[500px]" : "max-h-0"
-              }`}
+              className={`overflow-hidden transition-[max-height] duration-500 ease-in-out ${openSections.q2 ? "max-h-[500px]" : "max-h-0"
+                }`}
             >
               <p className="p-4 text-gray-700 dark:text-gray-300">
                 You can pay seamlessly through the app using mobile banking,
@@ -219,9 +217,8 @@ export default function AboutPage() {
               {openSections.q3 ? <Minus size={20} /> : <Plus size={20} />}
             </button>
             <div
-              className={`overflow-hidden transition-[max-height] duration-500 ease-in-out ${
-                openSections.q3 ? "max-h-[500px]" : "max-h-0"
-              }`}
+              className={`overflow-hidden transition-[max-height] duration-500 ease-in-out ${openSections.q3 ? "max-h-[500px]" : "max-h-0"
+                }`}
             >
               <p className="p-4 text-gray-700 dark:text-gray-300">
                 Absolutely! All our drivers are verified and trained. We also

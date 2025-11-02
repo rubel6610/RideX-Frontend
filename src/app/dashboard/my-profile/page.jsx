@@ -1,24 +1,21 @@
 "use client";
 
-import { useAuth } from '@/app/hooks/AuthProvider';
-import { Button } from '@/components/ui/button';
+import { useAuth } from "@/app/hooks/AuthProvider";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Pencil } from "lucide-react";
+import { useState } from "react";
+import EditProfilePopup from "./Components/EditProfilePopup";
+import { ProfileSkeleton } from "@/components/Shared/Skeleton/ProfileSkeleton";
+import { useFetchData, useUpdateData } from "@/app/hooks/useApi";
+import { toast } from "sonner";
 
-import { CheckCircle2, Pencil } from 'lucide-react';
-import { useState } from 'react';
-import EditProfilePopup from './Components/EditProfilePopup';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ProfileSkeleton } from '@/app/hooks/Skeleton/ProfileSkeleton';
-
-
-
-
-// Reusable detail row
+// Reusable row
 function DetailRow({ label, value }) {
   return (
     <div className="flex items-center justify-between py-3 px-4">
       <span className="text-sm text-muted-foreground font-medium">{label}</span>
       <span className="text-base text-foreground font-semibold">
-        {value || '-'}
+        {value || "-"}
       </span>
     </div>
   );
@@ -27,55 +24,34 @@ function DetailRow({ label, value }) {
 const MyProfile = () => {
   const { user } = useAuth();
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
-  const queryClient = useQueryClient();
 
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
-
-  // Fetch profile with React Query
+  // ✅ Fetch user profile using query params (email)
   const {
     data: profile,
     isLoading,
     isError,
     error,
-  } = useQuery({
-    queryKey: ['profile', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const res = await fetch(`${baseUrl}/api/users`);
-      if (!res.ok) throw new Error('Failed to fetch user data');
-      const data = await res.json();
-      return Array.isArray(data)
-        ? data.find((u) => u.email === user?.email)
-        : data.email === user?.email
-        ? data
-        : null;
-    },
-    enabled: !!user?.email, // Only run if user email exists
-  });
+  } = useFetchData("user", "user", { email: user?.email }, { enabled: !!user?.email });
 
-  // Mutation for updating profile
-  const mutation = useMutation({
-    mutationFn: async (updatedData) => {
-      const res = await fetch(`${baseUrl}/api/user/${profile._id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData),
-      });
-      if (!res.ok) throw new Error('Failed to update profile');
-      return res.json();
-    },
-    onSuccess: (updatedProfile) => {
-      queryClient.setQueryData(['profile', user?.email], updatedProfile);
+  // ✅ Update user profile using your reusable `useUpdateData`
+  const updateProfile = useUpdateData("user", {
+    onSuccess: () => {
+      toast.success("Profile updated successfully ✅");
       setIsEditPopupOpen(false);
     },
+    onError: () => {
+      toast.error("Failed to update profile ❌");
+    },
   });
 
-  const handleSaveProfile = async (updatedData) => {
-    await mutation.mutateAsync(updatedData);
+  // ✅ Save handler
+  const handleSaveProfile = (updatedData) => {
+    updateProfile.mutate({ id: profile._id, ...updatedData });
   };
 
   if (isLoading) return <ProfileSkeleton />;
-  if (isError) return <div className="text-red-500">Error: {error.message}</div>;
+  if (isError)
+    return <div className="text-red-500">Error: {error.message}</div>;
   if (!profile) return <div>No profile data found.</div>;
 
   return (
@@ -85,7 +61,7 @@ const MyProfile = () => {
         <div className="flex flex-col items-center pt-10 pb-6 bg-background rounded-t-2xl">
           <div className="relative">
             <img
-              src={profile.photoUrl}
+              src={profile?.photoUrl}
               alt="Profile"
               className="w-28 h-28 rounded-full object-cover border-4 border-primary shadow"
             />
@@ -95,7 +71,7 @@ const MyProfile = () => {
           </div>
           <h2 className="text-3xl font-bold text-foreground mt-4 flex items-center gap-2">
             {profile.fullName}
-            {profile.isVerified === 'verified' && (
+            {profile.isVerified === "verified" && (
               <CheckCircle2 className="w-5 h-5 text-success" />
             )}
           </h2>
@@ -105,10 +81,10 @@ const MyProfile = () => {
         </div>
 
         {/* Details Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 md:px-6 lg:px-8 py-10">
           {/* Personal Details */}
           <div>
-            <h3 className="text-lg font-semibold text-primary mb-4">
+            <h3 className="text-lg font-semibold text-primary mb-4 border-b-2 border-primary/50">
               Personal details
             </h3>
             <div className="bg-accent/20 rounded-xl border border-primary/10 divide-y divide-border/10">
@@ -127,13 +103,13 @@ const MyProfile = () => {
 
           {/* Account Details */}
           <div>
-            <h3 className="text-lg font-semibold text-primary mb-4">
+            <h3 className="text-lg font-semibold text-primary mb-4 border-b-2 border-primary/50">
               Account Details
             </h3>
             <div className="bg-accent/20 rounded-xl border border-primary/10 divide-y divide-border/10">
               <DetailRow
                 label="Display Name"
-                value={profile.fullName.split(' ')[0].toLowerCase()}
+                value={profile.fullName.split(" ")[0].toLowerCase()}
               />
               <DetailRow
                 label="Account Created"
@@ -147,15 +123,7 @@ const MyProfile = () => {
               <DetailRow
                 label="Account Verification"
                 value={
-                  profile.isVerified === "verified" ? (
-                    <span className="px-2 py-0.5 rounded bg-success/10 text-success text-xs font-semibold border border-success/30">
-                      Verified
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded bg-destructive/10 text-destructive text-xs font-semibold border border-destructive/30">
-                      Pending
-                    </span>
-                  )
+                  profile.isVerified 
                 }
               />
               <DetailRow label="Language Preference" value="English" />
@@ -167,7 +135,7 @@ const MyProfile = () => {
         {/* Action Buttons */}
         <div className="flex justify-end gap-4 px-8 pb-8">
           <Button
-            variant="primary"
+            variant="default"
             size="lg"
             className="flex items-center gap-2"
             onClick={() => setIsEditPopupOpen(true)}

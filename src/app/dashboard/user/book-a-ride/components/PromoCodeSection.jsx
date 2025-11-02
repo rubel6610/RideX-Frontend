@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Tag, CheckCircle, Gift } from "lucide-react";
@@ -15,19 +15,65 @@ const PromoCodeSection = ({
   setPromoError 
 }) => {
   const [showAvailablePromos, setShowAvailablePromos] = useState(false);
+  const [availablePromos, setAvailablePromos] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Demo promo codes
-  const availablePromos = [
-    { code: "EIDSPECIAL20%", desc: "Eid Special 20% Off", discount: 20 },
-    { code: "NEWYEAR10%", desc: "New Year 10% Off", discount: 10 },
-    { code: "SUMMER05%", desc: "Summer 5% Off", discount: 5 },
-    { code: "FIRSTRIDE15%", desc: "First Ride 15% Off", discount: 15 },
-    { code: "WEEKEND25%", desc: "Weekend Special 25% Off", discount: 25 },
-  ];
+  // Fetch active promotions from database
+  useEffect(() => {
+    const fetchPromos = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/promotions/active`
+        );
+        const data = await response.json();
+        
+        if (Array.isArray(data)) {
+          const formattedPromos = data.map(promo => ({
+            code: promo.code,
+            desc: promo.title,
+            discount: promo.discount
+          }));
+          setAvailablePromos(formattedPromos);
+        }
+      } catch (error) {
+        console.error('Error fetching promotions:', error);
+        // Set fallback promos if API fails
+        setAvailablePromos([
+          { code: "EIDSPECIAL20%", desc: "Eid Special 20% Off", discount: 20 },
+          { code: "NEWYEAR10%", desc: "New Year 10% Off", discount: 10 },
+          { code: "SUMMER05%", desc: "Summer 5% Off", discount: 5 },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const isPromoValid = (code) => availablePromos.some((p) => p.code === code);
+    fetchPromos();
+  }, []);
 
-  const handleApplyPromo = () => {
+  // Demo promo codes (fallback)
+  // Validate promo code with backend
+  const isPromoValid = async (code) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/promotions/validate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        }
+      );
+      const data = await response.json();
+      return data.valid;
+    } catch (error) {
+      console.error('Error validating promo:', error);
+      // Fallback to local validation
+      return availablePromos.some((p) => p.code === code);
+    }
+  };
+
+  const handleApplyPromo = async () => {
     if (!promo.trim()) {
       setPromoError("Please enter a promo code");
       toast.warning("Empty Promo Code", {
@@ -36,19 +82,39 @@ const PromoCodeSection = ({
       return;
     }
 
-    if (!isPromoValid(promo)) {
-      setPromoError("Invalid promo code");
-      toast.error("Invalid Promo Code", {
-        description: "The promo code you entered is not valid. Please check and try again.",
-      });
-      return;
-    }
+    try {
+      // First check if this promo exists in available promos
+      const promoDetails = availablePromos.find(p => p.code === promo.trim());
+      
+      if (!promoDetails) {
+        setPromoError("Invalid promo code");
+        toast.error("Invalid Promo Code", {
+          description: "This promo code doesn't exist. Please check and try again.",
+        });
+        return;
+      }
 
-    setAppliedPromo(promo);
-    setPromoError("");
-    toast.success("Promo Code Applied!", {
-      description: "Your discount has been applied successfully.",
-    });
+      // Then validate with backend
+      if (!await isPromoValid(promo)) {
+        setPromoError("Invalid promo code");
+        toast.error("Invalid Promo Code", {
+          description: "The promo code you entered is not valid. Please check and try again.",
+        });
+        return;
+      }
+
+      setAppliedPromo(promo);
+      setPromoError("");
+      toast.success("Promo Code Applied!", {
+        description: `Promo code ${promoDetails.code} (${promoDetails.discount}% off) has been applied successfully.`,
+      });
+    } catch (error) {
+      console.error("Error applying promo code:", error);
+      setPromoError("Error applying promo code");
+      toast.error("Failed to apply promo code", {
+        description: "Please try again or contact support if the issue persists.",
+      });
+    }
   };
 
   const handleClearPromo = () => {
@@ -60,14 +126,34 @@ const PromoCodeSection = ({
     });
   };
 
-  const handleQuickApply = (promoCode) => {
-    setPromo(promoCode.code);
-    setAppliedPromo(promoCode.code);
-    setPromoError("");
-    setShowAvailablePromos(false);
-    toast.success("Promo Code Applied!", {
-      description: `${promoCode.desc} has been applied successfully.`,
-    });
+  const handleQuickApply = async (promoCode) => {
+    try {
+      // First validate the promo code
+      const isValid = await isPromoValid(promoCode.code);
+      
+      if (!isValid) {
+        setPromoError("Invalid promo code");
+        toast.error("Invalid Promo Code", {
+          description: "This promo code is not valid. Please try another one.",
+        });
+        return;
+      }
+
+      // If valid, apply the promo code
+      setPromo(promoCode.code);
+      setAppliedPromo(promoCode.code);
+      setPromoError("");
+      setShowAvailablePromos(false);
+      
+      toast.success("Promo Code Applied!", {
+        description: `${promoCode.desc} (${promoCode.discount}% off) has been applied successfully.`,
+      });
+    } catch (error) {
+      console.error("Error applying promo code:", error);
+      toast.error("Failed to apply promo code", {
+        description: "Please try again or contact support if the issue persists.",
+      });
+    }
   };
 
   if(promoError){

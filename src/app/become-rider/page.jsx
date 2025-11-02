@@ -1,18 +1,36 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/AuthProvider";
+import FaceVerificationModal from "@/components/Shared/FaceVerification/FaceVerificationModal";
+import UserInfoStep from "@/components/Shared/BecomeRiderSteps/UserInfoStep";
+import VehicleInfoStep from "@/components/Shared/BecomeRiderSteps/VehicleInfoStep";
+import PasswordIdentityStep from "@/components/Shared/BecomeRiderSteps/PasswordIdentityStep";
+import StepNavigation from "@/components/Shared/BecomeRiderSteps/StepNavigation";
+import Image from "next/image";
+import gsap from "gsap";
+
+// Import the images
+import darkImage from "../../Assets/become-rider.webp";
+import { toast } from "sonner";
 
 export default function BecomeRiderPage() {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+  const { register, handleSubmit, setValue, formState: { errors }, trigger } = useForm();
   const [licensePreview, setLicensePreview] = useState(null);
   const [licenseFileName, setLicenseFileName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [faceVerified, setFaceVerified] = useState(false);
+  const [capturedFaceImage, setCapturedFaceImage] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
+  
+  // Refs for animations
+  const formContainerRef = useRef(null);
+  const stepContainerRef = useRef(null);
+
+  const steps = ["User Information", "Vehicle Information", "Password & Identity"];
 
   useEffect(() => {
     if (user?.id || user?.email) {
@@ -20,46 +38,40 @@ export default function BecomeRiderPage() {
     }
   }, [user]);
 
-  const fetchUser = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log(data.message || "Error fetching user");
-        return;
-      }
-
-      
-
-      // Set default values for form fields except emergency/vehicle/license
-      setValue("fullName", data.fullName || "");
-      setValue("dob", data.dateOfBirth || "");
-      setValue("email", data.email || "");
-      setValue("phone", data.phoneNumber || "");
-      setValue("present_address.village", data.present_address?.village || "");
-      setValue("present_address.post", data.present_address?.post || "");
-      setValue("present_address.upazila", data.present_address?.upazila || "");
-      setValue("present_address.district", data.present_address?.district || "");
-    } catch (err) {
-      console.error(err);
+  // Animate form container on initial load
+  useEffect(() => {
+    if (formContainerRef.current) {
+      gsap.fromTo(formContainerRef.current,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+      );
     }
-  };
+  }, []);
+
+  // Animate step transitions
+  useEffect(() => {
+    if (stepContainerRef.current) {
+      gsap.fromTo(stepContainerRef.current,
+        { opacity: 0, x: 100 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }
+      );
+    }
+  }, [currentStep]);
 
   const onSubmit = async (data) => {
     try {
-      if (!user) return alert("User not logged in");
+      setIsSubmitting(true);
+      if (!user) return toast("User not logged in");
 
       // Age check
       const dob = new Date(data.dob);
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
       if (age < 18) {
-        alert("You must be at least 18 years old.");
+        toast("You must be at least 18 years old.");
+        setIsSubmitting(false);
         return;
       }
-
-     
 
       // Prepare payload
       const payload = {
@@ -75,24 +87,68 @@ export default function BecomeRiderPage() {
         vehicleRegisterNumber: data.vehicleReg,
         drivingLicense: licenseFileName,
         password: data.password,
+        // Include the captured face image URL if available
+        frontFace: capturedFaceImage // This will now be an ImgBB URL or base64 fallback
       };
+
+      console.log("Sending become-rider request with payload:", payload);
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/become-rider`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json"},
         body: JSON.stringify(payload),
       });
 
       const result = await res.json();
+      console.log("Become-rider response:", result);
+      
       if (res.ok) {
-        alert("Rider request submitted successfully!");
-        console.log(result.rider);
+        // Animate success message
+        if (formContainerRef.current) {
+          gsap.to(formContainerRef.current, {
+            backgroundColor: "#d1fae5",
+            duration: 0.3,
+            yoyo: true,
+            repeat: 1,
+            onComplete: () => {
+              toast("Rider request submitted successfully!");
+            }
+          });
+        } else {
+          toast("Rider request submitted successfully!");
+        }
       } else {
-        alert(result.message);
+        toast(result.message);
       }
     } catch (err) {
-      console.error(err);
-      alert("Server error");
+      console.error("Become-rider request error:", err);
+      toast("Server error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user?email=${user.email}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast(data.message || "Error fetching user");
+        return;
+      }
+
+      // Set default values for form fields except emergency/vehicle/license
+      setValue("fullName", data.fullName || "");
+      setValue("dob", data.dateOfBirth || "");
+      setValue("email", data.email || "");
+      setValue("phone", data.phoneNumber || "");
+      setValue("present_address.village", data.present_address?.village || "");
+      setValue("present_address.post", data.present_address?.post || "");
+      setValue("present_address.upazila", data.present_address?.upazila || "");
+      setValue("present_address.district", data.present_address?.district || "");
+    } catch (err) {
+      toast("Error fetching user");
     }
   };
 
@@ -111,223 +167,178 @@ export default function BecomeRiderPage() {
     }
   };
 
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleFaceCapture = (imageData) => {
+    console.log("Face capture received:", imageData);
+    setCapturedFaceImage(imageData);
+    setFaceVerified(true);
+    
+    // Animate face capture success
+    if (formContainerRef.current) {
+      gsap.fromTo(formContainerRef.current,
+        { scale: 0.98 },
+        { scale: 1, duration: 0.3, ease: "power2.out" }
+      );
+    }
+  };
+
+  const nextStep = async () => {
+    // Trigger validation for current step before proceeding
+    const isValid = await trigger();
+    if (isValid) {
+      // Animate current step out
+      if (stepContainerRef.current) {
+        gsap.to(stepContainerRef.current, {
+          opacity: 0,
+          x: -100,
+          duration: 0.3,
+          onComplete: () => {
+            setCurrentStep((prev) => prev + 1);
+          }
+        });
+      } else {
+        setCurrentStep((prev) => prev + 1);
+      }
+    }
+  };
+
+  const prevStep = () => {
+    // Animate current step out
+    if (stepContainerRef.current) {
+      gsap.to(stepContainerRef.current, {
+        opacity: 0,
+        x: 100,
+        duration: 0.3,
+        onComplete: () => {
+          setCurrentStep((prev) => prev - 1);
+        }
+      });
+    } else {
+      setCurrentStep((prev) => prev - 1);
+    }
+  };
+
+  // Create a safe wrapper for the register function
+  const safeRegister = (name, options = {}) => {
+    // Create a new object to avoid passing read-only properties
+    const registration = register(name, options);
+    // Return a new object with only the necessary properties
+    return {
+      name: registration.name,
+      onBlur: registration.onBlur,
+      onChange: registration.onChange,
+      ref: registration.ref,
+    };
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <UserInfoStep 
+            register={safeRegister} 
+            errors={errors} 
+            setValue={setValue} 
+          />
+        );
+      case 1:
+        return (
+          <VehicleInfoStep 
+            register={safeRegister} 
+            errors={errors} 
+            handleLicenseChange={handleLicenseChange}
+            licensePreview={licensePreview}
+            licenseFileName={licenseFileName}
+          />
+        );
+      case 2:
+        return (
+          <PasswordIdentityStep 
+            register={safeRegister} 
+            errors={errors} 
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            handleOpenModal={handleOpenModal}
+            faceVerified={faceVerified}
+            capturedFaceImage={capturedFaceImage}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Component for Step Indicator (1, 2, 3...)
+  const Step = ({ active, number, title }) => {
+    const activeClass = active ? 'bg-accent text-primary' : 'bg-muted text-muted-foreground';
+    const numberClass = active ? 'bg-primary text-primary-foreground' : 'bg-border text-foreground';
+
+    return (
+      <div className={`flex items-center text-sm font-medium rounded-full py-1.5 px-3 ${activeClass}`}>
+        <div className={`h-4 w-4 mr-2 flex items-center justify-center rounded-full text-xs font-bold ${numberClass}`}>
+          {number}
+        </div>
+        {title}
+      </div>
+    );
+  };
+
   return (
-    <div className="mt-14 flex justify-center lg:p-16">
-      <div className="w-full max-w-3xl">
-        <h1 className="text-3xl text-center font-bold mb-2">Become a Rider</h1>
-        <p className="text-center text-gray-600 mb-6">
-          Join our rider network and start your journey today.
-        </p>
-
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col p-6 border border-primary dark:border-primary gap-6 rounded-lg"
-        >
-          {/* Row 1: Full Name & DOB */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold">Full Name</label>
-              <input
-                type="text"
-                {...register("fullName", { required: "Name is required" })}
-                className="w-full p-2 border border-primary rounded"
-                placeholder="Enter your name"
-              />
-              {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
-            </div>
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold">Date of Birth</label>
-              <input
-                type="date"
-                {...register("dob", { required: "DOB is required" })}
-                className="w-full p-2 border border-primary rounded"
-              />
-              {errors.dob && <p className="text-red-500 text-sm">{errors.dob.message}</p>}
-            </div>
-          </div>
-
-          {/* Row 2: Email & Phone */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold">Email</label>
-              <input
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: { value: /^\S+@\S+$/i, message: "Invalid Email" }
-                })}
-                className="w-full p-2 border border-primary rounded"
-                placeholder="Enter Your Email"
-              />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-            </div>
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold">Phone</label>
-              <input
-                type="tel"
-                {...register("phone", {
-                  required: "Phone number is required",
-                  pattern: { value: /^\+?8801[3-9]\d{8}$/, message: "Invalid Phone Number" }
-                })}
-                className="w-full p-2 border border-primary rounded"
-                placeholder="Enter Your Phone Number"
-              />
-              {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
-            </div>
-          </div>
-
-          {/* Present Address */}
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Present Address</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1 font-semibold">Village</label>
-                <input
-                  type="text"
-                  {...register("present_address.village", { required: "Village is required" })}
-                  className="w-full p-2 border border-primary rounded"
-                  placeholder="Village"
-                />
-                {errors.present_address?.village && <p className="text-red-500 text-sm">{errors.present_address.village.message}</p>}
-              </div>
-              <div>
-                <label className="block mb-1 font-semibold">Post</label>
-                <input
-                  type="text"
-                  {...register("present_address.post", { required: "Post is required" })}
-                  className="w-full p-2 border border-primary rounded"
-                  placeholder="Post"
-                />
-                {errors.present_address?.post && <p className="text-red-500 text-sm">{errors.present_address.post.message}</p>}
-              </div>
-              <div>
-                <label className="block mb-1 font-semibold">Upazila</label>
-                <input
-                  type="text"
-                  {...register("present_address.upazila", { required: "Upazila is required" })}
-                  className="w-full p-2 border border-primary rounded"
-                  placeholder="Upazila"
-                />
-                {errors.present_address?.upazila && <p className="text-red-500 text-sm">{errors.present_address.upazila.message}</p>}
-              </div>
-              <div>
-                <label className="block mb-1 font-semibold">District</label>
-                <input
-                  type="text"
-                  {...register("present_address.district", { required: "District is required" })}
-                  className="w-full p-2 border border-primary rounded"
-                  placeholder="District"
-                />
-                {errors.present_address?.district && <p className="text-red-500 text-sm">{errors.present_address.district.message}</p>}
-              </div>
-            </div>
-          </div>
-
-          {/* Row 3: Emergency Contact & Vehicle Type */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold">Emergency Contact</label>
-              <input
-                type="tel"
-                {...register("emergencyContact", { required: "Emergency contact is required" })}
-                className="w-full p-2 border border-primary rounded"
-                placeholder="Emergency Contact"
-              />
-              {errors.emergencyContact && <p className="text-red-500 text-sm">{errors.emergencyContact.message}</p>}
-            </div>
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold">Vehicle Type</label>
-              <select
-                {...register("vehicle", { required: "Please select a vehicle" })}
-                className="w-full p-2 bg-white dark:bg-gray-900 border border-gray-300 rounded"
-              >
-                <option value="">Select vehicle</option>
-                <option value="bike">Bike</option>
-                <option value="cng">CNG</option>
-                <option value="car">Car</option>
-              </select>
-              {errors.vehicle && <p className="text-red-500 text-sm">{errors.vehicle.message}</p>}
-            </div>
-          </div>
-
-          {/* Vehicle Model & Registration */}
-          <div>
-            <label className="block mb-1 font-semibold">Vehicle Model</label>
-            <input
-              type="text"
-              {...register("vehicleModel", { required: "Vehicle model is required" })}
-              className="w-full p-2 border border-primary rounded"
-              placeholder="Vehicle Model"
+    <div className="flex w-full max-w-7xl mx-auto mt-28 mb-8 sm:mt-36 sm:mb-12 rounded-xl shadow-2xl overflow-hidden bg-background md:mt-36 md:mb-26">
+      {/* Left Panel (Illustration) - Hidden on mobile */}
+      <div className="hidden md:block w-1/2 md:pl-6">
+        {/* Rider Illustration Image - Full height */}
+        <div className="text-foreground text-center w-full h-full">
+          <div className="w-full h-full block">
+            <Image
+              src={darkImage} 
+              alt="Become a Rider"
+              height={940} 
+              width={725} 
+              className="w-full h-full object-cover"
             />
-            {errors.vehicleModel && <p className="text-red-500 text-sm">{errors.vehicleModel.message}</p>}
           </div>
-          <div>
-            <label className="block mb-1 font-semibold">Vehicle Registration Number</label>
-            <input
-              type="text"
-              {...register("vehicleReg", { required: "Registration number is required" })}
-              className="w-full p-2 border border-primary rounded"
-              placeholder="Vehicle Registration Number"
-            />
-            {errors.vehicleReg && <p className="text-red-500 text-sm">{errors.vehicleReg.message}</p>}
+        </div>
+      </div>
+
+      {/* Right Panel (Form) - Full width on mobile */}
+      <div className="w-full md:w-1/2 p-4 sm:py-6 sm:px-10 bg-background md:pl-6 md:pr-6 md:py-6">
+        {/* Step Navigation */}
+        <div className="flex flex-wrap gap-2 md:gap-3 mb-4">
+          <Step active={currentStep === 0} number={1} title="Personal Info" />
+          <Step active={currentStep === 1} number={2} title="Vehicle Info" />
+          <Step active={currentStep === 2} number={3} title="Security Info" />
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-grow flex flex-col">
+          <div ref={stepContainerRef} className="flex-grow min-h-[400px]">
+            {renderStep()}
           </div>
-
-          {/* Driving License */}
-          <div>
-            <label className="block mb-1 font-semibold">Driving License</label>
-            <input
-              type="file"
-              accept="image/*,.pdf"
-              {...register("drivingLicense", { required: "Driving license is required" })}
-              onChange={handleLicenseChange}
-              className="w-full p-2 border border-primary rounded"
-            />
-            {errors.drivingLicense && <p className="text-red-500 text-sm">{errors.drivingLicense.message}</p>}
-
-            {licensePreview && (
-              <div className="mt-3">
-                <p className="text-sm font-medium">Preview:</p>
-                <img
-                  src={licensePreview}
-                  alt="Driving License Preview"
-                  className="mt-2 w-40 h-28 object-cover border rounded"
-                />
-              </div>
-            )}
-            {!licensePreview && licenseFileName && (
-              <p className="mt-2 text-sm text-gray-600">
-                Selected File: <span className="font-medium">{licenseFileName}</span>
-              </p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative w-full">
-              <Label className="font-semibold text-lg">Password</Label>
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter Your Password"
-                {...register("password", { required: "Password is required" })}
-              />
-              <button
-                type="button"
-                className="absolute top-9 right-3"
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password.message}</p>
-              )}
-            </div>
-          </div>
-
-          <Button type="submit" variant="primary" size="lg">
-            Become a Rider
-          </Button>
+          
+          {/* Navigation */}
+          <StepNavigation 
+            currentStep={currentStep}
+            totalSteps={steps.length}
+            onNext={nextStep}
+            onPrev={prevStep}
+            isSubmitting={isSubmitting}
+            trigger={trigger}
+          />
         </form>
       </div>
+
+      <FaceVerificationModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onCapture={handleFaceCapture}
+      />
     </div>
   );
 }
